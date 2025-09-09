@@ -5,6 +5,10 @@ app_description = "happyschool"
 app_email = "esrathanoona@gmail.com"
 app_license = "unlicense"
 
+
+
+
+
 # Apps
 # ------------------
 
@@ -53,6 +57,19 @@ app_license = "unlicense"
 # include app icons in desk
 # app_include_icons = "happyschool/public/icons.svg"
 
+
+
+
+doctype_js={
+    "Lead": "public/js/lead.js"
+}
+
+
+doc_events={
+    "Lead": {
+        "before_save": "happyschool.happyschool.doc_events.lead.validate_salesperson_limit"
+    }
+}
 # Home Pages
 # ----------
 
