@@ -175,13 +175,5 @@ frappe.ui.form.on("Lead", {
         };
     },
 
-    // Refresh sales person field whenever slot_date changes
-    'booking_slot_date': function(frm, cdt, cdn) {
-        let row = locals[cdt][cdn];
-        if (!row) return;
-
-        // Refresh the field to apply new filter
-        frm.fields_dict['booking'].grid.refresh();
-    }
-
+    
 });
