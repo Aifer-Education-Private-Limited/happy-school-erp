@@ -151,29 +151,30 @@ frappe.ui.form.on("Lead", {
             updateActiveState();
             frm.save();
         });
+       
     },
+    before_save:function(frm){
+        console.log("✅ Lead refresh event triggered");
 
-    onload: function(frm) {
-        // Make sure the child table exists
-        if (!frm.fields_dict['booking']) return;
+        if (frm.doc.custom_booking && frm.doc.custom_booking.length > 0) {
+            frm.doc.custom_booking.forEach(row => {
+                console.log("Child Sales Person:", row.sales_person);
+                console.log("slot date:", row.slot_date);
 
-        // Set query for Sales Person in booking child table
-        frm.fields_dict['booking'].grid.get_field('sales_person').get_query = function(doc, cdt, cdn) {
-            let row = locals[cdt][cdn];
-            console.log("Running get_query for Sales Person", row);
-            if (!row) return {};
+                if (row.sales_person) {
+                    // set parent sales_person with child's value
+                    frm.set_value("custom_sales_person", row.sales_person);
+                    frm.refresh_field("custom_sales_person");
+                }
+                if(row.slot_date){
+                    frm.set_value("custom_assigned_date",row.slot_date)
+                    frm.refresh_field("custom_assigned_date");
+                }
+            });
+        }
+        console.log("Parent Sales Person:", frm.doc.custom_sales_person);
+        console.log("assigned date",frm.doc.custom_assigned_date);
 
-            // Only filter if slot_date is selected
-            let filters = {};
-            if (row.slot_date) {
-                filters.slot_date = row.slot_date;
-            }
-            return {
-                query: "happyschool.happyschool.doc_events.lead.get_available_sales_persons",
-                filters: filters
-            };
-        };
-    },
-
+    }
     
 });
