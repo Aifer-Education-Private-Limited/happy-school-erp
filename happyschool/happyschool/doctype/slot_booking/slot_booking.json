@@ -6,7 +6,6 @@
  "editable_grid": 1,
  "engine": "InnoDB",
  "field_order": [
-  "todays_date",
   "slot_date",
   "from_time",
   "to_time",
@@ -44,19 +43,13 @@
    "fieldtype": "Select",
    "in_list_view": 1,
    "label": "Status"
-  },
-  {
-   "fieldname": "todays_date",
-   "fieldtype": "Date",
-   "in_list_view": 1,
-   "label": "Todays Date"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2025-09-09 14:55:51.909364",
+ "modified": "2025-09-09 18:22:28.237855",
  "modified_by": "Administrator",
  "module": "happyschool",
  "name": "Slot Booking",

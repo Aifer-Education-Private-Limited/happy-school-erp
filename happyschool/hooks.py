@@ -67,7 +67,7 @@ doctype_js={
 
 doc_events={
     "Lead": {
-        "before_save": "happyschool.happyschool.doc_events.lead.validate_salesperson_limit"
+        "validate": "happyschool.happyschool.doc_events.lead.validate_salesperson_limit"
     }
 }
 # Home Pages
