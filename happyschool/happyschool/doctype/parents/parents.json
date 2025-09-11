@@ -49,12 +49,6 @@
    "label": "Date Of Birth"
   },
   {
-   "fieldname": "auth_type",
-   "fieldtype": "Select",
-   "label": "Auth Type",
-   "options": "\nEmail"
-  },
-  {
    "fieldname": "column_break_sgeo",
    "fieldtype": "Column Break"
   },
@@ -67,12 +61,17 @@
    "fieldname": "password",
    "fieldtype": "Data",
    "label": "Password"
+  },
+  {
+   "fieldname": "auth_type",
+   "fieldtype": "Data",
+   "label": "Auth Type"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-09-11 11:14:17.870877",
+ "modified": "2025-09-11 12:55:33.372237",
  "modified_by": "Administrator",
  "module": "happyschool",
  "name": "Parents",
