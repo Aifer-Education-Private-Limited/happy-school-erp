@@ -1,0 +1,144 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2025-09-10 11:15:15.836685",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "subject",
+  "type",
+  "parent1",
+  "student",
+  "user_id",
+  "mobile",
+  "column_break_9fct",
+  "student_course",
+  "status",
+  "progress_time",
+  "complete_time",
+  "creation_time",
+  "section_break_qbti",
+  "description",
+  "column_break_nkst",
+  "progress_comment",
+  "complete_comment"
+ ],
+ "fields": [
+  {
+   "fieldname": "subject",
+   "fieldtype": "Select",
+   "label": "Subject",
+   "options": "\nContent Related\nMentor related\nApp related\nTest related\nSuper Redressal\nCourse validity / extension"
+  },
+  {
+   "fieldname": "student",
+   "fieldtype": "Link",
+   "label": "Student",
+   "options": "Students"
+  },
+  {
+   "fieldname": "user_id",
+   "fieldtype": "Data",
+   "label": "User Id"
+  },
+  {
+   "fieldname": "mobile",
+   "fieldtype": "Phone",
+   "label": "Mobile Number"
+  },
+  {
+   "fieldname": "student_course",
+   "fieldtype": "Data",
+   "label": "Student Course"
+  },
+  {
+   "fieldname": "progress_time",
+   "fieldtype": "Datetime",
+   "hidden": 1,
+   "label": "Progress Time"
+  },
+  {
+   "fieldname": "complete_time",
+   "fieldtype": "Datetime",
+   "hidden": 1,
+   "label": "Complete Time"
+  },
+  {
+   "fieldname": "creation_time",
+   "fieldtype": "Data",
+   "label": "Created Time",
+   "read_only": 1
+  },
+  {
+   "fieldname": "parent1",
+   "fieldtype": "Link",
+   "label": "Parent",
+   "options": "Parents"
+  },
+  {
+   "fieldname": "type",
+   "fieldtype": "Select",
+   "label": "Type",
+   "options": "Student\nParent"
+  },
+  {
+   "fieldname": "column_break_9fct",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "description",
+   "fieldtype": "Text",
+   "label": "Description"
+  },
+  {
+   "fieldname": "section_break_qbti",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "progress_comment",
+   "fieldtype": "Small Text",
+   "label": "Progress Comment"
+  },
+  {
+   "fieldname": "complete_comment",
+   "fieldtype": "Small Text",
+   "label": "Complete Comment"
+  },
+  {
+   "fieldname": "column_break_nkst",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "label": "Status",
+   "options": "Open\nProgress\nComplete"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2025-09-10 16:36:32.425864",
+ "modified_by": "Administrator",
+ "module": "happyschool",
+ "name": "Parent Or Student Ticket",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}
