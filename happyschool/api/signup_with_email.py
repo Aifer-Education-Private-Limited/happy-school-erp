@@ -85,7 +85,7 @@ def parent_signup():
 @frappe.whitelist(allow_guest=True)
 def login_with_email(email, password):
     try:
-        parent = frappe.db.get_value("Parents", {"email": email}, "name")
+        parent = frappe.db.get_value("Parents", {"email": email,"password":password}, "name")
         if not parent:
             frappe.local.response.update({
                 "success": False,

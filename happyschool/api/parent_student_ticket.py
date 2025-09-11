@@ -19,7 +19,7 @@ def ticket(mobile):
         uid=frappe.form_dict.get('uid')
 
         
-        student = frappe.db.get_value("Students", {"student_mobile_number": mobile}, ["name", "student_name"], as_dict=True)
+        student = frappe.db.get_value("Students", {"mobile": mobile}, ["name", "student_name"], as_dict=True)
         parent = frappe.db.get_value("Parents", {"mobile_number": mobile}, ["name", "first_name"], as_dict=True)
 
         student_id = student.name if student else None
