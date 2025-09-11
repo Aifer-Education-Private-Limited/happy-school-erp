@@ -47,7 +47,7 @@ def parent_signup():
         frappe.db.commit()
 
         parent_details = {
-            "parent_id"
+            "parent_id":parent.name,
             "first_name": parent.first_name,
             "last_name": parent.last_name,
             "email": parent.email,
@@ -72,3 +72,25 @@ def parent_signup():
             "success": False,
             "message": frappe.get_traceback()
         })
+
+@frappe.whitelist(allow_guest=True)
+def login_with_email(email, password):
+    try:
+        parent = frappe.db.get_value("Parents", {"email": email}, "name")
+        if not parent:
+            frappe.local.response.update({
+                "success": False,
+                "message": "Invalid email or password"
+            })
+            return
+        
+        
+        frappe.local.response.update({
+            "success": True     
+        })
+    except Exception as e:
+        frappe.local.response.update({
+            "success": False,
+            "message": str(e)
+        })
+
