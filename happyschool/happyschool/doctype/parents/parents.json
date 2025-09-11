@@ -9,8 +9,8 @@
   "last_name",
   "mobile_number",
   "email",
-  "column_break_sgeo",
   "password",
+  "column_break_sgeo",
   "state",
   "date_of_birth",
   "auth_type",
@@ -38,11 +38,6 @@
    "label": "Email"
   },
   {
-   "fieldname": "password",
-   "fieldtype": "Data",
-   "label": "Password"
-  },
-  {
    "fieldname": "state",
    "fieldtype": "Select",
    "label": "State",
@@ -67,12 +62,17 @@
    "fieldname": "token",
    "fieldtype": "Data",
    "label": "Token"
+  },
+  {
+   "fieldname": "password",
+   "fieldtype": "Data",
+   "label": "Password"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-09-10 18:24:43.704168",
+ "modified": "2025-09-11 11:14:17.870877",
  "modified_by": "Administrator",
  "module": "happyschool",
  "name": "Parents",
