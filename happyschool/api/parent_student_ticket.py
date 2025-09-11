@@ -25,7 +25,7 @@ def ticket(mobile):
         student_id = student.name if student else None
         student_name = student.student_name if student else None
         parent_id = parent.name if parent else None
-        parent_name = parent.parent_name if parent else None
+        parent_name = parent.first_name if parent else None
 
 
 
