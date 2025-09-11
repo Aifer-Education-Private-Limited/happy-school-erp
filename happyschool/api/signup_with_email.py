@@ -24,17 +24,19 @@ def parent_signup():
 
         # Validation
         if not first_name:
-            return {
+            frappe.local.response.update ({
                 "success": False,
                 "message": "First Name is required."
-            }
+            })
+            return
 
         # Check if email already exists
         if frappe.db.exists("Parents", {"email": email}):
-            return {
+            frappe.local.response.update ({
                 "success": False,
                 "message": "Email already registered."
-            }
+            })
+            return
 
         # Create Parent record
         parent = frappe.new_doc("Parents")
@@ -69,7 +71,7 @@ def parent_signup():
             "message": "Signup successful.",
             "parent_id": parent_details
         })
-            
+        return 
         
 
     except Exception:
@@ -78,6 +80,7 @@ def parent_signup():
             "success": False,
             "message": frappe.get_traceback()
         })
+        return
 
 @frappe.whitelist(allow_guest=True)
 def login_with_email(email, password):
@@ -94,9 +97,11 @@ def login_with_email(email, password):
         frappe.local.response.update({
             "success": True     
         })
+        return
     except Exception as e:
         frappe.local.response.update({
             "success": False,
             "message": str(e)
         })
+        return
 

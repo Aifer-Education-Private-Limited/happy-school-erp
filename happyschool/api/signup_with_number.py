@@ -16,23 +16,25 @@ def parent_signup_with_mobile():
 
         # Validation
         if not mobile:
-            return {
+            frappe.local.response.update({
                 "success": False,
                 "message": "Mobile Number is required"
-            }
-
+            })
+            return
         if not first_name:
-            return {
+            frappe.local.response.update({
                 "success": False,
                 "message": "First Name required."
-            }
+            })
+            return
 
         # Check if mobile already exists
         if frappe.db.exists("Parents", {"mobile_number": mobile}):
-            return {
+            frappe.local.response.update({
                 "success": False,
                 "message": "Mobile already registered."
-            }
+            })
+            return
 
         # Create Parent record
         parent = frappe.new_doc("Parents")
@@ -59,15 +61,17 @@ def parent_signup_with_mobile():
             "authtype": parent.auth_type,
         }
 
-        return {
+        frappe.local.response.update({
             "success": True,
             "message": "Signup successful.",
             "parent": parent_details
-        }
+        })
+        return
 
     except Exception:
         frappe.log_error(frappe.get_traceback(), "Parent Signup Error")
-        return {
+        frappe.local.response.update({
             "success": False,
             "message": frappe.get_traceback()
-        }
+        })
+        return
