@@ -1,16 +1,16 @@
 {
  "actions": [],
  "allow_rename": 1,
- "autoname": "hash",
+ "autoname": "field:phone",
  "creation": "2025-09-10 18:01:08.546979",
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
   "email",
   "password",
-  "phone",
   "tutor_name",
-  "subject"
+  "subject",
+  "phone"
  ],
  "fields": [
   {
@@ -20,13 +20,14 @@
   },
   {
    "fieldname": "password",
-   "fieldtype": "Password",
-   "label": "Pass Word"
+   "fieldtype": "Data",
+   "label": "Password"
   },
   {
    "fieldname": "phone",
    "fieldtype": "Data",
-   "label": "Phone"
+   "label": "Phone",
+   "unique": 1
   },
   {
    "fieldname": "tutor_name",
@@ -43,11 +44,11 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-09-10 18:48:47.931569",
+ "modified": "2025-09-11 12:13:48.794509",
  "modified_by": "Administrator",
  "module": "happyschool",
  "name": "Tutors",
- "naming_rule": "Random",
+ "naming_rule": "By fieldname",
  "owner": "Administrator",
  "permissions": [
   {

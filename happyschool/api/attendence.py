@@ -3,10 +3,7 @@ from frappe.utils import nowdate, now_datetime,format_date
 from frappe.model.document import Document
 from frappe.model.naming import make_autoname
 
-class StudentAttendance(Document):
-    def autoname(self):
-        # Generate autoname like PST-2025-00001
-        self.name = make_autoname("PST-.YYYY.-.#####")
+
 @frappe.whitelist(allow_guest=True) 
 def make_attendance(student_id, course_id,confirm):
     today = nowdate()
@@ -30,7 +27,7 @@ def make_attendance(student_id, course_id,confirm):
     doc.insert(ignore_permissions=True)
     frappe.db.commit()
 
-    return {"success": True, "message": "Attendance Marked Successfully", "name": doc.name}
+    return {"success": True, "message": "Attendance Marked Successfully", "attendance_id": doc.name}
 
 
 

@@ -1,31 +1,37 @@
 import frappe
-from frappe.utils.password import check_password
 
 @frappe.whitelist(allow_guest=True)
 def tutor_login(email, password):
-   
+    """
+    Authenticate tutor using Tutors doctype with Data field password (plain text)
+    """
     try:
-        tutor = frappe.db.get_value("Tutors", {"email": email}, ["name", "password"], as_dict=True)
+        tutor = frappe.db.get_value("Tutors", {"email": email}, ["name", "email", "password"], as_dict=True)
         if not tutor:
-            return {"success": False, "message": "Invalid email or password"}
+            frappe.local.response.update({
+                "success": False,
+                "message": "Invalid email or password"
+            })
+            return
 
-        try:
-            check_password("Tutors", tutor.name, password)
-            verified = True
-        except Exception:
-            verified = (tutor.password == password)
+        # Compare plain text password
+        if tutor.password != password:
+            frappe.local.response.update({
+                "success": False,
+                "message": "Invalid email or password"
+            })
+            return
 
-        if not verified:
-            return {"success": False, "message": "Invalid email or password"}
-
-        tutor_doc = frappe.get_doc("Tutors", tutor.name)
-
-        return {
+        # Success
+        frappe.local.response.update({
             "success": True,
             "message": "Login successful",
-            "tutor_id": tutor_doc.name,
-        }
+            "tutor_id": tutor.name,
+        })
 
     except Exception as e:
         frappe.log_error(title="Tutor Login Error", message=frappe.get_traceback())
-        return {"success": False, "error": str(e)}
+        frappe.local.response.update({
+            "success": False,
+            "error": str(e)
+        })
