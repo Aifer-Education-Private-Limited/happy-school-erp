@@ -10,32 +10,42 @@ def parent_signup_with_mobile():
         state = data.get("state")
         dob = data.get("dob")
         token = data.get("token")
-        authtype=data.get("authtype")
-        mobile_number = data.get("mobile_number")
+        email = data.get("email")
+        authtype = data.get("authtype")
+        mobile = data.get("mobile")  # <-- fetch here
 
         # Validation
-        if not first_name:
-            return {
+        if not mobile:
+            frappe.local.response.update({
                 "success": False,
-                "message": "First Name is required."
-            }
+                "message": "Mobile Number is required"
+            })
+            return
+        if not first_name:
+            frappe.local.response.update({
+                "success": False,
+                "message": "First Name required."
+            })
+            return
 
         # Check if mobile already exists
-        if frappe.db.exists("Parents", {"mobile_number": mobile_number}):
-            return {
+        if frappe.db.exists("Parents", {"mobile_number": mobile}):
+            frappe.local.response.update({
                 "success": False,
                 "message": "Mobile already registered."
-            }
+            })
+            return
 
         # Create Parent record
         parent = frappe.new_doc("Parents")
         parent.first_name = first_name
         parent.last_name = last_name
         parent.state = state
+        parent.email = email
         parent.date_of_birth = dob
         parent.token = token
         parent.auth_type = authtype
-        parent.mobile_number = mobile_number
+        parent.mobile_number = mobile
         parent.insert(ignore_permissions=True)
 
         frappe.db.commit()
@@ -45,6 +55,7 @@ def parent_signup_with_mobile():
             "first_name": parent.first_name,
             "last_name": parent.last_name,
             "mobile_number": parent.mobile_number,
+            "email": parent.email,
             "dob": parent.date_of_birth,
             "state": parent.state,
             "authtype": parent.auth_type,
@@ -55,6 +66,7 @@ def parent_signup_with_mobile():
             "message": "Signup successful.",
             "parent": parent_details
         })
+        return
 
     except Exception:
         frappe.log_error(frappe.get_traceback(), "Parent Signup Error")
@@ -62,4 +74,4 @@ def parent_signup_with_mobile():
             "success": False,
             "message": frappe.get_traceback()
         })
-
+        return
