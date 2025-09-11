@@ -16,6 +16,12 @@ def parent_signup():
         mobile_number = data.get("mobile_number")
         password = data.get("password")
 
+        if not email:
+            return{
+                "success":False,
+                "message":"email is required"
+            }
+
         # Validation
         if not first_name:
             return {

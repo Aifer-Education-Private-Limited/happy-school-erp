@@ -10,18 +10,25 @@ def parent_signup_with_mobile():
         state = data.get("state")
         dob = data.get("dob")
         token = data.get("token")
-        authtype=data.get("authtype")
-        mobile_number = data.get("mobile_number")
+        email = data.get("email")
+        authtype = data.get("authtype")
+        mobile = data.get("mobile")  # <-- fetch here
 
         # Validation
+        if not mobile:
+            return {
+                "success": False,
+                "message": "Mobile Number is required"
+            }
+
         if not first_name:
             return {
                 "success": False,
-                "message": "First Name is required."
+                "message": "First Name required."
             }
 
         # Check if mobile already exists
-        if frappe.db.exists("Parents", {"mobile_number": mobile_number}):
+        if frappe.db.exists("Parents", {"mobile_number": mobile}):
             return {
                 "success": False,
                 "message": "Mobile already registered."
@@ -32,10 +39,11 @@ def parent_signup_with_mobile():
         parent.first_name = first_name
         parent.last_name = last_name
         parent.state = state
+        parent.email = email
         parent.date_of_birth = dob
         parent.token = token
         parent.auth_type = authtype
-        parent.mobile_number = mobile_number
+        parent.mobile_number = mobile
         parent.insert(ignore_permissions=True)
 
         frappe.db.commit()
@@ -45,21 +53,21 @@ def parent_signup_with_mobile():
             "first_name": parent.first_name,
             "last_name": parent.last_name,
             "mobile_number": parent.mobile_number,
+            "email": parent.email,
             "dob": parent.date_of_birth,
             "state": parent.state,
             "authtype": parent.auth_type,
         }
 
-        frappe.local.response.update({
+        return {
             "success": True,
             "message": "Signup successful.",
             "parent": parent_details
-        })
+        }
 
     except Exception:
         frappe.log_error(frappe.get_traceback(), "Parent Signup Error")
-        frappe.local.response.update({
+        return {
             "success": False,
             "message": frappe.get_traceback()
-        })
-
+        }
