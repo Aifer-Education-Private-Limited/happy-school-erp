@@ -59,6 +59,10 @@ app_license = "unlicense"
 
 
 
+permission_query_conditions = {
+    "Parent Or Student Ticket":"happyschool.permissions.parent_student_ticket_permission_query"
+}
+
 
 doctype_js={
     "Lead": "public/js/lead.js"
@@ -68,6 +72,9 @@ doctype_js={
 doc_events={
     "Lead": {
         "validate": "happyschool.happyschool.doc_events.lead.validate_salesperson_limit"
+    },
+    "Parent Or Student Ticket":{
+        "validate":"happyschool.happyschool.doctype.parent_or_student_ticket.parent_or_student_ticket.update_ticket_times"
     }
 }
 # Home Pages
