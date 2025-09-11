@@ -1,0 +1,121 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2025-09-10 18:42:55.678988",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "subject",
+  "topic",
+  "subtopic",
+  "meeting_link",
+  "caption",
+  "description",
+  "student_id",
+  "column_break_bw4x",
+  "faculty_email",
+  "meeting_start_time",
+  "meeting_end_time",
+  "thumbnail",
+  "status",
+  "scheduled_date"
+ ],
+ "fields": [
+  {
+   "fieldname": "subject",
+   "fieldtype": "Data",
+   "label": "Subject"
+  },
+  {
+   "fieldname": "topic",
+   "fieldtype": "Data",
+   "label": "Topic"
+  },
+  {
+   "fieldname": "subtopic",
+   "fieldtype": "Data",
+   "label": "Subtopic"
+  },
+  {
+   "fieldname": "meeting_link",
+   "fieldtype": "Data",
+   "label": "Meeting Link"
+  },
+  {
+   "fieldname": "caption",
+   "fieldtype": "Data",
+   "label": "Caption"
+  },
+  {
+   "fieldname": "description",
+   "fieldtype": "Data",
+   "label": "Description"
+  },
+  {
+   "fieldname": "faculty_email",
+   "fieldtype": "Data",
+   "label": "Faculty Email"
+  },
+  {
+   "fieldname": "meeting_start_time",
+   "fieldtype": "Datetime",
+   "label": "Meeting Start Time"
+  },
+  {
+   "fieldname": "meeting_end_time",
+   "fieldtype": "Datetime",
+   "label": "Meeting End Time"
+  },
+  {
+   "fieldname": "thumbnail",
+   "fieldtype": "Attach Image",
+   "label": "Thumbnail"
+  },
+  {
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "label": "Status",
+   "options": "Ongoing\nUpcoming\nCompleted"
+  },
+  {
+   "fieldname": "scheduled_date",
+   "fieldtype": "Datetime",
+   "label": "Scheduled Date"
+  },
+  {
+   "fieldname": "column_break_bw4x",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "student_id",
+   "fieldtype": "Data",
+   "label": "Student Id"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2025-09-11 10:40:31.728261",
+ "modified_by": "Administrator",
+ "module": "happyschool",
+ "name": "Live Classroom",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}
