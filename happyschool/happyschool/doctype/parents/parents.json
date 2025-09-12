@@ -14,7 +14,7 @@
   "state",
   "date_of_birth",
   "auth_type",
-  "token"
+  "profile"
  ],
  "fields": [
   {
@@ -53,11 +53,6 @@
    "fieldtype": "Column Break"
   },
   {
-   "fieldname": "token",
-   "fieldtype": "Data",
-   "label": "Token"
-  },
-  {
    "fieldname": "password",
    "fieldtype": "Data",
    "label": "Password"
@@ -66,12 +61,17 @@
    "fieldname": "auth_type",
    "fieldtype": "Data",
    "label": "Auth Type"
+  },
+  {
+   "fieldname": "profile",
+   "fieldtype": "Data",
+   "label": "Profile"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-09-11 12:55:33.372237",
+ "modified": "2025-09-12 15:31:13.874530",
  "modified_by": "Administrator",
  "module": "happyschool",
  "name": "Parents",
