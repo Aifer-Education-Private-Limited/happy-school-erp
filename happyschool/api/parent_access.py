@@ -18,6 +18,7 @@ def parent_signup():
         email = data.get("email")
         mobile = data.get("mobile")
         password = data.get("password")
+        
 
         if not email:
             frappe.local.response.update({
