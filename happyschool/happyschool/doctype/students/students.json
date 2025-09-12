@@ -14,7 +14,8 @@
   "password",
   "dob",
   "profile",
-  "status"
+  "status",
+  "type"
  ],
  "fields": [
   {
@@ -28,8 +29,9 @@
   },
   {
    "fieldname": "parent_id",
-   "fieldtype": "Data",
-   "label": "Parent Id"
+   "fieldtype": "Link",
+   "label": "Parent Id",
+   "options": "Parents"
   },
   {
    "fieldname": "dob",
@@ -68,12 +70,19 @@
    "fieldtype": "Select",
    "label": "Status",
    "options": "Linked\nUnlink"
+  },
+  {
+   "default": "Active",
+   "fieldname": "type",
+   "fieldtype": "Select",
+   "label": "Type",
+   "options": "Active\nInactive"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-09-11 16:55:36.460815",
+ "modified": "2025-09-12 15:31:05.266779",
  "modified_by": "Administrator",
  "module": "happyschool",
  "name": "Students",
