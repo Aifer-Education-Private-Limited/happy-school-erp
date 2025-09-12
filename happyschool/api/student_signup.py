@@ -15,6 +15,7 @@ def student_signup():
         dob = data.get("dob")
         profile = data.get("profile")
         
+        
 
 
         if not mobile:
