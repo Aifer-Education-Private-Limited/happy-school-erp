@@ -14,8 +14,8 @@ def student_signup():
         password = data.get("password")
         dob = data.get("dob")
         profile = data.get("profile")
-        
-
+        type_status=data.get("type")
+    
 
         if not mobile:
             frappe.local.response.update ({
@@ -30,6 +30,13 @@ def student_signup():
                 "message": "Already registered"
             })
             return
+
+        if not frappe.db.exists("Students",{"parent_id":parent_id}):
+            frappe.local.response.update({
+                "success":False,
+                "message":f"parent {parent_id} not exist"
+            })
+            return
         
         student=frappe.new_doc("Students")
         student.parent_id=parent_id
@@ -41,6 +48,7 @@ def student_signup():
         student.dob=dob
         student.profile=profile
         student.status="Linked"
+        student.type=type_status if type_status else "Active"
         student.insert(ignore_permissions=True)
         frappe.db.commit()
 
@@ -53,7 +61,8 @@ def student_signup():
             "password":student.password,
             "dob":student.dob,
             "profile":student.profile,
-            "status":student.status
+            "status":student.status,
+            "type":student.type
         }
 
         frappe.local.response.update({

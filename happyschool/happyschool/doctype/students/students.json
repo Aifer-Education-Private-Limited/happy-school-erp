@@ -14,7 +14,8 @@
   "password",
   "dob",
   "profile",
-  "status"
+  "status",
+  "type"
  ],
  "fields": [
   {
@@ -28,8 +29,9 @@
   },
   {
    "fieldname": "parent_id",
-   "fieldtype": "Data",
-   "label": "Parent Id"
+   "fieldtype": "Link",
+   "label": "Parent Id",
+   "options": "Parents"
   },
   {
    "fieldname": "dob",
@@ -68,6 +70,13 @@
    "fieldtype": "Select",
    "label": "Status",
    "options": "Linked\nUnlink"
+  },
+  {
+   "default": "Active",
+   "fieldname": "type",
+   "fieldtype": "Select",
+   "label": "Type",
+   "options": "Active\nInactive"
   }
  ],
  "grid_page_length": 50,
