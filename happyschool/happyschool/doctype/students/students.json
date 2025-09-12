@@ -38,7 +38,7 @@
   },
   {
    "fieldname": "profile",
-   "fieldtype": "Attach",
+   "fieldtype": "Data",
    "label": "Profile"
   },
   {
@@ -73,7 +73,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-09-11 16:55:36.460815",
+ "modified": "2025-09-12 14:28:43.874330",
  "modified_by": "Administrator",
  "module": "happyschool",
  "name": "Students",
