@@ -14,7 +14,8 @@
   "state",
   "date_of_birth",
   "auth_type",
-  "profile"
+  "profile",
+  "joindate"
  ],
  "fields": [
   {
@@ -66,12 +67,17 @@
    "fieldname": "profile",
    "fieldtype": "Data",
    "label": "Profile"
+  },
+  {
+   "fieldname": "joindate",
+   "fieldtype": "Date",
+   "label": "Joindate"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-09-12 15:31:13.874530",
+ "modified": "2025-09-12 18:51:39.596282",
  "modified_by": "Administrator",
  "module": "happyschool",
  "name": "Parents",
