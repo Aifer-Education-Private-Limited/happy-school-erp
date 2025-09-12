@@ -18,6 +18,7 @@ def student_signup():
         
 
 
+
         if not mobile:
             frappe.local.response.update ({
                 "success": False,
