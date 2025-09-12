@@ -35,3 +35,41 @@ def tutor_login(email, password):
             "success": False,
             "error": str(e)
         })
+
+
+
+@frappe.whitelist(allow_guest=True)
+def check_user(tutor_id=None):
+    """
+    Fetch Tutor details by Tutor 'name' (DocType primary key).
+    """
+    try:
+        app_version = {
+            "ios_latest": 4003,
+            "android_latest": 4003,
+            "ios_minimum": 3262,
+            "android_minimum": 3266,
+        }
+
+        if not tutor_id:
+                  frappe.local.response.update({"success": False, "error": "Missing tutor_id"})
+
+        tutor_data = frappe.db.sql("""
+            SELECT name as tutor_id, tutor_name, phone, email, subject
+            FROM `tabTutors`
+            WHERE name = %s
+            LIMIT 1
+        """, (tutor_id,), as_dict=True)
+
+        frappe.local.response.update({
+            "success": True,
+            "data": tutor_data,
+            "app_version": app_version,
+            # "ERP_API_KEY": f"Basic {frappe.conf.get('erp_auth_token')}"
+            "ERP_API_KEY":"MTYxZDczZTJjNDA1NGY5OmY5MGY4ZWJmYWQ4NGFjOA=="
+
+        })
+
+    except Exception as e:
+        frappe.log_error(frappe.get_traceback(), "check_user API error")
+        frappe.local.response.update({"success": False, "error": str(e)})  
