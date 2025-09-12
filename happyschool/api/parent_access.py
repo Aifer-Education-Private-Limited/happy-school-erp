@@ -14,7 +14,7 @@ def parent_signup():
         state=data.get("state")
         dob=data.get("dob")
         authtype=data.get("authtype")
-        token=data.get("token")
+        profile=data.get("profile")
         email = data.get("email")
         mobile = data.get("mobile")
         password = data.get("password")
@@ -25,17 +25,18 @@ def parent_signup():
                 "success":False,
                 "message":"email is required"
             })
+            return
 
         # Validation
-        if not first_name:
+        if not first_name or not last_name:
             frappe.local.response.update ({
                 "success": False,
-                "message": "First Name is required."
+                "message": "First Name and Last Name is required."
             })
             return
 
         # Check if mobile already exists
-        if frappe.db.exists("Parents", {"mobile": mobile}):
+        if frappe.db.exists("Parents", {"mobile_number": mobile}):
             frappe.local.response.update({
                 "success": False,
                 "message": "Mobile already registered."
@@ -58,30 +59,20 @@ def parent_signup():
         parent.password=password
         parent.state=state
         parent.date_of_birth=dob
-        parent.token=token
+        parent.profile=profile
         parent.auth_type=authtype
-        parent.mobile = mobile
+        parent.mobile_number = mobile
         parent.insert(ignore_permissions=True)
 
 
         frappe.db.commit()
 
-        parent_details = {
-            "parent_id":parent.name,
-            "first_name": parent.first_name,
-            "last_name": parent.last_name,
-            "email": parent.email,
-            "mobile_number": parent.mobile_number,
-            "dob":parent.date_of_birth,
-            "state":parent.state,
-            "authtype":parent.auth_type,
-
-        }
+        parent_id = parent.name
 
         frappe.local.response.update ({
             "success": True,
             "message": "Signup successful.",
-            "parent_details": parent_details
+            "parent_id": parent_id
         })
         return 
         
@@ -201,7 +192,6 @@ def parent_signup_with_mobile():
             "message": frappe.get_traceback()
         })
         return
-
 
 @frappe.whitelist(allow_guest=True)
 def generate_otp_by_otpless(mobile, isLogin=False, auth_type=None, channel="sms"):
