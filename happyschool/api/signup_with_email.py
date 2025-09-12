@@ -16,19 +16,27 @@ def parent_signup():
         mobile_number = data.get("mobile_number")
         password = data.get("password")
 
+        if not email:
+            return{
+                "success":False,
+                "message":"email is required"
+            }
+
         # Validation
         if not first_name:
-            return {
+            frappe.local.response.update ({
                 "success": False,
                 "message": "First Name is required."
-            }
+            })
+            return
 
         # Check if email already exists
         if frappe.db.exists("Parents", {"email": email}):
-            return {
+            frappe.local.response.update ({
                 "success": False,
                 "message": "Email already registered."
-            }
+            })
+            return
 
         # Create Parent record
         parent = frappe.new_doc("Parents")
@@ -47,7 +55,7 @@ def parent_signup():
         frappe.db.commit()
 
         parent_details = {
-            "parent_id"
+            "parent_id":parent.name,
             "first_name": parent.first_name,
             "last_name": parent.last_name,
             "email": parent.email,
@@ -63,7 +71,7 @@ def parent_signup():
             "message": "Signup successful.",
             "parent_id": parent_details
         })
-            
+        return 
         
 
     except Exception:
@@ -72,3 +80,28 @@ def parent_signup():
             "success": False,
             "message": frappe.get_traceback()
         })
+        return
+
+@frappe.whitelist(allow_guest=True)
+def login_with_email(email, password):
+    try:
+        parent = frappe.db.get_value("Parents", {"email": email,"password":password}, "name")
+        if not parent:
+            frappe.local.response.update({
+                "success": False,
+                "message": "Invalid email or password"
+            })
+            return
+        
+        
+        frappe.local.response.update({
+            "success": True     
+        })
+        return
+    except Exception as e:
+        frappe.local.response.update({
+            "success": False,
+            "message": str(e)
+        })
+        return
+
