@@ -88,19 +88,38 @@ def parent_signup():
 @frappe.whitelist(allow_guest=True)
 def login_with_email(email, password):
     try:
-        parent = frappe.db.get_value("Parents", {"email": email}, "name")
+        # Fetch parent record with email and password
+        parent = frappe.db.get_value(
+            "Parents",
+            {"email": email},
+            ["name", "password"],
+            as_dict=True
+        )
+
+        # If no parent found
         if not parent:
+            frappe.local.response.update({
+                "success": False,
+                "message": "Account does not exist"
+            })
+            return
+
+        # Check password
+        if parent.password != password:
             frappe.local.response.update({
                 "success": False,
                 "message": "Invalid email or password"
             })
             return
-        
-        
+
+        # Success
         frappe.local.response.update({
-            "success": True     
+            "success": True,
+            "parent_id": parent.name,
+            "message": "Login successful"
         })
         return
+
     except Exception as e:
         frappe.local.response.update({
             "success": False,
@@ -201,17 +220,22 @@ def generate_otp_by_otpless(mobile, isLogin=False, auth_type=None, channel="sms"
     try:
         isLogin = True if str(isLogin).lower() in ["true", "1"] else False
 
-        print(OTPLESS_CLIENT_ID, OTPLESS_CLIENT_SECRET, "OTPLESS_CLIENT_ID")
+        print("mobile", mobile)
+        print("isLogin", isLogin)
+        print("auth_type", auth_type)
+        print("channel", channel)
 
         # Case 1: If user is logging in
         if isLogin:
             if auth_type == "whatsapp":
                 # Check if mobile exists in dot_users
                 mobile_exists = frappe.db.sql("""
-                    SELECT name 
+                    SELECT * 
                     FROM `tabParents`
                     WHERE mobile_number LIKE %s AND (auth_type = %s OR auth_type = 'phone')
                 """, (f"%{mobile}", auth_type), as_dict=True)
+
+                print("mobile_exists", mobile_exists)
 
                 if mobile_exists:
                     frappe.local.response.update( {"status": True, "uid": mobile_exists[0].firebase_uid} )
