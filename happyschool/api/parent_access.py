@@ -66,6 +66,11 @@ def parent_signup():
 
 
         frappe.db.commit()
+        # Create Student linked to parent
+        student = frappe.get_doc({
+            "doctype": "Students",
+            "parent_id": parent.name
+        })
 
         parent_id = parent.name
 
