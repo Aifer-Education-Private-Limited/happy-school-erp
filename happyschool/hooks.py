@@ -75,6 +75,9 @@ doc_events={
     },
     "Parent Or Student Ticket":{
         "validate":"happyschool.happyschool.doctype.parent_or_student_ticket.parent_or_student_ticket.update_ticket_times"
+    },
+    "Parents":{
+        "after_insert":"happyschool.happyschool.doctype.parents.parents.createparent"
     }
 }
 # Home Pages
