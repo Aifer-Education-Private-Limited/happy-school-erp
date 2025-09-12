@@ -19,7 +19,7 @@ def ticket(mobile):
         uid=frappe.form_dict.get('uid')
 
         
-        student = frappe.db.get_value("Students", {"student_mobile_number": mobile}, ["name", "student_name"], as_dict=True)
+        student = frappe.db.get_value("Students", {"mobile": mobile}, ["name", "student_name"], as_dict=True)
         parent = frappe.db.get_value("Parents", {"mobile_number": mobile}, ["name", "first_name"], as_dict=True)
 
         student_id = student.name if student else None
@@ -147,39 +147,47 @@ def get_ticket(uid):
         tickets = frappe.get_all(
             "Parent Or Student Ticket",
             filters={"user_id": uid},
-            fields=["name", "subject", "student", "student_course", "status", "description", "creation", "modified","type",
-            "progress_time","complete_time","progress_comment","complete_comment"],
+            fields=[
+                "name", "subject", "student", "student_course", "status",
+                "description", "creation", "modified", "type",
+                "progress_time", "complete_time",
+                "progress_comment", "complete_comment"
+            ],
             order_by="creation desc"
         )
 
         if not tickets:
-            return {
+            frappe.local.response.update({
                 "success": False,
                 "message": f"No tickets found for uid: {uid}"
-            }
+            })
+            return
 
-        return {
+        frappe.local.response.update({
             "success": True,
             "tickets": [
                 {
                     "ticket_id": t.name,
                     "category": t.subject,
-                    "type":t.type,
+                    "type": t.type,
                     "course": t.student_course,
                     "status": t.status,
                     "description": t.description,
-                    "progress_comment":t.progress_comment,
-                    "complete":t.complete_comment,
+                    "progress_comment": t.progress_comment,
+                    "complete": t.complete_comment,
                     "creation": t.creation,
-                    "progress_time": t.progress_time or "" ,
+                    "progress_time": t.progress_time or "",
                     "complete_time": t.complete_time or ""
                 }
                 for t in tickets
             ]
-        }
+        })
+        return
+
     except Exception:
         frappe.log_error(frappe.get_traceback(), "Get Ticket API Error")
-        return {
+        frappe.local.response.update({
             "success": False,
             "message": frappe.get_traceback()
-        }
+        })
+        return
