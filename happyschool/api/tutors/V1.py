@@ -141,15 +141,15 @@ def student_list():
         })
 
 
-import frappe
+
 
 @frappe.whitelist(allow_guest=True)
 def tutor_profile():
     """
-    Get tutor profile details.
+    Get tutor profile details with sessions completed & active students.
     Request body:
         {
-            "tutor_id": "TUT-0001"
+            "tutor_id": ""
         }
     """
     try:
@@ -170,20 +170,18 @@ def tutor_profile():
             })
             return
 
-        # ---- Fetch tutor details ----
         tutor_doc = frappe.get_doc("Tutors", tutor_id)
 
         tutor_data = {
             "tutor_id": tutor_doc.name,
             "tutor_name": tutor_doc.get("tutor_name"),
-            "profile": tutor_doc.get("profile"),  
+            "profile": tutor_doc.get("profile"),   
             "email": tutor_doc.get("email"),
-            "location": tutor_doc.get("location")
+            "location": tutor_doc.get("location"),
+            "rating":""
         }
 
         completed_sessions = 0
-
-        # Get all live classroom entries
         live_classes = frappe.get_all("Live Classroom", fields=["student_id"])
 
         for lc in live_classes:
@@ -191,12 +189,21 @@ def tutor_profile():
             if not student_id:
                 continue
 
-            # Check if this student is linked with this tutor in Students List
             if frappe.db.exists("Students List", {"tutor_id": tutor_id, "student_id": student_id}):
                 completed_sessions += 1
 
         tutor_data["sessions_completed"] = completed_sessions
 
+        active_students = 0
+        student_links = frappe.get_all("Students List", filters={"tutor_id": tutor_id}, fields=["student_id"])
+
+        for link in student_links:
+            if frappe.db.exists("Students", {"name": link.student_id, "type": "Active"}):
+                active_students += 1
+
+        tutor_data["active_students"] = active_students
+
+        # ---- Final Response ----
         frappe.local.response.update({
             "success": True,
             "tutor_profile": tutor_data
