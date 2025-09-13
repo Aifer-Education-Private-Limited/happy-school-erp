@@ -14,8 +14,6 @@ def student_signup():
         password = data.get("password")
         dob = data.get("dob")
         profile = data.get("profile")
-        status=data.get("status")
-        type_status=data.get("type")
         email=data.get("email")
     
 
@@ -49,8 +47,8 @@ def student_signup():
         student.custom_password=password
         student.date_of_birth=dob
         student.custom_profile=profile
-        student.custom_status=status if status else "Linked"
-        student.custom_type=type_status if type_status else "Active"
+        student.custom_status= "Linked"
+        student.custom_type="Active"
         student.student_email_id=email
         # Insert as Administrator
         frappe.set_user("Administrator")
