@@ -62,6 +62,7 @@ def parent_signup():
         parent.profile=profile
         parent.auth_type=authtype
         parent.mobile_number = mobile
+        parent.joindate = frappe.utils.now()
         parent.insert(ignore_permissions=True)
 
 
@@ -297,6 +298,133 @@ def verify_otp_by_otpless(mobile, otp, orderId):
         return {"error": True, "message": str(e)}
 
 
+@frappe.whitelist(allow_guest=True)
+def check_user(parent_id=None, studentId=None):
+    try:
+        # App version details
+        app_version = {
+            "ios_latest": 4003,
+            "android_latest": 4003,
+            "ios_minimum": 3262,
+            "android_minimum": 3266,
+        }
+
+        # ✅ Case 1: Only Parent ID
+        if parent_id and not studentId:
+            user_data = frappe.db.sql("""
+                SELECT first_name, last_name, mobile_number, email, auth_type, joindate, state, profile
+                FROM `tabParents`
+                WHERE name = %s
+                ORDER BY joindate DESC
+                LIMIT 1
+            """, (parent_id,), as_dict=True)
+
+            # format joindate
+            if user_data:
+                user_data[0]["joindate"] = _format_date(user_data[0].get("joindate"))
+
+            frappe.local.response.update( {
+                "success": True,
+                "data": user_data,
+                "app_version": app_version,
+                # "ERP_API_KEY": f"Basic {frappe.conf.get('erp_auth_token')}"
+            } )
+
+            return
+
+        # ✅ Case 2: Parent ID + studentId
+        if uid and studentId:
+            student_data = frappe.db.sql("""
+                SELECT name, mobile, token, joindate, profile
+                FROM `tabStudents`
+                WHERE student_id = %s AND parent_uid = %s
+                ORDER BY joindate DESC
+                LIMIT 1
+            """, (studentId, uid), as_dict=True)
+
+            if student_data:
+                student = student_data[0]
+                student["joindate"] = _format_date(student.get("joindate"))
+
+                # Update expired courses
+                frappe.db.sql("""
+                    UPDATE `tabUser Courses`
+                    SET is_active = 0
+                    WHERE student_id = %s
+                    AND is_active = 1
+                    AND expiry_date <= NOW()
+                """, (studentId,))
+
+                # Active courses
+                user_courses = frappe.db.sql("""
+                    SELECT course_id, expiry_date
+                    FROM `tabUser Courses`
+                    WHERE student_id = %s AND is_active = 1
+                """, (studentId,), as_dict=True)
+
+                # Count active courses (expiry in future)
+                user_course_count = frappe.db.sql("""
+                    SELECT COUNT(*) as count
+                    FROM `tabUser Courses`
+                    WHERE student_id = %s AND is_active = 1
+                    AND expiry_date > NOW()
+                """, (studentId,), as_dict=True)[0].count
+
+                # TODO: Replace with actual DocType for streaks
+                study_streak = {
+                    "streak": 0,
+                    "highest_streak": 0,
+                    "recent_active_dates": []
+                }
+
+                # Discussion count
+                discussion_count = frappe.db.count("Discussion", {"student_id": studentId})
+
+                # Course titles
+                course_ids = [c["course_id"] for c in user_courses]
+                title_map = {}
+                if course_ids:
+                    placeholders = ", ".join(["%s"] * len(course_ids))
+                    titles = frappe.db.sql(f"""
+                        SELECT course_id, title
+                        FROM `tabDynamic Courses`
+                        WHERE course_id IN ({placeholders})
+                    """, tuple(course_ids), as_dict=True)
+                    for t in titles:
+                        title_map[t.course_id] = t.title
+
+                # Attach courses to student
+                student["user_courses"] = []
+                for c in user_courses:
+                    student["user_courses"].append({
+                        "course_id": c.course_id,
+                        "course_expiry_date": _format_date(c.expiry_date),
+                        "course_title": title_map.get(c.course_id, "")
+                    })
+
+                student["course_count"] = user_course_count
+                student["userStreak"] = study_streak["streak"]
+                student["discussionCount"] = discussion_count
+
+            frappe.local.response.update( {
+                "success": True,
+                "data": student_data,
+                "subjects": [],
+                "app_version": app_version,
+                "streak_time": 20,
+                # "ERP_API_KEY": f"Basic {frappe.conf.get('erp_auth_token')}"
+            } )
+
+            return
+
+        # ❌ Missing uid or studentId
+        frappe.local.response.update( {"success": False, "error": "Missing uid or studentId"} )
+
+    except Exception as e:
+        frappe.log_error(frappe.get_traceback(), "check_user API")
+        frappe.local.response.update( {"success": False, "error": str(e)} )
+
+    return
 
 
 # # # functions # # #
@@ -336,3 +464,10 @@ def _verify_otp(orderId, otp, mobile):
     response = requests.post(url, json=data, headers=headers)
     response.raise_for_status()
     return response.json()
+
+def _format_date(date_val):
+    if not date_val:
+        return None
+    if isinstance(date_val, str):
+        return date_val.split(" ")[0]
+    return date_val.strftime("%Y-%m-%d")
