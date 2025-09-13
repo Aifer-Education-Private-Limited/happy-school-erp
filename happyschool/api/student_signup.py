@@ -14,7 +14,9 @@ def student_signup():
         password = data.get("password")
         dob = data.get("dob")
         profile = data.get("profile")
+        status=data.get("status")
         type_status=data.get("type")
+        email=data.get("email")
     
 
         if not mobile:
@@ -24,45 +26,53 @@ def student_signup():
             })
             return
 
-        if frappe.db.exists("Students",{"mobile":mobile}):
+        if frappe.db.exists("Student",{"student_mobile_number":mobile}):
             frappe.local.response.update ({
                 "success": False,
                 "message": "Already registered"
             })
             return
 
-        if not frappe.db.exists("Students",{"parent_id":parent_id}):
+        if not frappe.db.exists("Parents",{"name":parent_id}):
             frappe.local.response.update({
                 "success":False,
                 "message":f"parent {parent_id} not exist"
             })
             return
         
-        student=frappe.new_doc("Students")
-        student.parent_id=parent_id
-        student.student_name=student_name
-        student.mobile=mobile
-        student.grade=grade
-        student.join_date=join_date
-        student.password=password
-        student.dob=dob
-        student.profile=profile
-        student.status="Linked"
-        student.type=type_status if type_status else "Active"
+        student=frappe.new_doc("Student")
+        student.custom_parent_id=parent_id
+        student.first_name=student_name
+        student.student_mobile_number=mobile
+        student.custom_grade=grade
+        student.joining_date=join_date
+        student.custom_password=password
+        student.date_of_birth=dob
+        student.custom_profile=profile
+        student.custom_status=status if status else "Linked"
+        student.custom_type=type_status if type_status else "Active"
+        student.student_email_id=email
+        # Insert as Administrator
+        frappe.set_user("Administrator")
         student.insert(ignore_permissions=True)
         frappe.db.commit()
 
+        # Reset user to the original session user
+        frappe.set_user(frappe.session.user)
+
+
         student_details={
             "student_id":student.name,
-            "name":student.student_name,
-            "mobile":student.mobile,
-            "grade":student.grade,
-            "join_date":student.join_date,
-            "password":student.password,
-            "dob":student.dob,
-            "profile":student.profile,
-            "status":student.status,
-            "type":student.type
+            "name":student.first_name,
+            "mobile":student.student_mobile_number,
+            "grade":student.custom_grade,
+            "join_date":student.joining_date,
+            "password":student.custom_password,
+            "dob":student.date_of_birth,
+            "profile":student.custom_profile,
+            "status":student.custom_status,
+            "email":student.student_email_id,
+            "type":student.custom_type
         }
 
         frappe.local.response.update({
