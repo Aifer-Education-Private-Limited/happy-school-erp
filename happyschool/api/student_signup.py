@@ -50,13 +50,12 @@ def student_signup():
         student.custom_status= "Linked"
         student.custom_type="Active"
         student.student_email_id=email
-        # Insert as Administrator
-        frappe.set_user("Administrator")
+        
+       
         student.insert(ignore_permissions=True)
         frappe.db.commit()
 
-        # Reset user to the original session user
-        frappe.set_user(frappe.session.user)
+        frappe.local.message_log = []
 
 
         student_details={
@@ -79,7 +78,6 @@ def student_signup():
             "parent": student_details
         })
         return
-        
 
     except Exception:
         frappe.log_error(frappe.get_traceback(), "Student Signup Error")
