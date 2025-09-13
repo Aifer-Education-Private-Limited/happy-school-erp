@@ -39,7 +39,8 @@ def tutor_login(email, password):
 
 
 @frappe.whitelist(allow_guest=True)
-def check_user(tutor_id=None):
+def check_user_by_tutor(tutor_id=None):
+    
     """
     Fetch Tutor details by Tutor 'name' (DocType primary key).
     """
