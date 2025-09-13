@@ -475,6 +475,19 @@ def check_user(parent_id=None, studentId=None):
 
     return
 
+@frappe.whitelist(allow_guest=True)
+def check_for_account(email=None, mobile=None):
+    try:
+        exists = frappe.db.exists("Parents", {"email": email}) or frappe.db.exists("Parents", {"mobile_number": mobile})
+        
+        frappe.local.response.update({"success": True if exists else False})
+
+    except Exception as e:
+        frappe.log_error(frappe.get_traceback(), "CheckForAccount API Error")
+        frappe.local.response.update({
+            "success": False,
+            "error": str(e)
+        })
 
 # # # functions # # #
 def _send_otp(mobile, channel="sms"):
