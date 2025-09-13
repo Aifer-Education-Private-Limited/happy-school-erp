@@ -56,7 +56,8 @@ def student_signup():
        
         student.insert(ignore_permissions=True)
         frappe.db.commit()
-        
+
+        frappe.local.message_log = []
 
 
         student_details={
@@ -79,7 +80,6 @@ def student_signup():
             "parent": student_details
         })
         return
-        
 
     except Exception:
         frappe.log_error(frappe.get_traceback(), "Student Signup Error")
