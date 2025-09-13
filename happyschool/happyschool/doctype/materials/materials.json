@@ -11,7 +11,8 @@
   "subtopic",
   "files",
   "submitted_date",
-  "material_name"
+  "material_name",
+  "session_id"
  ],
  "fields": [
   {
@@ -49,12 +50,18 @@
    "fieldname": "files",
    "fieldtype": "Long Text",
    "label": "Material Files"
+  },
+  {
+   "fieldname": "session_id",
+   "fieldtype": "Link",
+   "label": "Session id",
+   "options": "Live Classroom"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-09-12 09:26:38.031551",
+ "modified": "2025-09-13 12:34:20.120690",
  "modified_by": "Administrator",
  "module": "happyschool",
  "name": "Materials",
