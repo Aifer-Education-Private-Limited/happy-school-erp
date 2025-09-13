@@ -52,13 +52,11 @@ def student_signup():
         student.custom_status=status if status else "Linked"
         student.custom_type=type_status if type_status else "Active"
         student.student_email_id=email
-        # Insert as Administrator
-        frappe.set_user("Administrator")
+        
+       
         student.insert(ignore_permissions=True)
         frappe.db.commit()
-
-        # Reset user to the original session user
-        frappe.set_user(frappe.session.user)
+        
 
 
         student_details={
