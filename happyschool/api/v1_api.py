@@ -39,7 +39,9 @@ def get_home_page_details(student_id: str):
                     "language_of_instruction": course["language_of_instruction"],
                     "description": course["description"],
                     "details": course["details"],
-                    "ask_doubt_number": course["ask_doubt_number"]
+                    "ask_doubt_number": course["ask_doubt_number"],
+                    "total_item_count": 0,
+                    "total_attended_count": 0
                 })
 
             upcoming_live = frappe.db.sql("""
