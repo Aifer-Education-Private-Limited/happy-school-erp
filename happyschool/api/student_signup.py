@@ -26,11 +26,6 @@ def student_signup():
             frappe.local.response.update ( {"success": False, "message": f"Parent {parent_id} not found"} )
             return
 
-        # get parent email
-        parent = frappe.get_doc("Parents", parent_id)
-        email = parent.email
-        print("email", email)
-
 
         # Create student
         student = frappe.new_doc("Student")
