@@ -246,8 +246,8 @@ def generate_otp_by_otpless(mobile, isLogin=False, auth_type=None, channel="sms"
 
             else:
                 # Call OTP service
-                return _send_otp(mobile, channel)
-
+                otp_result = _send_otp(mobile, channel)
+                frappe.local.response.update(otp_result)
         # Case 2: New registration
         else:
             mobile_exists = frappe.db.sql("""
@@ -259,7 +259,8 @@ def generate_otp_by_otpless(mobile, isLogin=False, auth_type=None, channel="sms"
             if mobile_exists:
                 frappe.local.response.update( {"message": "Phone number already in use by another account"} )
             else:
-                return _send_otp(mobile, channel)
+                otp_result = _send_otp(mobile, channel)
+                frappe.local.response.update(otp_result)
 
     except Exception as e:
         frappe.log_error(frappe.get_traceback(), "Create OTP Error")
@@ -271,27 +272,79 @@ def verify_otp_by_otpless(mobile, otp, orderId):
     Verify OTP using Otpless API and return UID if exists
     """
     try:
-        result = _verify_otp(orderId, otp, mobile)
+        editedMobile = mobile.replace("-", "").replace("+", "")
+        result = _verify_otp(orderId, otp, editedMobile)
 
         # If OTP verified
         if result.get("isOTPVerified"):
             # Check if firebase_uid exists for this mobile
             mobile_exists = frappe.db.sql("""
-                SELECT firebase_uid 
-                FROM `tabDot Users`
+                SELECT name 
+                FROM `tabParents`
                 WHERE mobile_number LIKE %s
             """, (f"%{mobile}",), as_dict=True)
 
             if mobile_exists:
-                result["uid"] = mobile_exists[0].firebase_uid
+                result["parent_id"] = mobile_exists[0].name
             else:
-                result["uid"] = "xxxx"
+                result["parent_id"] = "xxxx"
 
-        return result
+        frappe.local.response.update(result)
+        return  # Important: return nothing (None) to prevent extra wrapping
+
 
     except Exception as e:
         frappe.log_error(frappe.get_traceback(), "Verify OTP Error")
-        return {"error": True, "message": str(e)}
+        frappe.local.response.update({
+            "error": True,
+            "message": str(e)
+        })
+        return
+
+@frappe.whitelist(allow_guest=True)
+def resend_otp(orderId):
+    """
+    Resend OTP using OtpLess API
+    Args:
+        order_id: Order ID received from previous OTP request
+    """
+    try:
+        # Prepare request payload
+        data = {"orderId": orderId}
+
+        # Fetch credentials from environment
+        # client_id = os.getenv("OTPLESS_CLIENT_ID")
+        # client_secret = os.getenv("OTPLESS_CLIENT_SECRET")
+
+        # if not client_id or not client_secret:
+        #     return {"error": True, "message": "Missing OTPLESS credentials"}
+
+        headers = {
+            "Content-Type": "application/json",
+        "clientId": OTPLESS_CLIENT_ID,
+        "clientSecret": OTPLESS_CLIENT_SECRET,
+        }
+
+        url = "https://auth.otpless.app/auth/otp/v1/resend"
+        response = requests.post(url, headers=headers, json=data)
+
+        # ✅ Don't raise_for_status; parse JSON even on 400
+        try:
+            res_json = response.json()
+        except Exception:
+            res_json = {"error": True, "message": response.text}
+
+        if response.status_code == 200:
+            # success → return only orderId
+            frappe.local.response.update(res_json)
+        else:
+            # failure → return full error from OTPLESS
+            frappe.local.response.update({"error": True, "details": res_json})
+
+    except requests.exceptions.HTTPError as http_err:
+        frappe.local.response.update({"error": True, "message": f"HTTP error: {str(http_err)}"})
+    except Exception as e:
+        frappe.local.response.update({"error": True, "message": str(e)})
 
 
 @frappe.whitelist(allow_guest=True)
@@ -422,13 +475,27 @@ def check_user(parent_id=None, studentId=None):
 
     return
 
+@frappe.whitelist(allow_guest=True)
+def check_for_account(email=None, mobile=None):
+    try:
+        exists = frappe.db.exists("Parents", {"email": email}) or frappe.db.exists("Parents", {"mobile_number": mobile})
+        
+        frappe.local.response.update({"success": True if exists else False})
+
+    except Exception as e:
+        frappe.log_error(frappe.get_traceback(), "CheckForAccount API Error")
+        frappe.local.response.update({
+            "success": False,
+            "error": str(e)
+        })
 
 # # # functions # # #
 def _send_otp(mobile, channel="sms"):
+    editedMobile = mobile.replace("-", "")
     """Helper function to send OTP using Otpless API"""
     url = "https://auth.otpless.app/auth/otp/v1/send"
     data = {
-        "phoneNumber": mobile,
+        "phoneNumber": editedMobile,
         "otpLength": 6,
         "channel": channel,
         "expiry": 60

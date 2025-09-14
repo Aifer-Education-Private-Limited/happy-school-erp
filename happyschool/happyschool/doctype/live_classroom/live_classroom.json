@@ -18,7 +18,8 @@
   "meeting_end_time",
   "thumbnail",
   "status",
-  "scheduled_date"
+  "scheduled_date",
+  "tutor_id"
  ],
  "fields": [
   {
@@ -88,15 +89,20 @@
   },
   {
    "fieldname": "student_id",
+   "fieldtype": "Data",
+   "label": "Student Id"
+  },
+  {
+   "fieldname": "tutor_id",
    "fieldtype": "Link",
-   "label": "Student Id",
-   "options": "Students"
+   "label": "Tutor Id",
+   "options": "Tutors"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-09-12 14:58:19.308550",
+ "modified": "2025-09-13 10:44:14.445863",
  "modified_by": "Administrator",
  "module": "happyschool",
  "name": "Live Classroom",

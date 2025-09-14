@@ -39,7 +39,9 @@ def get_home_page_details(student_id: str):
                     "language_of_instruction": course["language_of_instruction"],
                     "description": course["description"],
                     "details": course["details"],
-                    "ask_doubt_number": course["ask_doubt_number"]
+                    "ask_doubt_number": course["ask_doubt_number"],
+                    "total_item_count": 0,
+                    "total_attended_count": 0
                 })
 
             upcoming_live = frappe.db.sql("""
@@ -79,3 +81,61 @@ def get_home_page_details(student_id: str):
             "success": False,
             "error": str(e)
         })
+
+
+@frappe.whitelist(allow_guest=True)
+def fetch_states():
+    try:
+        data = [
+            "Andaman and Nicobar Islands",
+            "Andhra Pradesh",
+            "Arunachal Pradesh",
+            "Assam",
+            "Bihar",
+            "Chandigarh",
+            "Chhattisgarh",
+            "Dadra and Nagar Haveli & Daman and Diu",
+            "Delhi",
+            "Goa",
+            "Gujarat",
+            "Haryana",
+            "Himachal Pradesh",
+            "Jammu and Kashmir",
+            "Jharkhand",
+            "Karnataka",
+            "Kerala",
+            "Ladakh",
+            "Lakshadweep",
+            "Madhya Pradesh",
+            "Maharashtra",
+            "Manipur",
+            "Meghalaya",
+            "Mizoram",
+            "Nagaland",
+            "Odisha",
+            "Other Territory",
+            "Puducherry",
+            "Punjab",
+            "Rajasthan",
+            "Sikkim",
+            "Tamil Nadu",
+            "Telangana",
+            "Tripura",
+            "Uttar Pradesh",
+            "Uttarakhand",
+            "West Bengal",
+            "Others"
+        ]
+
+        frappe.local.response.update( {
+            "success": True,
+            "data": data
+        } )
+
+    except Exception as e:
+        frappe.log_error(frappe.get_traceback(), "Fetch States API Error")
+        frappe.local.response.update( {
+            "success": False,
+            "error": str(e)
+        } )
+

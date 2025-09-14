@@ -141,12 +141,88 @@ def student_list():
         })
 
 
-import frappe
+
 
 @frappe.whitelist(allow_guest=True)
 def tutor_profile():
     """
-    Get tutor profile details.
+    Get tutor profile details with sessions completed & active students.
+    Request body:
+        {
+            "tutor_id": ""
+        }
+    """
+    try:
+        data = frappe.local.form_dict
+        tutor_id = data.get("tutor_id")
+
+        if not tutor_id:
+            frappe.local.response.update({
+                "success": False,
+                "message": "Tutor ID is required"
+            })
+            return
+
+        if not frappe.db.exists("Tutors", tutor_id):
+            frappe.local.response.update({
+                "success": False,
+                "message": f"Tutor {tutor_id} not found"
+            })
+            return
+
+        tutor_doc = frappe.get_doc("Tutors", tutor_id)
+
+        tutor_data = {
+            "tutor_id": tutor_doc.name,
+            "tutor_name": tutor_doc.get("tutor_name"),
+            "profile": tutor_doc.get("profile"),   
+            "email": tutor_doc.get("email"),
+            "location": tutor_doc.get("location"),
+            "rating":""
+        }
+
+        completed_sessions = 0
+        live_classes = frappe.get_all("Live Classroom", fields=["student_id"])
+
+        for lc in live_classes:
+            student_id = lc.student_id
+            if not student_id:
+                continue
+
+            if frappe.db.exists("Students List", {"tutor_id": tutor_id, "student_id": student_id}):
+                completed_sessions += 1
+
+        tutor_data["sessions_completed"] = completed_sessions
+
+        active_students = 0
+        student_links = frappe.get_all("Students List", filters={"tutor_id": tutor_id}, fields=["student_id"])
+
+        for link in student_links:
+            if frappe.db.exists("Students", {"name": link.student_id, "type": "Active"}):
+                active_students += 1
+
+        tutor_data["active_students"] = active_students
+
+        # ---- Final Response ----
+        frappe.local.response.update({
+            "success": True,
+            "tutor_profile": tutor_data
+        })
+
+    except Exception as e:
+        frappe.log_error(frappe.get_traceback(), "tutor_profile API Error")
+        frappe.local.response.update({
+            "success": False,
+            "message": str(e)
+        })
+
+
+
+
+@frappe.whitelist(allow_guest=True)
+def scheduled_session():
+    """
+    Get scheduled sessions for a tutor (only Ongoing or Upcoming).
     Request body:
         {
             "tutor_id": "TUT-0001"
@@ -170,40 +246,152 @@ def tutor_profile():
             })
             return
 
-        # ---- Fetch tutor details ----
-        tutor_doc = frappe.get_doc("Tutors", tutor_id)
+        # Fetch live classroom sessions for tutor with status filter
+        sessions = frappe.get_all(
+            "Live Classroom",
+            filters={
+                "tutor_id": tutor_id,
+                "status": ["in", ["Ongoing", "Upcoming"]]
+            },
+            fields=[
+                "name", "subject", "topic", "subtopic",
+                "meeting_link", "caption", "description",
+                "student_id", "faculty_email",
+                "meeting_start_time", "meeting_end_time",
+                "status", "scheduled_date", "thumbnail"
+            ]
+        )
 
-        tutor_data = {
-            "tutor_id": tutor_doc.name,
-            "tutor_name": tutor_doc.get("tutor_name"),
-            "profile": tutor_doc.get("profile"),  
-            "email": tutor_doc.get("email"),
-            "location": tutor_doc.get("location")
-        }
+        session_data = []
+        for s in sessions:
+            student_info = {}
+            if s.student_id and frappe.db.exists("Students", s.student_id):
+                student_doc = frappe.get_doc("Students", s.student_id)
+                student_info = {
+                    "student_id": student_doc.name,
+                    "student_name": student_doc.get("student_name"),
+                    "profile": student_doc.get("profile"),
+                    "grade": student_doc.get("grade")
+                }
 
-        completed_sessions = 0
-
-        # Get all live classroom entries
-        live_classes = frappe.get_all("Live Classroom", fields=["student_id"])
-
-        for lc in live_classes:
-            student_id = lc.student_id
-            if not student_id:
-                continue
-
-            # Check if this student is linked with this tutor in Students List
-            if frappe.db.exists("Students List", {"tutor_id": tutor_id, "student_id": student_id}):
-                completed_sessions += 1
-
-        tutor_data["sessions_completed"] = completed_sessions
+            session_data.append({
+                "session_id": s.name,
+                "subject": s.subject,
+                "topic": s.topic,
+                "subtopic": s.subtopic,
+                "meeting_link": s.meeting_link,
+                "caption": s.caption,
+                "description": s.description,
+                "faculty_email": s.faculty_email,
+                "meeting_start_time": s.meeting_start_time,
+                "meeting_end_time": s.meeting_end_time,
+                "status": s.status,
+                "scheduled_date": s.scheduled_date,
+                "thumbnail": s.thumbnail,
+                "student": student_info
+            })
 
         frappe.local.response.update({
             "success": True,
-            "tutor_profile": tutor_data
+            "tutor_id": tutor_id,
+            "sessions": session_data
         })
 
     except Exception as e:
-        frappe.log_error(frappe.get_traceback(), "tutor_profile API Error")
+        frappe.log_error(frappe.get_traceback(), "scheduled_session API Error")
+        frappe.local.response.update({
+            "success": False,
+            "message": str(e)
+        })
+
+
+
+
+
+
+@frappe.whitelist(allow_guest=True)
+def completed_live_sessions():
+
+    try:
+        data = frappe.local.form_dict
+        tutor_id = data.get("tutor_id")
+
+        if not tutor_id:
+            frappe.local.response.update({
+                "success": False,
+                "message": "Tutor ID is required"
+            })
+            return
+
+        # Check tutor exists
+        if not frappe.db.exists("Tutors", tutor_id):
+            frappe.local.response.update({
+                "success": False,
+                "message": f"Tutor {tutor_id} not found"
+            })
+            return
+
+        # Fetch completed live classroom sessions
+        sessions = frappe.get_all(
+            "Live Classroom",
+            filters={
+                "tutor_id": tutor_id,
+                "status": "Completed"
+            },
+            fields=[
+                "name", "subject", "topic", "subtopic",
+                "meeting_link", "caption", "description",
+                "student_id", "faculty_email",
+                "meeting_start_time", "meeting_end_time",
+                "status", "scheduled_date", "thumbnail"
+            ]
+        )
+
+        session_data = []
+        for s in sessions:
+            # ---- Get Student Info ----
+            student_info = {}
+            if s.student_id and frappe.db.exists("Students", s.student_id):
+                student_doc = frappe.get_doc("Students", s.student_id)
+                student_info = {
+                    "student_id": student_doc.name,
+                    "student_name": student_doc.get("student_name"),
+                    "profile": student_doc.get("profile"),
+                    "grade": student_doc.get("grade")
+                }
+
+            # ---- Check Material Upload ----
+            material_status = "Material Pending"
+            if frappe.db.exists("Materials", {"tutor_id": tutor_id, "session_id": s.name}):
+                material_status = "Material Uploaded"
+
+            # ---- Session Details ----
+            session_data.append({
+                "session_id": s.name,
+                "subject": s.subject,
+                "topic": s.topic,
+                "subtopic": s.subtopic,
+                "meeting_link": s.meeting_link,
+                "caption": s.caption,
+                "description": s.description,
+                "faculty_email": s.faculty_email,
+                "meeting_start_time": s.meeting_start_time,
+                "meeting_end_time": s.meeting_end_time,
+                "status": s.status,
+                "scheduled_date": s.scheduled_date,
+                "thumbnail": s.thumbnail,
+                "student": student_info,
+                "material_upload": material_status
+            })
+
+        frappe.local.response.update({
+            "success": True,
+            "tutor_id": tutor_id,
+            "sessions": session_data
+        })
+
+    except Exception as e:
+        frappe.log_error(frappe.get_traceback(), "completed_live_sessions API Error")
         frappe.local.response.update({
             "success": False,
             "message": str(e)
