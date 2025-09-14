@@ -145,7 +145,7 @@ def fetch_states():
 def classroom_details(student_id=None):
     try:
         if not student_id:
-            return {"success": False, "error": "student_id is required"}
+            frappe.local.response.update( {"success": False, "error": "student_id is required"} )
 
         upcoming, ongoing, past = [], [], []
 
@@ -209,18 +209,18 @@ def classroom_details(student_id=None):
                 past.append(row)
 
         # ✅ Final Response
-        return {
+        frappe.local.response.update( {
             "success": True,
             "data": {
                 "ongoing": ongoing,
                 "upcoming": upcoming,
                 "past": past
             }
-        }
+        } )
 
     except Exception as e:
         frappe.log_error(frappe.get_traceback(), "ClassroomDetails API Error")
-        return {"success": False, "error": str(e)}
+        frappe.local.response.update( {"success": False, "error": str(e)} )
 
 
 

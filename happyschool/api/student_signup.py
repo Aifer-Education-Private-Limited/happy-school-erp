@@ -94,10 +94,10 @@ def get_student(parent_id):
     try:
         # Fetch students with the given parent_id ordered by creation date
         student_details = frappe.db.sql("""
-            SELECT name, custom_parent_id, first_name, joining_date, student_email_id, student_mobile_number,
-                   date_of_birth, custom_grade, custom_password, custom_profile, custom_status, custom_type
+            SELECT name as student_id, custom_parent_id as parent_id, first_name as full_name, joining_date, student_mobile_number,
+                   date_of_birth as dob, custom_grade as grade, custom_password as password, custom_profile as profile
             FROM `tabStudent`
-            WHERE custom_parent_id = %s
+            WHERE custom_parent_id = %s and custom_status = "Linked"
             ORDER BY creation DESC
         """, parent_id, as_dict=True)
 
