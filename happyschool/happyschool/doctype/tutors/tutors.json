@@ -1,7 +1,7 @@
 {
  "actions": [],
  "allow_rename": 1,
- "autoname": "field:email",
+ "autoname": "hash",
  "creation": "2025-09-10 18:01:08.546979",
  "doctype": "DocType",
  "engine": "InnoDB",
@@ -13,7 +13,8 @@
   "phone",
   "join_date",
   "profile",
-  "location"
+  "location",
+  "type"
  ],
  "fields": [
   {
@@ -57,16 +58,23 @@
    "fieldname": "location",
    "fieldtype": "Data",
    "label": "Location"
+  },
+  {
+   "default": "Link",
+   "fieldname": "type",
+   "fieldtype": "Select",
+   "label": "Type",
+   "options": "Link\nUnlink"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-09-12 15:38:32.295610",
+ "modified": "2025-09-14 17:47:52.164650",
  "modified_by": "Administrator",
  "module": "happyschool",
  "name": "Tutors",
- "naming_rule": "By fieldname",
+ "naming_rule": "Random",
  "owner": "Administrator",
  "permissions": [
   {

@@ -5,11 +5,11 @@
 from frappe.model.document import Document
 import frappe
 
-class StudentsList(Document):
+class Announcement(Document):
 	pass
 
 from frappe.model.naming import make_autoname
 
-class StudentsList(frappe.model.document.Document):
+class Announcement(frappe.model.document.Document):
     def autoname(self):
-        self.name = make_autoname("PST-.YY.-.###")
+        self.name = make_autoname("PST-.YYYY.-.#####")
