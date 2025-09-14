@@ -15,84 +15,56 @@ def student_signup():
         password = data.get("password")
         dob = data.get("dob")
         profile = data.get("profile")
-        email=data.get("email")
-    
 
-        if not mobile:
-            frappe.local.response.update ({
-                "success": False,
-                "message": "Mobile Number is required"
-            })
+        # Check duplicate student
+        if frappe.db.exists("Student", {"student_name": student_name, "custom_parent_id": parent_id}):
+            frappe.local.response.update ( {"success": False, "message": "Already registered"} )
             return
 
-        if frappe.db.exists("Student",{"student_mobile_number":mobile}):
-            frappe.local.response.update ({
-                "success": False,
-                "message": "Already registered"
-            })
+        # Check parent exists
+        if not frappe.db.exists("Parents", {"name": parent_id}):
+            frappe.local.response.update ( {"success": False, "message": f"Parent {parent_id} not found"} )
             return
 
-        if not frappe.db.exists("Parents",{"name":parent_id}):
-            frappe.local.response.update({
-                "success":False,
-                "message":f"parent {parent_id} not exist"
-            })
-            return
-        
-        student=frappe.new_doc("Student")
-        student.custom_parent_id=parent_id
-        student.first_name=student_name
-        student.student_mobile_number=mobile
-        student.custom_grade=grade
-        student.joining_date=join_date
-        student.custom_password=password
-        student.date_of_birth=dob
-        student.custom_profile=profile
+        # get parent email
+        parent = frappe.get_doc("Parents", parent_id)
+        email = parent.email
+        print("email", email)
 
-        student.custom_status=status if status else "Linked"
-        student.custom_type=type_status if type_status else "Active"
-        student.student_email_id = email if email else f"student_{mobile or uuid.uuid4().hex[:6]}@example.com"
 
-        student.custom_status= "Linked"
-        student.custom_type="Active"
-        student.student_email_id=email
+        # Create student
+        student = frappe.new_doc("Student")
+        student.custom_parent_id = parent_id
+        student.first_name = student_name
+        student.student_mobile_number = mobile
+        student.custom_grade = grade
+        student.joining_date = join_date
+        student.custom_password = password  # ⚠️ insecure
+        student.date_of_birth = dob
+        student.custom_profile = profile
+        student.student_email_id = f"student_{uuid.uuid4().hex[:6]}@example.com"
+        student.custom_status = "Linked"
+        student.custom_type = "Active"
 
-        
-       
+        # Prevent auto Customer creation
+        student.set_missing_customer_details = lambda: None
+
+        # Save
         student.insert(ignore_permissions=True)
         frappe.db.commit()
 
-        frappe.local.message_log = []
-
-
-        student_details={
-            "student_id":student.name,
-            "name":student.first_name,
-            "mobile":student.student_mobile_number,
-            "grade":student.custom_grade,
-            "join_date":student.joining_date,
-            "password":student.custom_password,
-            "dob":student.date_of_birth,
-            "profile":student.custom_profile,
-            "status":student.custom_status,
-
-            "type":student.custom_type
+        student_details = {
+            "student_id": student.name,
+            "name": student.first_name,
+            "password": student.custom_password,  # ⚠️
         }
 
-        frappe.local.response.update({
-            "success": True,
-            "message": "Signup successful.",
-            "parent": student_details
-        })
-        return
+        frappe.local.response.update ( {"success": True, "message": "Signup successful.", "student": student_details} )
 
-    except Exception:
+    except Exception as e:
         frappe.log_error(frappe.get_traceback(), "Student Signup Error")
-        frappe.local.response.update ({
-            "success": False,
-            "message": frappe.get_traceback()
-        })
-        return
+        frappe.local.response.update ( {"success": False, "message": "Internal server error"} )
+
 
 @frappe.whitelist(allow_guest=True)
 def student_login(student_id,password):
