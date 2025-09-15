@@ -1,0 +1,230 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2025-09-14 17:07:47.500801",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "lead",
+  "student_name",
+  "gradeclass",
+  "academic_year_and_term",
+  "column_break_6hdl",
+  "curriculum",
+  "date",
+  "tutorteacher",
+  "mobile",
+  "subjects_section",
+  "subject",
+  "skill_development_section",
+  "skills",
+  "behaviour_and_participation_section",
+  "classroom_participation",
+  "panctuality",
+  "column_break_rnmq",
+  "discipline",
+  "peer_collaboration",
+  "holistic_growth_section",
+  "growth",
+  "feedback_and_recommendations_section",
+  "strength",
+  "areas",
+  "column_break_h3xp",
+  "suggested",
+  "parent__tutor_engagement_section",
+  "feedback",
+  "remark",
+  "column_break_a2ks",
+  "acknowledgment"
+ ],
+ "fields": [
+  {
+   "fieldname": "lead",
+   "fieldtype": "Link",
+   "label": "Lead",
+   "options": "Lead"
+  },
+  {
+   "fieldname": "student_name",
+   "fieldtype": "Data",
+   "label": "Student Name"
+  },
+  {
+   "fieldname": "gradeclass",
+   "fieldtype": "Data",
+   "label": "Grade/Class"
+  },
+  {
+   "fieldname": "academic_year_and_term",
+   "fieldtype": "Data",
+   "label": "Academic Year And Term"
+  },
+  {
+   "fieldname": "curriculum",
+   "fieldtype": "Select",
+   "label": "Curriculum",
+   "options": "\nCBSE\nState\nICSE\nOthers"
+  },
+  {
+   "fieldname": "date",
+   "fieldtype": "Date",
+   "label": "Date Of Report"
+  },
+  {
+   "fieldname": "tutorteacher",
+   "fieldtype": "Data",
+   "label": "Tutor/Teacher"
+  },
+  {
+   "fieldname": "column_break_6hdl",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "subjects_section",
+   "fieldtype": "Section Break",
+   "label": "Subjects"
+  },
+  {
+   "fieldname": "subject",
+   "fieldtype": "Table",
+   "label": "Subject",
+   "options": "Subjects"
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "skill_development_section",
+   "fieldtype": "Section Break",
+   "label": "Skill Development"
+  },
+  {
+   "fieldname": "skills",
+   "fieldtype": "Table",
+   "label": "Skills",
+   "options": "Skill Development"
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "behaviour_and_participation_section",
+   "fieldtype": "Section Break",
+   "label": "Behaviour And Participation"
+  },
+  {
+   "fieldname": "classroom_participation",
+   "fieldtype": "Select",
+   "label": "Classroom Participation",
+   "options": "\nActive\nModerate\nPassive"
+  },
+  {
+   "fieldname": "panctuality",
+   "fieldtype": "Int",
+   "label": "Punctuality And Attention (%)"
+  },
+  {
+   "fieldname": "discipline",
+   "fieldtype": "Small Text",
+   "label": "Discipline & Respect "
+  },
+  {
+   "fieldname": "peer_collaboration",
+   "fieldtype": "Small Text",
+   "label": "Peer Collaboration / Active Participation"
+  },
+  {
+   "fieldname": "column_break_rnmq",
+   "fieldtype": "Column Break"
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "holistic_growth_section",
+   "fieldtype": "Section Break",
+   "label": "Holistic Growth"
+  },
+  {
+   "fieldname": "growth",
+   "fieldtype": "Table",
+   "label": "Growth",
+   "options": "Holistic Growth"
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "feedback_and_recommendations_section",
+   "fieldtype": "Section Break",
+   "label": "Feedback And Recommendations"
+  },
+  {
+   "fieldname": "strength",
+   "fieldtype": "Text",
+   "label": "Strengths Observed "
+  },
+  {
+   "fieldname": "areas",
+   "fieldtype": "Text",
+   "label": "Areas of Improvement"
+  },
+  {
+   "fieldname": "suggested",
+   "fieldtype": "Text",
+   "label": "Suggested Support Actions"
+  },
+  {
+   "fieldname": "column_break_h3xp",
+   "fieldtype": "Column Break"
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "parent__tutor_engagement_section",
+   "fieldtype": "Section Break",
+   "label": " Parent / Tutor Engagement"
+  },
+  {
+   "fieldname": "feedback",
+   "fieldtype": "Small Text",
+   "label": "Parent Feedback"
+  },
+  {
+   "fieldname": "remark",
+   "fieldtype": "Small Text",
+   "label": "Tutor/Teacher Remark"
+  },
+  {
+   "fieldname": "acknowledgment",
+   "fieldtype": "Small Text",
+   "label": "Parent Acknowledgment"
+  },
+  {
+   "fieldname": "column_break_a2ks",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "mobile",
+   "fieldtype": "Phone",
+   "label": "Mobile"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2025-09-14 23:28:39.816199",
+ "modified_by": "Administrator",
+ "module": "happyschool",
+ "name": "Assessment",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}
