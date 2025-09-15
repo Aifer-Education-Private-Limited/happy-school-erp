@@ -13,7 +13,7 @@ def get_parent_home_page_details(student_id: str, parent_id: str):
 
         datas = {
             "student_id": student_id,
-            "parent_id": parent_id
+            "parent_id": parent_id,
             "student_name": "John Doe",
             "parent_name": "Jane Doe Parent",
             "total_attendance_count": 10,
@@ -32,7 +32,6 @@ def get_parent_home_page_details(student_id: str, parent_id: str):
                 }
             ]
         }
-       
         # ✅ Directly set the response object (no "message")
         frappe.local.response.update({
             "success": True,
