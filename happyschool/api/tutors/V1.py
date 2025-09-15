@@ -138,15 +138,15 @@ def student_list():
 
         students_data = []
         for link in student_links:
-            if frappe.db.exists("Students", link.student_id):
-                student_doc = frappe.get_doc("Students", link.student_id)
+            if frappe.db.exists("Student", link.student_id):
+                student_doc = frappe.get_doc("Student", link.student_id)
                 students_data.append({
                     "student_id": student_doc.name,
-                    "student_name": student_doc.get("student_name"),
-                    "grade": student_doc.get("grade"),
-                    "mobile": student_doc.get("mobile"),
-                    "profile":student_doc.get("profile"),
-                    "join_date":student_doc.get("join_date"),
+                    "student_name": student_doc.get("first_name"),
+                    "grade": student_doc.get("custom_grade"),
+                    "mobile": student_doc.get("student_mobile_number"),
+                    "profile":student_doc.get("custom_profile"),
+                    "join_date":student_doc.get("joining_date"),
                     "subject": link.subject
                 })
 
@@ -222,7 +222,7 @@ def tutor_profile():
         student_links = frappe.get_all("Students List", filters={"tutor_id": tutor_id}, fields=["student_id"])
 
         for link in student_links:
-            if frappe.db.exists("Students", {"name": link.student_id, "type": "Active"}):
+            if frappe.db.exists("Student", {"name": link.student_id, "type": "Active"}):
                 active_students += 1
 
         tutor_data["active_students"] = active_students
@@ -292,13 +292,13 @@ def scheduled_session():
         session_data = []
         for s in sessions:
             student_info = {}
-            if s.student_id and frappe.db.exists("Students", s.student_id):
-                student_doc = frappe.get_doc("Students", s.student_id)
+            if s.student_id and frappe.db.exists("Student", s.student_id):
+                student_doc = frappe.get_doc("Student", s.student_id)
                 student_info = {
                     "student_id": student_doc.name,
                     "student_name": student_doc.get("student_name"),
-                    "profile": student_doc.get("profile"),
-                    "grade": student_doc.get("grade")
+                    "profile": student_doc.get("custom_profile"),
+                    "grade": student_doc.get("custom_grade")
                 }
 
             session_data.append({
@@ -376,13 +376,13 @@ def completed_live_sessions():
         for s in sessions:
             # ---- Get Student Info ----
             student_info = {}
-            if s.student_id and frappe.db.exists("Students", s.student_id):
-                student_doc = frappe.get_doc("Students", s.student_id)
+            if s.student_id and frappe.db.exists("Student", s.student_id):
+                student_doc = frappe.get_doc("Student", s.student_id)
                 student_info = {
                     "student_id": student_doc.name,
                     "student_name": student_doc.get("student_name"),
-                    "profile": student_doc.get("profile"),
-                    "grade": student_doc.get("grade")
+                    "profile": student_doc.get("custom_profile"),
+                    "grade": student_doc.get("custom_grade")
                 }
 
             # ---- Check Material Upload ----
@@ -462,11 +462,11 @@ def get_feedback():
 
             if frappe.db.exists("Students List", {"tutor_id": tutor_id, "student_id": student_id}):
                 student_info = {}
-                if frappe.db.exists("Students", student_id):
-                    student_doc = frappe.get_doc("Students", student_id)
+                if frappe.db.exists("Student", student_id):
+                    student_doc = frappe.get_doc("Student", student_id)
                     student_info = {
                         "student_name": student_doc.get("student_name"),
-                        "profile": student_doc.get("profile"),
+                        "profile": student_doc.get("custom_profile"),
                        
                     }
 
