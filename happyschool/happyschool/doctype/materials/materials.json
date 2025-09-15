@@ -12,13 +12,14 @@
   "files",
   "submitted_date",
   "material_name",
-  "session_id"
+  "session_id",
+  "student_id"
  ],
  "fields": [
   {
    "fieldname": "tutor_id",
    "fieldtype": "Link",
-   "label": "Tutor",
+   "label": "Tutor_id",
    "options": "Tutors"
   },
   {
@@ -56,12 +57,18 @@
    "fieldtype": "Link",
    "label": "Session id",
    "options": "Live Classroom"
+  },
+  {
+   "fieldname": "student_id",
+   "fieldtype": "Link",
+   "label": "Student_id",
+   "options": "Students"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-09-13 12:34:20.120690",
+ "modified": "2025-09-14 10:10:20.607592",
  "modified_by": "Administrator",
  "module": "happyschool",
  "name": "Materials",
