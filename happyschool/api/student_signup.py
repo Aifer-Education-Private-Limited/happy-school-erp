@@ -74,7 +74,8 @@ def student_login(student_id,password):
         
         
         frappe.local.response.update({
-            "success": True     
+            "success": True,
+            "student_id": student_id
         })
         return
     except Exception as e:
@@ -83,9 +84,6 @@ def student_login(student_id,password):
             "message": str(e)
         })
         return
-
-
-
 
 
 

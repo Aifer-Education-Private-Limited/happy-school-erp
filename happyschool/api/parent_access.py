@@ -381,7 +381,7 @@ def check_user(parent_id=None, studentId=None):
             return
 
         # ✅ Case 2: Parent ID + studentId
-        if parent_id and studentId:
+        if studentId:
             student_data = frappe.db.sql("""
                 SELECT student_name, student_mobile_number, joining_date as joindate, custom_profile as profile
                 FROM `tabStudent`
@@ -445,7 +445,6 @@ def check_user(parent_id=None, studentId=None):
             frappe.local.response.update( {
                 "success": True,
                 "data": student_data,
-                "subjects": [],
                 "app_version": app_version
             } )
 
