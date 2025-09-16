@@ -1,5 +1,6 @@
 import frappe
-from frappe import _
+from datetime import datetime
+from frappe.utils import get_datetime, format_datetime, format_date
 
 @frappe.whitelist(allow_guest=True)
 def get_home_page_details(student_id: str):
@@ -39,7 +40,9 @@ def get_home_page_details(student_id: str):
                     "language_of_instruction": course["language_of_instruction"],
                     "description": course["description"],
                     "details": course["details"],
-                    "ask_doubt_number": course["ask_doubt_number"]
+                    "ask_doubt_number": course["ask_doubt_number"],
+                    "total_item_count": 0,
+                    "total_attended_count": 0
                 })
 
             upcoming_live = frappe.db.sql("""
@@ -79,3 +82,180 @@ def get_home_page_details(student_id: str):
             "success": False,
             "error": str(e)
         })
+
+
+@frappe.whitelist(allow_guest=True)
+def fetch_states():
+    try:
+        data = [
+            "Andaman and Nicobar Islands",
+            "Andhra Pradesh",
+            "Arunachal Pradesh",
+            "Assam",
+            "Bihar",
+            "Chandigarh",
+            "Chhattisgarh",
+            "Dadra and Nagar Haveli & Daman and Diu",
+            "Delhi",
+            "Goa",
+            "Gujarat",
+            "Haryana",
+            "Himachal Pradesh",
+            "Jammu and Kashmir",
+            "Jharkhand",
+            "Karnataka",
+            "Kerala",
+            "Ladakh",
+            "Lakshadweep",
+            "Madhya Pradesh",
+            "Maharashtra",
+            "Manipur",
+            "Meghalaya",
+            "Mizoram",
+            "Nagaland",
+            "Odisha",
+            "Other Territory",
+            "Puducherry",
+            "Punjab",
+            "Rajasthan",
+            "Sikkim",
+            "Tamil Nadu",
+            "Telangana",
+            "Tripura",
+            "Uttar Pradesh",
+            "Uttarakhand",
+            "West Bengal",
+            "Others"
+        ]
+
+        frappe.local.response.update( {
+            "success": True,
+            "data": data
+        } )
+
+    except Exception as e:
+        frappe.log_error(frappe.get_traceback(), "Fetch States API Error")
+        frappe.local.response.update( {
+            "success": False,
+            "error": str(e)
+        } )
+
+
+@frappe.whitelist(allow_guest=True)
+def classroom_details(student_id=None):
+    try:
+        if not student_id:
+            frappe.local.response.update( {"success": False, "error": "student_id is required"} )
+
+        upcoming, ongoing, past = [], [], []
+
+        # ✅ Fetch live classroom details using student_id
+        query = """
+            SELECT name, subject, topic, subtopic, meeting_link, caption, description,
+                   faculty_email, meeting_start_time, meeting_end_time, thumbnail,
+                   status, tutor_id, scheduled_date
+            FROM `tabLive Classroom`
+            WHERE student_id = %s
+              AND status IN ('Upcoming', 'Ongoing', 'Completed')
+        """
+        data = frappe.db.sql(query, (student_id,), as_dict=True)
+
+        now = datetime.now()
+
+        for row in data:
+            raw_start = row.get("meeting_start_time")
+            raw_end = row.get("meeting_end_time")
+            raw_date = row.get("scheduled_date")
+
+            start_time = parse_datetime_safe(raw_start)
+            end_time = parse_datetime_safe(raw_end)
+
+            state = row.get("status")
+
+            # --- Auto-update state ---
+            if state == "Upcoming":
+                if start_time and end_time:
+                    if start_time > now:
+                        state = "Upcoming"
+                    elif start_time <= now <= end_time:
+                        state = "Ongoing"
+                    else:
+                        state = "Completed"
+            elif state == "Ongoing":
+                if end_time and now > end_time:
+                    state = "Completed"
+
+            # ✅ Update DB if status changed
+            if state != row["status"]:
+                frappe.db.sql(
+                    """UPDATE `tabLive Classroom`
+                       SET status=%s WHERE name=%s""",
+                    (state, row["name"])
+                )
+                frappe.db.commit()
+
+            # --- Format for frontend (date + time) ---
+            row["meeting_start_time"] = format_datetime(start_time, "dd-MM-yyyy hh:mm a") if start_time else None
+            row["meeting_end_time"]   = format_datetime(end_time, "dd-MM-yyyy hh:mm a") if end_time else None
+            row["scheduled_date"]     = format_date(raw_date) if raw_date else None
+            row["status"]             = state
+
+            # ✅ Append to correct list
+            if state == "Upcoming":
+                upcoming.append(row)
+            elif state == "Ongoing":
+                ongoing.append(row)
+            else:
+                past.append(row)
+
+        # ✅ Final Response
+        frappe.local.response.update( {
+            "success": True,
+            "data": {
+                "ongoing": ongoing,
+                "upcoming": upcoming,
+                "past": past
+            }
+        } )
+
+    except Exception as e:
+        frappe.log_error(frappe.get_traceback(), "ClassroomDetails API Error")
+        frappe.local.response.update( {"success": False, "error": str(e)} )
+
+
+
+
+
+
+
+
+### Functions ###
+
+def parse_datetime_safe(dt):
+    """Try parsing datetime in both dd-mm-YYYY and YYYY-mm-dd formats"""
+    if not dt:
+        return None
+    dt_str = str(dt).strip()
+    for fmt in ("%d-%m-%Y %H:%M:%S", "%Y-%m-%d %H:%M:%S"):
+        try:
+            return datetime.strptime(dt_str, fmt)
+        except ValueError:
+            continue
+    return None  # if nothing works
+
+def format_time_to_ampm(dt):
+    """Format datetime to 3:30 PM style"""
+    parsed = parse_datetime_safe(dt)
+    return parsed.strftime("%I:%M %p") if parsed else None
+
+def format_date(dt):
+    """Format datetime to Monday, Jan 15 style"""
+    if not dt:
+        return None
+    try:
+        return datetime.strptime(str(dt), "%d-%m-%Y").strftime("%A, %b %d")
+    except Exception:
+        try:
+            return datetime.strptime(str(dt), "%Y-%m-%d").strftime("%A, %b %d")
+        except Exception:
+            return None

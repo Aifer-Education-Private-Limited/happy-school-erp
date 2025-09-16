@@ -65,20 +65,29 @@ permission_query_conditions = {
 
 
 doctype_js={
-    "Lead": "public/js/lead.js"
-}
+    "Lead": "public/js/lead.js",
+    "Opportunity":"public/js/opportunity.js"
+    # "Quotation":"public/js/quotation.js"
+    }
 
 
 doc_events={
     "Lead": {
-        "validate": "happyschool.happyschool.doc_events.lead.validate_salesperson_limit"
+        "validate": "happyschool.happyschool.doc_events.lead.validate_salesperson_limit",
+        "after_insert":"happyschool.happyschool.doc_events.lead.create_opportunity_for_lead"
     },
     "Parent Or Student Ticket":{
         "validate":"happyschool.happyschool.doctype.parent_or_student_ticket.parent_or_student_ticket.update_ticket_times"
     },
-    "Parents":{
-        "after_insert":"happyschool.happyschool.doctype.parents.parents.createparent"
-    }
+    # "Opportunity":{
+    #     "before_save":"happyschool.happyschool.doc_events.opportunity.fetch_item_rate"
+    # }
+    # "Parents":{
+    #     "after_insert":"happyschool.happyschool.doctype.parents.parents.createparent"
+    # }
+}
+override_doctype_class={
+     "Student":"happyschool.happyschool.doc_events.student.CustomStudent"
 }
 # Home Pages
 # ----------
