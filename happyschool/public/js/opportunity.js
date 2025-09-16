@@ -1,6 +1,6 @@
-frappe.ui.form.on("Lead", {
-   
-    refresh: function(frm) {
+
+frappe.ui.form.on("Opportunity", {
+    refresh: function (frm) {
         
         if (!frm.fields_dict.custom_pipeline_html) return;
         const pipeline_html = frm.get_field("custom_pipeline_html").$wrapper;
@@ -34,12 +34,13 @@ frappe.ui.form.on("Lead", {
 
                 <div id="follow-up-step" class="pipeline-step">
                     <span class="icon">F</span>
-                    <div class="text">Follow Up</div>
+                    <div class="text">Assessment</div>
                     <div class="sub-steps" id="followup-sub-steps">
-                        <div class="sub-step" data-value="Interested"><span class="icon">I</span><div class="text">Interested</div></div>
-                        <div class="sub-step" data-value="Not Interested"><span class="icon">NI</span><div class="text">Not Interested</div></div>
+                        <div class="sub-step" data-value="Scheduled"><span class="icon">S</span><div class="text">Scheduled</div></div>
+                        <div class="sub-step" data-value="Completed"><span class="icon">C</span><div class="text">Completed</div></div>
+                        <div class="sub-step" data-value="Report Shared"><span class="icon">RS</span><div class="text">Report Shared</div></div>
                         <div class="sub-step" data-value="Maybe Later"><span class="icon">ML</span><div class="text">Maybe Later</div></div>
-                        <div class="sub-step" data-value="Disqualified"><span class="icon">D</span><div class="text">Disqualified</div></div>
+                        <div class="sub-step" data-value="Lost"><span class="icon">L</span><div class="text">Lost</div></div>
                     </div>
                 </div>
 
@@ -58,7 +59,7 @@ frappe.ui.form.on("Lead", {
             $(".sub-step").removeClass("green grey");
 
             const status = frm.doc.custom_pipeline_status;
-            const sub_status = frm.doc.custom_pipeline_sub_status;
+            const sub_status = frm.doc.custom_sub_status;
 
             if (status === "Prospect") {
                 $("#prospect-step").addClass("active");
@@ -67,7 +68,7 @@ frappe.ui.form.on("Lead", {
                     if(val === sub_status) $(this).addClass("green");
                     else $(this).addClass("grey");
                 });
-            } else if (status === "Follow Up") {
+            } else if (status === "Assessment") {
                 $("#follow-up-step").addClass("active");
                 $("#followup-sub-steps .sub-step").each(function() {
                     const val = $(this).data("value");
@@ -83,7 +84,7 @@ frappe.ui.form.on("Lead", {
 
         // Prospect click -> dialog
         $("#prospect-step").on("click", function() {
-            const current = frm.doc.custom_pipeline_sub_status || "Open";
+            const current = frm.doc.custom_sub_status || "Open";
             let d = new frappe.ui.Dialog({
                 title: "Select Prospect Status",
                 fields: [{
@@ -96,7 +97,7 @@ frappe.ui.form.on("Lead", {
                 }],
                 primary_action(values) {
                     frm.set_value("custom_pipeline_status", "Prospect");
-                    frm.set_value("custom_pipeline_sub_status", values.sub_status);
+                    frm.set_value("custom_sub_status", values.sub_status);
                     updateActiveState();
                     frm.save();
                     d.hide();
@@ -107,20 +108,20 @@ frappe.ui.form.on("Lead", {
 
         // Follow Up click -> dialog
         $("#follow-up-step").on("click", function() {
-            const current = frm.doc.custom_pipeline_sub_status || "Interested";
+            const current = frm.doc.custom_sub_status || "Interested";
             let d = new frappe.ui.Dialog({
-                title: "Select Follow Up Status",
+                title: "Select Assessment Status",
                 fields: [{
                     label: "Sub Status",
                     fieldname: "sub_status",
                     fieldtype: "Select",
-                    options: ["Follow Up","Interested","Not Interested","Maybe Later","Disqualified","DS","LP"],
+                    options: ["Assessment","Scheduled","Completed","Report Shared","Maybe Later","Lost","DS","LP"],
                     reqd: 1,
                     default: current
                 }],
                 primary_action(values) {
-                    frm.set_value("custom_pipeline_status", "Follow Up");
-                    frm.set_value("custom_pipeline_sub_status", values.sub_status);
+                    frm.set_value("custom_pipeline_status", "Assessment");
+                    frm.set_value("custom_sub_status", values.sub_status);
                     updateActiveState();
                     frm.save();
                     d.hide();
@@ -132,7 +133,7 @@ frappe.ui.form.on("Lead", {
         // Enrolled click
         $("#enrolled-step").on("click", function() {
             frm.set_value("custom_pipeline_status", "Enrolled");
-            frm.set_value("custom_pipeline_sub_status", "");
+            frm.set_value("custom_sub_status", "");
             updateActiveState();
             frm.save();
         });
@@ -141,42 +142,65 @@ frappe.ui.form.on("Lead", {
         $("#prospect-sub-steps .sub-step").on("click", function() {
             const val = $(this).data("value");
             frm.set_value("custom_pipeline_status", "Prospect");
-            frm.set_value("custom_pipeline_sub_status", val);
+            frm.set_value("custom_sub_status", val);
             updateActiveState();
             frm.save();
         });
 
         $("#followup-sub-steps .sub-step").on("click", function() {
             const val = $(this).data("value");
-            frm.set_value("custom_pipeline_status", "Follow Up");
-            frm.set_value("custom_pipeline_sub_status", val);
+            frm.set_value("custom_pipeline_status", "Assessment");
+            frm.set_value("custom_sub_status", val);
             updateActiveState();
             frm.save();
         });
-       
-    },
-    before_save:function(frm){
-        console.log("✅ Lead refresh event triggered");
 
-        if (frm.doc.custom_booking && frm.doc.custom_booking.length > 0) {
-            frm.doc.custom_booking.forEach(row => {
-                console.log("Child Sales Person:", row.sales_person);
-                console.log("slot date:", row.slot_date);
 
-                if (row.sales_person) {
-                    // set parent sales_person with child's value
-                    frm.set_value("custom_sales_person", row.sales_person);
-                    frm.refresh_field("custom_sales_person");
-                }
-                if(row.slot_date){
-                    frm.set_value("custom_assigned_date",row.slot_date)
-                    frm.refresh_field("custom_assigned_date");
-                }
-            });
+        // Add the button only if it's not already added
+        if (!frm.custom_buttons_added) {
+            // Check if the form is saved
+            if (!frm.is_new()) {
+                frm.add_custom_button("Assessment", function () {
+                    frappe.new_doc("Assessment", {
+                        lead: frm.doc.custom_lead,
+                        student_name:frm.doc.custom_student_name,
+                        gradeclass:frm.doc.custom_gradeclass,
+                        curriculum:frm.doc.custom_curriculum,
+                        mobile:frm.doc.custom_mobile,
+                        opportunity:frm.doc.name
+                       
+                    });
+                });
+                
+            }
         }
-        console.log("Parent Sales Person:", frm.doc.custom_sales_person);
-        console.log("assigned date",frm.doc.custom_assigned_date);
-
-    }
+    },
+    after_save: function (frm) {
+        // Refresh the form and ensure button shows up after save
+        frm.trigger("refresh");
+    },
+    // before_save:function(frm){
+    //     frm.doc.items.forEach(function(row) {
+    //         if (row.item_code) {
+    //             frappe.call({
+    //                 method: "frappe.client.get_value",
+    //                 args: {
+    //                     doctype: "Item Price",
+    //                     filters: {
+    //                         item_code: row.item_code,
+    //                         price_list: frm.doc.price_list
+    //                     },
+    //                     fieldname: "price_list_rate"
+    //                 },
+    //                 callback: function(r) {
+    //                     if (r.message) {
+    //                         frappe.model.set_value(row.doctype, row.name, "rate", r.message.price_list_rate);
+    //                     }
+    //                 }
+    //             });
+    //         }
+    //     });
+        
+    // }
     
 });

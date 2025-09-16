@@ -1,11 +1,9 @@
-import frappe
 import json
 from datetime import datetime
 # from happyschool.utils.oci_storage import upload_pdf_to_oracle
 from frappe.utils import today, getdate
 
 import frappe, json
-from datetime import datetime
 
 @frappe.whitelist(allow_guest=True)
 def submit_materials():
@@ -425,7 +423,6 @@ def completed_live_sessions():
 
 
 
-import frappe
 
 @frappe.whitelist(allow_guest=True)
 def get_feedback():
@@ -528,7 +525,6 @@ def tutor_home():
         # ---- Students Count ----
         students_count = frappe.db.count("Students List", {"tutor_id": tutor_id})
 
-        # ---- Live Classes Today (check only date) ----
         today_date = getdate(today())
         live_classes_raw = frappe.get_all(
             "Live Classroom",

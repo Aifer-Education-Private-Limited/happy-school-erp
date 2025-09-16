@@ -12,6 +12,7 @@
   "caption",
   "description",
   "student_id",
+  "course_id",
   "column_break_bw4x",
   "faculty_email",
   "meeting_start_time",
@@ -98,6 +99,12 @@
    "fieldtype": "Link",
    "label": "Tutor Id",
    "options": "Tutors"
+  },
+  {
+   "fieldname": "course_id",
+   "fieldtype": "Link",
+   "label": "Course_id",
+   "options": "Courses"
   }
  ],
  "grid_page_length": 50,
