@@ -18,7 +18,8 @@ def get_parent_home_page_details(student_id: str, parent_id: str):
             "parent_name": "Jane Doe Parent",
             "total_attendance_count": 10,
             "total_attendance_earned_count": 7,
-            "overall_course_data_count": 8,
+            "overall_course_data_count": 5,
+            "overall_attended_data_count": 3,
             "subject_wise_data_count": [
                 {
                     "name": "Mathematics",
