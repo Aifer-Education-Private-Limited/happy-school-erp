@@ -10,6 +10,7 @@
   "mobile_number",
   "email",
   "password",
+  "type",
   "column_break_sgeo",
   "state",
   "date_of_birth",
@@ -72,12 +73,19 @@
    "fieldname": "joindate",
    "fieldtype": "Date",
    "label": "Joindate"
+  },
+  {
+   "default": "Link",
+   "fieldname": "type",
+   "fieldtype": "Select",
+   "label": "Type",
+   "options": "Link\nUnlink"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-09-12 18:51:39.596282",
+ "modified": "2025-09-16 09:12:19.187531",
  "modified_by": "Administrator",
  "module": "happyschool",
  "name": "Parents",

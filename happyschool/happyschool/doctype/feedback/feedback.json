@@ -1,18 +1,26 @@
 {
  "actions": [],
  "allow_rename": 1,
- "creation": "2025-09-10 16:24:29.259610",
+ "creation": "2025-09-13 14:53:49.670087",
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
+  "rating",
+  "review",
   "student_id",
-  "course_id",
-  "tutor_id",
-  "admission_date",
-  "expiry_date",
-  "is_active"
+  "tutor_id"
  ],
  "fields": [
+  {
+   "fieldname": "rating",
+   "fieldtype": "Int",
+   "label": "Rating"
+  },
+  {
+   "fieldname": "review",
+   "fieldtype": "Data",
+   "label": "Review"
+  },
   {
    "fieldname": "student_id",
    "fieldtype": "Link",
@@ -20,41 +28,19 @@
    "options": "Student"
   },
   {
-   "fieldname": "course_id",
-   "fieldtype": "Link",
-   "label": "course_id",
-   "options": "Courses"
-  },
-  {
    "fieldname": "tutor_id",
    "fieldtype": "Link",
    "label": "Tutor Id",
    "options": "Tutors"
-  },
-  {
-   "fieldname": "admission_date",
-   "fieldtype": "Date",
-   "label": "Admission_date"
-  },
-  {
-   "fieldname": "expiry_date",
-   "fieldtype": "Date",
-   "label": "Expiry_date"
-  },
-  {
-   "fieldname": "is_active",
-   "fieldtype": "Select",
-   "label": "Is Active",
-   "options": "Active\nIn Active"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-09-16 11:36:44.435558",
+ "modified": "2025-09-15 18:25:28.854565",
  "modified_by": "Administrator",
  "module": "happyschool",
- "name": "User Courses",
+ "name": "Feedback",
  "owner": "Administrator",
  "permissions": [
   {

@@ -1,16 +1,27 @@
 import frappe
 
+
 @frappe.whitelist(allow_guest=True)
 def tutor_login(email, password):
     """
-    Authenticate tutor using Tutors doctype with Data field password (plain text)
+    Authenticate tutor using Tutors doctype with Data field password (plain text).
+    Check that the tutor is not deactivated (type is 'Unlink').
     """
     try:
-        tutor = frappe.db.get_value("Tutors", {"email": email}, ["name", "email", "password"], as_dict=True)
+        # Get tutor information by email
+        tutor = frappe.db.get_value("Tutors", {"email": email}, ["name", "email", "password", "type"], as_dict=True)
         if not tutor:
             frappe.local.response.update({
                 "success": False,
                 "message": "Invalid email or password"
+            })
+            return
+
+        # Check if account is deactivated
+        if tutor.type == "Unlink":
+            frappe.local.response.update({
+                "success": False,
+                "message": "Account is deactivated"
             })
             return
 
@@ -35,7 +46,6 @@ def tutor_login(email, password):
             "success": False,
             "error": str(e)
         })
-
 
 
 @frappe.whitelist(allow_guest=True)

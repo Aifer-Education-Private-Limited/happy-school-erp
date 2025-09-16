@@ -375,21 +375,20 @@ def check_user(parent_id=None, studentId=None):
             frappe.local.response.update( {
                 "success": True,
                 "data": user_data,
-                "app_version": app_version,
-                # "ERP_API_KEY": f"Basic {frappe.conf.get('erp_auth_token')}"
+                "app_version": app_version
             } )
 
             return
 
-        # ✅ Case 2: Parent ID + studentId
-        if uid and studentId:
+        # ✅ Case 2: studentId
+        if studentId:
             student_data = frappe.db.sql("""
-                SELECT name, mobile, token, joindate, profile
-                FROM `tabStudents`
-                WHERE student_id = %s AND parent_uid = %s
+                SELECT student_name, student_mobile_number, joining_date as joindate, custom_profile as profile
+                FROM `tabStudent`
+                WHERE name = %s
                 ORDER BY joindate DESC
                 LIMIT 1
-            """, (studentId, uid), as_dict=True)
+            """, (studentId), as_dict=True)
 
             if student_data:
                 student = student_data[0]
@@ -398,9 +397,9 @@ def check_user(parent_id=None, studentId=None):
                 # Update expired courses
                 frappe.db.sql("""
                     UPDATE `tabUser Courses`
-                    SET is_active = 0
+                    SET is_active = 'In Active'
                     WHERE student_id = %s
-                    AND is_active = 1
+                    AND is_active = 'Active'
                     AND expiry_date <= NOW()
                 """, (studentId,))
 
@@ -408,26 +407,16 @@ def check_user(parent_id=None, studentId=None):
                 user_courses = frappe.db.sql("""
                     SELECT course_id, expiry_date
                     FROM `tabUser Courses`
-                    WHERE student_id = %s AND is_active = 1
+                    WHERE student_id = %s AND is_active = 'Active'
                 """, (studentId,), as_dict=True)
 
                 # Count active courses (expiry in future)
                 user_course_count = frappe.db.sql("""
                     SELECT COUNT(*) as count
                     FROM `tabUser Courses`
-                    WHERE student_id = %s AND is_active = 1
+                    WHERE student_id = %s AND is_active = 'Active'
                     AND expiry_date > NOW()
                 """, (studentId,), as_dict=True)[0].count
-
-                # TODO: Replace with actual DocType for streaks
-                study_streak = {
-                    "streak": 0,
-                    "highest_streak": 0,
-                    "recent_active_dates": []
-                }
-
-                # Discussion count
-                discussion_count = frappe.db.count("Discussion", {"student_id": studentId})
 
                 # Course titles
                 course_ids = [c["course_id"] for c in user_courses]
@@ -436,7 +425,7 @@ def check_user(parent_id=None, studentId=None):
                     placeholders = ", ".join(["%s"] * len(course_ids))
                     titles = frappe.db.sql(f"""
                         SELECT course_id, title
-                        FROM `tabDynamic Courses`
+                        FROM `tabCourses`
                         WHERE course_id IN ({placeholders})
                     """, tuple(course_ids), as_dict=True)
                     for t in titles:
@@ -452,16 +441,11 @@ def check_user(parent_id=None, studentId=None):
                     })
 
                 student["course_count"] = user_course_count
-                student["userStreak"] = study_streak["streak"]
-                student["discussionCount"] = discussion_count
 
             frappe.local.response.update( {
                 "success": True,
                 "data": student_data,
-                "subjects": [],
-                "app_version": app_version,
-                "streak_time": 20,
-                # "ERP_API_KEY": f"Basic {frappe.conf.get('erp_auth_token')}"
+                "app_version": app_version
             } )
 
             return
