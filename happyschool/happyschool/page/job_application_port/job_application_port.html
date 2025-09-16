@@ -1,0 +1,97 @@
+<div class="container py-4">
+  <!-- Heading -->
+  <h2 class="mb-4 text-center" style="color:rgb(134 47 126); font-weight: 700;">
+    Job Application Portal
+  </h2>
+  <!-- Tabs Navigation -->
+  <ul class="nav nav-tabs liquid-glass-tabs w-100" id="customTabs">
+    <li class="nav-item flex-fill text-center">
+      <a class="nav-link active" data-tab="tab1" href="#">Job Application</a>
+    </li>
+    <li class="nav-item flex-fill text-center">
+      <a class="nav-link" data-tab="tab2" href="#">Test</a>
+    </li>
+    <li class="nav-item flex-fill text-center">
+      <a class="nav-link" data-tab="tab3" href="#">Demo Upload</a>
+    </li>
+    <li class="nav-item flex-fill text-center">
+      <a class="nav-link" data-tab="tab4" href="#">Application Status</a>
+    </li>
+  </ul>
+
+  <!-- Tabs Content -->
+  <div class="tab-content border p-4 rounded-bottom liquid-glass-content" style="background:#f9f9f9;">
+
+    <div id="tab1" class="tab-pane active">
+      <h4>Tab 1 Content</h4>
+      <p>This is the first tab content. You can add forms, reports, or buttons here.</p>
+      <button class="btn btn-primary">Go to Form 1</button>
+    </div>
+
+    <div id="tab2" class="tab-pane d-none">
+      <h4>Tab 2 Content</h4>
+      <p>Unique feature for Tab 2.</p>
+      <button class="btn btn-success">Run Action</button>
+    </div>
+
+    <div id="tab3" class="tab-pane d-none">
+      <h4>Tab 3 Content</h4>
+      <p>Another feature area in Tab 3.</p>
+      <button class="btn btn-warning">Show Report</button>
+    </div>
+
+    <div id="tab4" class="tab-pane d-none">
+      <h4>Tab 4 Content</h4>
+      <p>Final tab with its own unique feature.</p>
+      <button class="btn btn-info">Open Webform</button>
+    </div>
+
+  </div>
+</div>
+
+<style>
+  .liquid-glass-tabs {
+    display: flex;
+    width: 100%;
+    background: rgba(128, 0, 255, 0.15);
+    /* Solid violet */
+    backdrop-filter: blur(10px);
+    border-radius: 16px 16px 0 0;
+    box-shadow: 0 4px 24px rgba(128, 0, 255, 0.08);
+    border: none;
+    overflow: hidden;
+  }
+
+  .liquid-glass-tabs .nav-item {
+    flex: 1 1 0;
+  }
+
+  .liquid-glass-tabs .nav-link {
+    width: 100%;
+    color: #fff;
+    font-weight: 500;
+    border: none;
+    border-radius: 0;
+    background: rgb(47 165 200);
+    /* Solid teal */
+    transition: background 0.3s, color 0.3s;
+    padding: 1rem 0;
+  }
+
+  .liquid-glass-tabs .nav-link.active,
+  .liquid-glass-tabs .nav-link:hover {
+    background: rgb(234 181 41);
+    /* Solid violet */
+    color: #ffe6ff;
+    box-shadow: 0 2px 8px rgba(128, 0, 255, 0.12);
+  }
+
+  .liquid-glass-content {
+    background: rgb(234 181 41);
+    /* Solid violet */
+    backdrop-filter: blur(12px);
+    border-radius: 0 0 16px 16px;
+    box-shadow: 0 8px 32px rgba(128, 0, 255, 0.12);
+    border: none;
+  }
+</style>
