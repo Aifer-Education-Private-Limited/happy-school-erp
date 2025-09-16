@@ -39,24 +39,24 @@ def validate_salesperson_limit(doc, method):
                     "You cannot assign more."
                 )
 
+@frappe.whitelist()
+def create_opportunity_for_lead(doc, method):
+    opportunity = frappe.get_doc({
+        "doctype": "Opportunity",
 
+        # --- Required standard fields ---
+        "opportunity_from": "Lead",
+        "party_type": "Lead",        # required by Opportunity
+        "party_name": doc.name,      # link to Lead
+        "status":"Open",
 
+        # --- Custom fields ---
+        "custom_lead": doc.name,
+        "custom_student_name": doc.custom_student_name,
+        "custom_mobile": doc.custom_mobile_number,
+        "custom_gradeclass": doc.custom_gradeclass,
+        "custom_curriculum": doc.custom_board,
+        "custom_sales_person": doc.custom_sales_person
+    })
 
-
-# import frappe
-
-# @frappe.whitelist()
-# def update_salesperson_from_child(lead_name):
-#     """
-#     Take first sales_person from child table (custom_booking)
-#     and set it in parent sales_person field.
-#     """
-#     lead = frappe.get_doc("Lead", lead_name)
-
-#     if lead.custom_booking and lead.custom_booking[0].sales_person:
-#         lead.sales_person = lead.custom_booking[0].sales_person
-#         lead.save(ignore_permissions=True)
-#         frappe.db.commit()
-#         return {"status": "success", "sales_person": lead.sales_person}
-    
-#     return {"status": "failed", "message": "No sales_person found in child table"}
+    opportunity.insert(ignore_permissions=True)

@@ -32,10 +32,10 @@ frappe.ui.form.on("Assessment", {
                     frappe.call({
                         method: "frappe.client.set_value",
                         args: {
-                            doctype: "Lead",
-                            name: frm.doc.lead,
-                            fieldname: "custom_pipeline_sub_status",
-                            value: "Assessment Report Shared"
+                            doctype: "Opportunity",
+                            name: frm.doc.opportunity,
+                            fieldname: "custom_assessment_status",
+                            value: "Shared"
                         },
                         callback: function(r) {
                             frappe.show_alert({ message: "Lead status updated!", indicator: "green" });
