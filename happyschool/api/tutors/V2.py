@@ -167,6 +167,7 @@ def get_announcements_by_student_or_parent():
             "message": str(e)
         })
 
+
 import frappe
 import json
 from datetime import datetime
@@ -194,14 +195,16 @@ def get_student_materials():
         if not is_enrolled:
             return {"success": False, "error": f"Student {student_id} is not enrolled in Course {course_id}"}
 
-        # ---- Fetch materials related to the student ----
         materials = frappe.get_all(
             "Materials",
             filters={"student_id": student_id},
-            fields=["name", "subject", "topic", "subtopic", "material_name", "session_id"]
+            fields=["name", "subject", "topic", "subtopic", "material_name", "session_id", "tutor_id", "submitted_date", "files","student_id"]
         )
 
         courses_data = []
+
+        # Dictionary to group materials by topic, subtopic, and course
+        topic_dict = {}
 
         for material in materials:
             session_id = material.session_id
@@ -214,59 +217,46 @@ def get_student_materials():
             )
 
             if live_classroom and live_classroom[0].course_id == course_id:
-                # ---- Fetch course details from the Courses table ----
-                course_details = frappe.get_doc("Courses", course_id)
+                # Group by topic and subtopic
+                if material.topic not in topic_dict:
+                    topic_dict[material.topic] = {}
 
-                # Add course data
-                subject_data = {
-                    "subject": material.subject,  # Use material subject here
-                    "topics": [],  # Initialize topics list
-                }
+                if material.subtopic not in topic_dict[material.topic]:
+                    topic_dict[material.topic][material.subtopic] = []
 
-                # ---- Add topic and subtopics under the course ----
-                topic_data = {
-                    "topic_name": material.topic,  # Directly use topic from materials
-                    "subtopics": []
-                }
-
-                # ---- Add subtopics under the topic ----
-                subtopic_data = {
-                    "subtopic_name": material.subtopic,  # Directly use subtopic from materials
-                    "data": []  # Materials will be added here
-                }
-
-                # ---- Add materials to the subtopic ----
+                # Add the material to the corresponding subtopic
                 material_data = {
                     "material_name": material.material_name,
-                    "student_id": student_id,
-                    "grade": "A",  # Example: Get grade from the student courses data
-                    "status": "Active",  # Example: Get student status
-                    "course_details": {
-                        "course_id": course_details.course_id,
-                        "title": course_details.title,
-                        "subject": course_details.subject,
-                        "status": course_details.status,
-                        "language_of_instruction": course_details.language_of_instruction,
-                        "description": course_details.description,
-                        "details": course_details.details,
-                        "ask_doubt_number": course_details.ask_doubt_number,
-                        "expiry_date": course_details.expiry_date,
-                        "label": course_details.label,
-                        "image": course_details.image
-                    }
+                    "tutor_id": material.tutor_id,
+                    "subject": material.subject,
+                    "topic": material.topic,
+                    "subtopic": material.subtopic,
+                    "files": material.files,  # Assuming files are linked correctly in the material doctype
+                    "submitted_date": material.submitted_date,
+                    "session_id": material.session_id,
+                    "student_id": material.student_id
                 }
 
-                # Add material data to the subtopic
-                subtopic_data["data"].append(material_data)
+                # Append this material to the subtopic's data list
+                topic_dict[material.topic][material.subtopic].append(material_data)
 
-                # Add subtopic data to topic data
-                topic_data["subtopics"].append(subtopic_data)
+        # Structure the response data based on topic_dict
+        for topic, subtopics in topic_dict.items():
+            subject_data = {
+                "topic": topic,
+                "subTopic": []
+            }
 
-                # Add topic data to subject data
-                subject_data["topics"].append(topic_data)
+            for subtopic, materials in subtopics.items():
+                subtopic_data = {
+                    "title": subtopic,
+                    "data": materials  # List all materials under this subtopic
+                }
 
-                # Add subject data to the courses list
-                courses_data.append(subject_data)
+                subject_data["subTopic"].append(subtopic_data)
+
+            # Add the subject data to courses data
+            courses_data.append(subject_data)
 
         # Return the structured course and material data
         frappe.local.response.update({
@@ -284,6 +274,7 @@ def get_student_materials():
 
 
 
+
 @frappe.whitelist(allow_guest=True)
 def parent_account_delete():
 
@@ -294,14 +285,14 @@ def parent_account_delete():
         if not parent_id:
             frappe.local.response.update({
                 "success": False,
-                "message": "Tutor ID is required"
+                "message": "parent ID is required"
             })
             return
 
         if not frappe.db.exists("Parents", parent_id):
             frappe.local.response.update({
                 "success": False,
-                "message": f"Tutor {parent_id} not found"
+                "message": f"Parent {parent_id} not found"
             })
             return
 
@@ -309,23 +300,23 @@ def parent_account_delete():
         if current_status == "Unlink":
             frappe.local.response.update({
                 "success": False,
-                "message": f"Tutor {parent_id} account is already deactivated"
+                "message": f"parent {parent_id} account is already deactivated"
             })
             return
 
         # Update tutor status to "Unlink"
-        frappe.db.set_value("Tutors", parent_id, "type", "Unlink")
+        frappe.db.set_value("Parents", parent_id, "type", "Unlink")
         frappe.db.commit()
 
         frappe.local.response.update({
             "success": True,
-            "message": f"Tutor {parent_id} account unlinked successfully",
+            "message": f"Parent {parent_id} account unlinked successfully",
             "tutor_id": parent_id,
             "status": "Unlink"
         })
 
     except Exception as e:
-        frappe.log_error(frappe.get_traceback(), "tutor_account_delete API Error")
+        frappe.log_error(frappe.get_traceback(), "Parent_account_delete API Error")
         frappe.local.response.update({
             "success": False,
             "message": str(e)

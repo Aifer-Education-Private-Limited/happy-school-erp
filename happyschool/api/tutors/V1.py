@@ -20,11 +20,12 @@ def submit_materials():
         subtopic = form.get("subtopic")
         material_name = form.get("material_name")
         student_id = form.get("student_id")
+        session_id = form.get("session_id")
+        
 
         if not tutor_id or not student_id:
             return {"success": False, "error": "Tutor ID and Student ID are required"}
 
-        # ---- Validate tutor exists ----
         if not frappe.db.exists("Tutors", tutor_id):
             return {"success": False, "error": f"Tutor {tutor_id} not found"}
 
@@ -32,26 +33,22 @@ def submit_materials():
         # if not frappe.db.exists("Student", student_id):
         #     return {"success": False, "error": f"Student {student_id} not found"}
 
-        # ---- Validate tutor-student relation ----
         if not frappe.db.exists("Students List", {"tutor_id": tutor_id, "student_id": student_id}):
             return {
                 "success": False,
                 "error": f"Student {student_id} is not assigned to Tutor {tutor_id}"
             }
 
-        # ---- Extract uploaded files ----
         uploaded_files = frappe.request.files.getlist("files")
         if not uploaded_files:
             return {"success": False, "error": "No files uploaded"}
 
-        # ---- Get OCI folder ----
         folder_name = frappe.conf.get("oci_materials_folder")
         if not folder_name:
             return {"success": False, "error": "Missing oci_materials_folder in site_config.json"}
 
         assignment_array = []
 
-        # ---- Upload each file ----
         for f in uploaded_files:
             filename = f.filename
             content = f.read()
@@ -77,6 +74,7 @@ def submit_materials():
             "topic": topic,
             "subtopic": subtopic,
             "material_name": material_name,
+            "session_id" : session_id,
             "files": json.dumps(assignment_array),
             "submitted_date": datetime.now()
         })

@@ -1,40 +1,52 @@
 {
  "actions": [],
  "allow_rename": 1,
- "creation": "2025-09-12 10:37:32.107512",
+ "creation": "2025-09-16 15:40:27.782310",
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
-  "tutor_id",
   "student_id",
-  "subject"
+  "course_id",
+  "date",
+  "time",
+  "confirm"
  ],
  "fields": [
   {
-   "fieldname": "tutor_id",
-   "fieldtype": "Link",
-   "label": "Tutor id",
-   "options": "Tutors"
-  },
-  {
    "fieldname": "student_id",
    "fieldtype": "Link",
-   "label": "Student id",
+   "label": "Student_id",
    "options": "Student"
   },
   {
-   "fieldname": "subject",
-   "fieldtype": "Data",
-   "label": "Subject"
+   "fieldname": "course_id",
+   "fieldtype": "Link",
+   "label": "Course Id",
+   "options": "Courses"
+  },
+  {
+   "fieldname": "date",
+   "fieldtype": "Date",
+   "label": "Date"
+  },
+  {
+   "fieldname": "time",
+   "fieldtype": "Time",
+   "label": "Time"
+  },
+  {
+   "fieldname": "confirm",
+   "fieldtype": "Int",
+   "label": "Confirm"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-09-16 12:13:09.331700",
+ "modified": "2025-09-16 15:59:32.982964",
  "modified_by": "Administrator",
  "module": "happyschool",
- "name": "Students List",
+ "name": "Std Attendance",
  "owner": "Administrator",
  "permissions": [
   {
