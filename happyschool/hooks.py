@@ -67,6 +67,7 @@ permission_query_conditions = {
 doctype_js={
     "Lead": "public/js/lead.js",
     "Opportunity":"public/js/opportunity.js"
+    # "Quotation":"public/js/quotation.js"
     }
 
 
@@ -86,7 +87,7 @@ doc_events={
     # }
 }
 override_doctype_class={
-    "Student":"happyschool.happyschool.doc_events.opportunity.fetch_item_rate"
+     "Student":"happyschool.happyschool.doc_events.student.CustomStudent"
 }
 # Home Pages
 # ----------
