@@ -9,6 +9,7 @@
   "student_name",
   "gradeclass",
   "academic_year_and_term",
+  "opportunity",
   "column_break_6hdl",
   "curriculum",
   "date",
@@ -199,12 +200,18 @@
    "fieldname": "mobile",
    "fieldtype": "Phone",
    "label": "Mobile"
+  },
+  {
+   "fieldname": "opportunity",
+   "fieldtype": "Link",
+   "label": "Opportunity",
+   "options": "Opportunity"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-09-14 23:28:39.816199",
+ "modified": "2025-09-15 12:30:33.972607",
  "modified_by": "Administrator",
  "module": "happyschool",
  "name": "Assessment",

@@ -1,25 +1,7 @@
 frappe.ui.form.on("Lead", {
    
     refresh: function(frm) {
-        if (!frm.custom_buttons_added) {
-            frm.add_custom_button("Assessment", function () {
-                frappe.new_doc("Assessment", {
-                    lead: frm.doc.name,
-                    student_name:frm.doc.custom_student_name,
-                    gradeclass:frm.doc.custom_gradeclass,
-                    curriculum:frm.doc.custom_board,
-                    mobile:frm.doc.custom_mobile_number
-
-                });
-                
-            });
-            
         
-            
-        }
-        
-    
-
         if (!frm.fields_dict.custom_pipeline_html) return;
         const pipeline_html = frm.get_field("custom_pipeline_html").$wrapper;
 
