@@ -195,11 +195,10 @@ def get_student_materials():
         if not is_enrolled:
             return {"success": False, "error": f"Student {student_id} is not enrolled in Course {course_id}"}
 
-        # ---- Fetch materials related to the student ----
         materials = frappe.get_all(
             "Materials",
             filters={"student_id": student_id},
-            fields=["name", "subject", "topic", "subtopic", "material_name", "session_id", "tutor_id", "submitted_date", "files"]
+            fields=["name", "subject", "topic", "subtopic", "material_name", "session_id", "tutor_id", "submitted_date", "files","student_id"]
         )
 
         courses_data = []
