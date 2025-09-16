@@ -1,6 +1,6 @@
 import json
 from datetime import datetime
-# from happyschool.utils.oci_storage import upload_pdf_to_oracle
+from happyschool.utils.oci_storage import upload_pdf_to_oracle
 from frappe.utils import today, getdate
 
 import frappe, json
@@ -29,8 +29,8 @@ def submit_materials():
             return {"success": False, "error": f"Tutor {tutor_id} not found"}
 
         # ---- Validate student exists ----
-        if not frappe.db.exists("Students", student_id):
-            return {"success": False, "error": f"Student {student_id} not found"}
+        # if not frappe.db.exists("Student", student_id):
+        #     return {"success": False, "error": f"Student {student_id} not found"}
 
         # ---- Validate tutor-student relation ----
         if not frappe.db.exists("Students List", {"tutor_id": tutor_id, "student_id": student_id}):
