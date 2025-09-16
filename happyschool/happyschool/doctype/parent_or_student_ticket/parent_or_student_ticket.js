@@ -58,12 +58,3 @@ frappe.ui.form.on('Parent Or Student Ticket', {
     }
 });
 
-function toggle_fields_by_type(frm) {
-    const type = frm.doc.type;
-
-    // Show Student only if type = "Student"
-    frm.set_df_property('student', 'hidden', type !== "Student");
-
-    // Show Parent only if type = "Parent"
-    frm.set_df_property('parent1', 'hidden', type !== "Parent");
-}

@@ -8,29 +8,30 @@ from datetime import datetime
 
 
 @frappe.whitelist(allow_guest=True)
-def ticket(mobile):
+def ticket():
     """Method to create a ticket and assign it to all users with relevant roles"""
     try:
 
         category = frappe.form_dict.get('category')
-        ticket_type = frappe.form_dict.get('type')
+        parent_id=frappe.form_dict.get('parent_id')
+        studentId=frappe.form_dict.get('studentId')
         course = frappe.form_dict.get('course')
         description = frappe.form_dict.get('description')
         uid=frappe.form_dict.get('uid')
 
         
-        student = frappe.db.get_value("Student", {"student_mobile_number": mobile}, ["name", "first_name"], as_dict=True)
-        parent = frappe.db.get_value("Parents", {"mobile_number": mobile}, ["name", "first_name"], as_dict=True)
+        student_doc = frappe.db.get_value("Student", {"name": studentId}, ["name", "first_name"], as_dict=True)
+        parent_doc = frappe.db.get_value("Parents", {"name": parent_id}, ["name", "first_name"], as_dict=True)
 
-        student_id = student.name if student else None
-        student_name = student.first_name if student else None
-        parent_id = parent.name if parent else None
-        parent_name = parent.first_name if parent else None
+        student_id = student_doc.name if student_doc else None
+        student_name = student_doc.first_name if student_doc else None
+        parent_db_id = parent_doc.name if parent_doc else None
+        parent_name = parent_doc.first_name if parent_doc else None
 
 
 
         
-        if not category or not mobile:
+        if not category:
             frappe.local.response.update({
                 "success": False,
                 "message": {"error": "Category and mobile are required."},
@@ -38,36 +39,29 @@ def ticket(mobile):
             })
             return
 
-        if ticket_type == "Student" and not student_id:
+        if not student_id and not parent_db_id:
             frappe.local.response.update({
                 "success": False,
-                "message": "Student not found",
+                "message": "Neither a valid Student nor Parent found",
                 "http_status_code": 400
             })
             return
 
-        # If type is Parent but no parent found
-        if ticket_type == "Parent" and not parent_id:
-            frappe.local.response.update({
-                "success": False,
-                "message": "Parent not found",
-                "http_status_code": 400
-            })
-            return
+
 
         ticket = frappe.new_doc('Parent Or Student Ticket')
         ticket.subject = category
-        ticket.type=ticket_type
-        ticket.user_id = uid
+        ticket.parentid=parent_id
+        ticket.studentid=studentId
         ticket.student_course = course
-        ticket.mobile = mobile
+
         ticket.status = "Open"
         ticket.description = description
 
-        if ticket_type == "Student":
+        if student_id:
             ticket.student = student_id
-        elif ticket_type == "Parent":
-            ticket.parent1= parent_id
+        elif parent_db_id:
+            ticket.parent1 = parent_db_id
 
         ticket.save(ignore_permissions=True)
         frappe.db.commit()
@@ -113,11 +107,10 @@ def ticket(mobile):
         ticket_details = {
             "ticket_id": ticket.name,
             "category": ticket.subject,
-            "type":ticket.type,
-            "uid": ticket.user_id,
+        
             "course": ticket.student_course,
             "status": ticket.status,
-            "mobile": ticket.mobile,
+
             "description": ticket.description,
             "creation": formatted_creation
         }
@@ -141,17 +134,32 @@ def ticket(mobile):
 
 
 @frappe.whitelist(allow_guest=True)
-def get_ticket(uid):
+def get_ticket():
     try:
-        # Fetch all tickets for the given uid, ordered by creation desc
+        parent_id = frappe.form_dict.get("parent_id")
+        student_id = frappe.form_dict.get("studentId")
+
+        filters = {}
+        if parent_id:
+            filters["parentid"] = parent_id   # ✅ use the exact fieldname from doctype
+        elif student_id:
+            filters["studentid"] = student_id # ✅ use the exact fieldname from doctype
+        else:
+            frappe.local.response.update({
+                "success": False,
+                "message": "Please provide either parent_id or studentId"
+            })
+            return
+
         tickets = frappe.get_all(
             "Parent Or Student Ticket",
-            filters={"user_id": uid},
+            filters=filters,
             fields=[
                 "name", "subject", "student", "student_course", "status",
                 "description", "creation", "modified", "type",
                 "progress_time", "complete_time",
-                "progress_comment", "complete_comment"
+                "progress_comment", "complete_comment",
+                "parentid", "studentid"   # ✅ must match DB fieldnames
             ],
             order_by="creation desc"
         )
@@ -159,7 +167,7 @@ def get_ticket(uid):
         if not tickets:
             frappe.local.response.update({
                 "success": False,
-                "message": f"No tickets found for uid: {uid}"
+                "message": "No tickets found"
             })
             return
 
@@ -169,7 +177,6 @@ def get_ticket(uid):
                 {
                     "ticket_id": t.name,
                     "category": t.subject,
-                    "type": t.type,
                     "course": t.student_course,
                     "status": t.status,
                     "description": t.description,
@@ -178,6 +185,7 @@ def get_ticket(uid):
                     "creation": t.creation,
                     "progress_time": t.progress_time or "",
                     "complete_time": t.complete_time or ""
+                    
                 }
                 for t in tickets
             ]

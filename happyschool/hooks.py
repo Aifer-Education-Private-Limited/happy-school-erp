@@ -66,8 +66,8 @@ permission_query_conditions = {
 
 doctype_js={
     "Lead": "public/js/lead.js",
-    "Opportunity":"public/js/opportunity.js"
-    # "Quotation":"public/js/quotation.js"
+    "Opportunity":"public/js/opportunity.js",
+    "Quotation":"public/js/quotation.js"
     }
 
 
