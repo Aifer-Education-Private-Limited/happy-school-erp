@@ -12,6 +12,7 @@
   "caption",
   "description",
   "student_id",
+  "course_id",
   "column_break_bw4x",
   "faculty_email",
   "meeting_start_time",
@@ -97,12 +98,18 @@
    "fieldtype": "Link",
    "label": "Tutor Id",
    "options": "Tutors"
+  },
+  {
+   "fieldname": "course_id",
+   "fieldtype": "Link",
+   "label": "Course_id",
+   "options": "Courses"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-09-13 10:44:14.445863",
+ "modified": "2025-09-15 17:45:53.558644",
  "modified_by": "Administrator",
  "module": "happyschool",
  "name": "Live Classroom",
