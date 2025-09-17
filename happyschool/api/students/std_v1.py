@@ -28,7 +28,6 @@ def get_student_materials():
 
         courses_data = []
 
-        # Dictionary to group materials by topic, subtopic, and course
         topic_dict = {}
 
         for material in materials:
@@ -89,6 +88,3 @@ def get_student_materials():
             "success": False,
             "message": str(e)
         })
-
-
-
