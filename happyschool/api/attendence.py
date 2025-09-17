@@ -9,7 +9,7 @@ def make_attendance(student_id, course_id,confirm):
     today = nowdate()
 
     existing = frappe.db.exists(
-        "Student Attendance",
+        "Std Attendance",
         {"student_id": student_id, "course_id": course_id, "date": today}
     )
 
@@ -17,7 +17,7 @@ def make_attendance(student_id, course_id,confirm):
         return {"success": False, "message": "Attendance already marked for today"}
 
     doc = frappe.get_doc({
-        "doctype": "Student Attendance",
+        "doctype": "Std Attendance",
         "student_id": student_id,
         "course_id": course_id,
         "date": today,
@@ -38,7 +38,7 @@ def get_student_attendance(student_id, course_id):
         records = frappe.db.sql(
             """
             SELECT name, date, confirm
-            FROM `tabStudent Attendance`
+            FROM `tabStd Attendance`
             WHERE student_id = %s 
               AND course_id = %s
               AND confirm = 2
