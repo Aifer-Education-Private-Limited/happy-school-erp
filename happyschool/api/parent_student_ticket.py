@@ -156,7 +156,7 @@ def get_ticket():
             filters=filters,
             fields=[
                 "name", "subject", "student", "student_course", "status",
-                "description", "creation", "modified", "type",
+                "description", "creation", "modified",
                 "progress_time", "complete_time",
                 "progress_comment", "complete_comment",
                 "parentid", "studentid"   # ✅ must match DB fieldnames
