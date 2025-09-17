@@ -7,10 +7,7 @@ import frappe, json
 
 @frappe.whitelist(allow_guest=True)
 def submit_materials():
-    """
-    Upload materials and save entry in Materials doctype.
-    Validates that the student belongs to the tutor using Students List.
-    """
+
     try:
         # Extract form data
         form = frappe.local.form_dict
