@@ -78,7 +78,7 @@ doc_events={
     },
     "Parent Or Student Ticket":{
         "validate":"happyschool.happyschool.doctype.parent_or_student_ticket.parent_or_student_ticket.update_ticket_times"
-    },
+    }
     # "Opportunity":{
     #     "before_save":"happyschool.happyschool.doc_events.opportunity.fetch_item_rate"
     # }
