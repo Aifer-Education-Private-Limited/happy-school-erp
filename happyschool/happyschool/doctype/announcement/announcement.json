@@ -22,7 +22,7 @@
   },
   {
    "fieldname": "description",
-   "fieldtype": "Text Editor",
+   "fieldtype": "Text",
    "label": "Description"
   },
   {
@@ -52,7 +52,7 @@
    "fieldname": "student_id",
    "fieldtype": "Link",
    "label": "Student Id",
-   "options": "Students"
+   "options": "Student"
   },
   {
    "fieldname": "parent_id",
@@ -64,7 +64,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-09-14 16:59:23.220524",
+ "modified": "2025-09-17 17:17:09.630727",
  "modified_by": "Administrator",
  "module": "happyschool",
  "name": "Announcement",

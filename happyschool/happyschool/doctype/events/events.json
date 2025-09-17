@@ -5,12 +5,16 @@
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
+  "title",
+  "description",
+  "audience_type",
+  "student_id",
+  "parent_id",
+  "meeting_link",
   "event_date",
   "start_time",
   "end_time",
-  "meeting_link",
-  "expiry_date",
-  "student_id"
+  "expiry_date"
  ],
  "fields": [
   {
@@ -42,13 +46,35 @@
    "fieldname": "student_id",
    "fieldtype": "Link",
    "label": "Student_id",
-   "options": "Students"
+   "options": "Student"
+  },
+  {
+   "fieldname": "parent_id",
+   "fieldtype": "Link",
+   "label": "Parent Id",
+   "options": "Parents"
+  },
+  {
+   "fieldname": "audience_type",
+   "fieldtype": "Select",
+   "label": "Audience Type",
+   "options": "Student\nParent\nBoth\nTutor"
+  },
+  {
+   "fieldname": "title",
+   "fieldtype": "Data",
+   "label": "Title"
+  },
+  {
+   "fieldname": "description",
+   "fieldtype": "Text",
+   "label": "Description"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-09-15 17:26:39.484221",
+ "modified": "2025-09-17 17:58:59.012298",
  "modified_by": "Administrator",
  "module": "happyschool",
  "name": "Events",
