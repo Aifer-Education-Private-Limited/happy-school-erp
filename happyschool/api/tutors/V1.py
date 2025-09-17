@@ -549,7 +549,7 @@ def tutor_home():
         # ---- Upcoming Classes ----
         upcoming_classes_raw = frappe.get_all(
             "Live Classroom",
-            filters={"tutor_id": tutor_id, "status": "Upcoming"},
+            filters={"tutor_id": tutor_id, "status": "Ongoing"},
             fields=["name", "topic", "subtopic", "meeting_start_time", "student_id", "scheduled_date"]
         )
 
