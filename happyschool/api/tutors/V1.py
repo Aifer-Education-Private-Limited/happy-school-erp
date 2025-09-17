@@ -1,6 +1,6 @@
 import json
 from datetime import datetime
-from happyschool.utils.oci_storage import upload_pdf_to_oracle
+# from happyschool.utils.oci_storage import upload_pdf_to_oracle
 from frappe.utils import today, getdate
 
 import frappe, json
