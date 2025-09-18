@@ -5,65 +5,91 @@ from frappe.model.naming import make_autoname
 from frappe.utils.data import formatdate
 
 
-
-
-@frappe.whitelist(allow_guest=True) 
-def make_attendance(student_id, course_id, confirm):
+@frappe.whitelist(allow_guest=True)
+def make_attendance(student_id, course_id, confirm, session_id, tutor_id=None, rating=None, review=None):
     try:
         today = nowdate()
 
-        # Check if attendance already exists for today
+        # Map confirm → correct field
+        confirm_field_map = {
+            "0": "tutor_confirm",
+            "1": "student_confirm",
+            "2": "material_confirm"
+        }
+        confirm_field = confirm_field_map.get(str(confirm))
+
+        if not confirm_field:
+            frappe.local.response.update({
+                "success": False,
+                "message": "Invalid confirm value. Must be 0, 1, or 2"
+            })
+            return
+
+        # Check if attendance already exists
         existing = frappe.db.get_value(
             "Std Attendance",
-            {"student_id": student_id, "course_id": course_id, "date": today},
-            ["name", "confirm"]
+            {"student_id": student_id, "course_id": course_id, "date": today, "session_id": session_id},
+            ["name", "tutor_confirm", "student_confirm", "material_confirm"]
         )
 
         if existing:
-            attendance_name, existing_confirm = existing
+            attendance_name, existing_tutor, existing_student, existing_material = existing
 
-            if str(existing_confirm) == str(confirm):
-                # Confirm value is same → nothing to update
+            existing_value = {
+                "tutor_confirm": existing_tutor,
+                "student_confirm": existing_student,
+                "material_confirm": existing_material,
+            }.get(confirm_field)
+
+            if str(existing_value) == str(confirm):
                 frappe.local.response.update({
                     "success": False,
-                    "message": "Attendance already marked for today"
+                    "message": f"Attendance already marked for {confirm_field}"
                 })
                 return
             else:
-                # Confirm value changed → update the record
-                frappe.db.set_value(
-                    "Std Attendance",
-                    attendance_name,
-                    "confirm",
-                    confirm
-                )
+                frappe.db.set_value("Std Attendance", attendance_name, confirm_field, confirm)
                 frappe.db.commit()
 
                 frappe.local.response.update({
                     "success": True,
-                    "message": "Attendance updated successfully",
+                    "message": f"{confirm_field} updated successfully",
                     "attendance_id": attendance_name,
                     "updated_confirm": confirm
                 })
-                return
+        else:
+            # New record
+            doc = frappe.get_doc({
+                "doctype": "Std Attendance",
+                "student_id": student_id,
+                "course_id": course_id,
+                "date": today,
+                "time": now_datetime(),
+                confirm_field: confirm,
+                "session_id": session_id
+            })
+            doc.insert(ignore_permissions=True)
+            frappe.db.commit()
 
-        # If no existing record → create new attendance
-        doc = frappe.get_doc({
-            "doctype": "Std Attendance",
-            "student_id": student_id,
-            "course_id": course_id,
-            "date": today,
-            "time": now_datetime(),
-            "confirm": confirm
-        })
-        doc.insert(ignore_permissions=True)
-        frappe.db.commit()
+            frappe.local.response.update({
+                "success": True,
+                "message": f"Attendance marked successfully in {confirm_field}",
+                "attendance_id": doc.name
+            })
 
-        frappe.local.response.update({
-            "success": True,
-            "message": "Attendance marked successfully",
-            "attendance_id": doc.name
-        })
+        # Insert Feedback if rating & review provided
+        if rating and review:
+            feedback_doc = frappe.get_doc({
+                "doctype": "Feedback",
+                "student_id": student_id,
+                "tutor_id": tutor_id,
+                "rating": rating,
+                "review": review
+            })
+            feedback_doc.insert(ignore_permissions=True)
+            frappe.db.commit()
+
+        return
 
     except Exception as e:
         frappe.log_error(frappe.get_traceback(), "make_attendance API Error")
@@ -76,35 +102,33 @@ def make_attendance(student_id, course_id, confirm):
 @frappe.whitelist(allow_guest=True)
 def get_student_attendance(student_id, course_id):
     try:
-        # Only fetch rows where confirm = 2
+        # ✅ Fetch only records where material_confirm = 2
         records = frappe.db.sql(
             """
-            SELECT name, date, confirm, time
+            SELECT name, date, time, session_id, material_confirm
             FROM `tabStd Attendance`
             WHERE student_id = %s 
               AND course_id = %s
-              AND confirm = 2
+              AND material_confirm = 2
             ORDER BY date DESC
             """,
             (student_id, course_id),
             as_dict=True
         )
 
-        if not records:
-            frappe.local.response.update({
-                "success": False,
-                "message": "Attendance Not Yet Confirmed"
-            })
-            return
-
-        # Format the data
         formatted = []
         for r in records:
+            caption = None
+
+            if r.session_id:
+                caption = frappe.db.get_value("Live Classroom", r.session_id, "caption")
+
             formatted.append({
                 "attendance_id": r.name,
-                "time":r.time,
+                "time": r.time,
                 "date": formatdate(r.date, "dd-MM-yyyy"),
-                "confirm": r.confirm
+                # "confirm": r.material_confirm,
+                "session_caption": caption
             })
 
         frappe.local.response.update({
@@ -116,52 +140,46 @@ def get_student_attendance(student_id, course_id):
         frappe.log_error(frappe.get_traceback(), "get_student_attendance API Error")
         frappe.local.response.update({
             "success": False,
+            "data": [],
             "error": str(e)
         })
 
-import frappe
-from frappe.utils.data import formatdate
-
 @frappe.whitelist(allow_guest=True)
 def check_attendance(student_id=None):
-    """
-    Fetch student attendance records where confirm = 0 for a student.
-    Includes course title and session (live classroom) title.
-    """
     try:
         if not student_id:
             frappe.local.response.update({
                 "success": False,
-                "error": "Student ID is required"
+                "error": "Student ID is required",
+                "data": []
             })
             return
+        
+        # Get the tutor_id assigned to this student from Students List
+        tutor_id = frappe.db.get_value("Students List", {"student_id": student_id}, "tutor_id") or ""
 
-        # Fetch attendance records with confirm = 0
         records = frappe.db.sql(
             """
-            SELECT name, student_id, course_id, date, confirm, session_id
+            SELECT name, student_id, course_id, date, tutor_confirm, session_id
             FROM `tabStd Attendance`
             WHERE student_id = %s
-              AND confirm = 0
+              AND tutor_confirm = 0
+              AND tutor_confirm IS NOT NULL
+              AND tutor_confirm != ''
+              AND (student_confirm IS NULL OR student_confirm = '')
+              AND (material_confirm IS NULL OR material_confirm = '')
             ORDER BY date DESC
             """,
             (student_id,),
             as_dict=True
         )
 
-        if not records:
-            frappe.local.response.update({
-                "success": False,
-                "message": "No unconfirmed attendance records found"
-            })
-            return
-
         formatted_records = []
         for r in records:
             # Fetch course title
             course_title = frappe.db.get_value("Courses", r.course_id, "title") or ""
 
-            # Fetch session/live classroom title
+            # Fetch session/live classroom caption
             session_title = frappe.db.get_value("Live Classroom", r.session_id, "caption") or ""
 
             formatted_records.append({
@@ -171,7 +189,8 @@ def check_attendance(student_id=None):
                 "session_id": r.session_id,
                 "session_title": session_title,
                 "date": formatdate(r.date, "dd-MM-yyyy"),
-                "confirm": r.confirm
+                "tutor_confirm": r.tutor_confirm,
+                "tutor_id": tutor_id  # Include tutor_id assigned to student
             })
 
         frappe.local.response.update({
@@ -183,5 +202,6 @@ def check_attendance(student_id=None):
         frappe.log_error(frappe.get_traceback(), "check_attendance API Error")
         frappe.local.response.update({
             "success": False,
+            "data": [],
             "error": str(e)
         })

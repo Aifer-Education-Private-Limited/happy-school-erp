@@ -40,7 +40,7 @@ def get_parent_home_page_details(student_id: str, parent_id: str):
                 }
             ]
         }
-        # ✅ Directly set the response object (no "message")
+        #  Directly set the response object (no "message")
         frappe.local.response.update({
             "success": True,
             "datas": datas
