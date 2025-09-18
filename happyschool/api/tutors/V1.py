@@ -1,13 +1,23 @@
+import frappe
 import json
+import requests
+import mimetypes
 from datetime import datetime
 # from happyschool.utils.oci_storage import upload_pdf_to_oracle
 from frappe.utils import today, getdate
 
-import frappe, json
+
+ORACLE_UPLOAD_URL = frappe.conf.get("ORACLE_UPLOAD_URL")
+ORACLE_AUTH_TOKEN = frappe.conf.get("ORACLE_AUTH_TOKEN")
+FOLDER_NAME = "Happyschool Materials"   # folder name inside bucket
 
 @frappe.whitelist(allow_guest=True)
 def submit_materials():
-
+    """
+    Upload materials and save entry in Materials doctype.
+    Uses Oracle Object Storage REST API (no OCI SDK).
+    Supports multiple file types.
+    """
     try:
         # Extract form data
         form = frappe.local.form_dict
@@ -18,31 +28,22 @@ def submit_materials():
         material_name = form.get("material_name")
         student_id = form.get("student_id")
         session_id = form.get("session_id")
-        
 
         if not tutor_id or not student_id:
-            return {"success": False, "error": "Tutor ID and Student ID are required"}
+            frappe.local.response.update( {"success": False, "error": "Tutor ID and Student ID are required"})
 
         if not frappe.db.exists("Tutors", tutor_id):
-            return {"success": False, "error": f"Tutor {tutor_id} not found"}
-
-        # ---- Validate student exists ----
-        # if not frappe.db.exists("Student", student_id):
-        #     return {"success": False, "error": f"Student {student_id} not found"}
+            frappe.local.response.update( {"success": False, "error": f"Tutor {tutor_id} not found"} )
 
         if not frappe.db.exists("Students List", {"tutor_id": tutor_id, "student_id": student_id}):
-            return {
+            frappe.local.response.update( {
                 "success": False,
                 "error": f"Student {student_id} is not assigned to Tutor {tutor_id}"
-            }
+            } )
 
         uploaded_files = frappe.request.files.getlist("files")
         if not uploaded_files:
-            return {"success": False, "error": "No files uploaded"}
-
-        folder_name = frappe.conf.get("oci_materials_folder")
-        if not folder_name:
-            return {"success": False, "error": "Missing oci_materials_folder in site_config.json"}
+            frappe.local.response.update( {"success": False, "error": "No files uploaded"} )
 
         assignment_array = []
 
@@ -50,39 +51,55 @@ def submit_materials():
             filename = f.filename
             content = f.read()
 
-            file_dict = {"filename": filename, "content": content}
+            # Detect file type automatically
+            mime_type, _ = mimetypes.guess_type(filename)
+            if not mime_type:
+                mime_type = "application/octet-stream"
 
-            result = upload_pdf_to_oracle(
-                file_dict,
-                folder_name=folder_name,
-                material_name=material_name
-            )
+            # Upload to Oracle REST API (inside folder)
+            upload_url = f"{ORACLE_UPLOAD_URL}{FOLDER_NAME}/{filename}"
+            headers = {
+                "Authorization": ORACLE_AUTH_TOKEN,
+                "Content-Type": mime_type
+            }
+
+            response = requests.put(upload_url, headers=headers, data=content)
+
+            if response.status_code not in [200, 201]:
+                frappe.local.response.update( {
+                    "success": False,
+                    "error": f"Upload failed for {filename}: {response.text}"
+                } )
+
+            file_url = upload_url  # public/pre-authenticated URL
 
             assignment_array.append({
-                "file": result["objectName"],
-                "url": result["fileUrl"]
+                "file": filename,
+                "url": file_url,
+                "type": mime_type
             })
 
+        # Save to Materials doctype
         doc = frappe.get_doc({
             "doctype": "Materials",
             "tutor_id": tutor_id,
-            "student_id": student_id,   
+            "student_id": student_id,
             "subject": subject,
             "topic": topic,
             "subtopic": subtopic,
             "material_name": material_name,
-            "session_id" : session_id,
+            "session_id": session_id,
             "files": json.dumps(assignment_array),
             "submitted_date": datetime.now()
         })
         doc.insert(ignore_permissions=True)
         frappe.db.commit()
 
-        return {"success": True, "assignment": assignment_array}
+        frappe.local.response.update( {"success": True, "assignment": assignment_array} )
 
     except Exception as e:
         frappe.log_error(frappe.get_traceback(), "submit_materials error")
-        return {"success": False, "error": str(e)}
+        frappe.local.response.update( {"success": False, "error": str(e)} )
 
 
 @frappe.whitelist(allow_guest=True)
