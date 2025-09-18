@@ -71,12 +71,10 @@ def make_attendance(student_id, course_id, confirm):
             "success": False,
             "error": str(e)
         })
-
-
 @frappe.whitelist(allow_guest=True)
 def get_student_attendance(student_id, course_id):
     try:
-        # Only fetch rows where confirm = 2
+        # Fetch rows where confirm = 2
         records = frappe.db.sql(
             """
             SELECT name, date, confirm, time
@@ -90,37 +88,28 @@ def get_student_attendance(student_id, course_id):
             as_dict=True
         )
 
-        if not records:
-            frappe.local.response.update({
-                "success": False,
-                "message": "Attendance Not Yet Confirmed"
-            })
-            return
-
-        # Format the data
         formatted = []
         for r in records:
             formatted.append({
                 "attendance_id": r.name,
-                "time":r.time,
+                "time": r.time,
                 "date": formatdate(r.date, "dd-MM-yyyy"),
                 "confirm": r.confirm
             })
 
         frappe.local.response.update({
             "success": True,
-            "data": formatted
+            "data": formatted  
         })
 
     except Exception as e:
         frappe.log_error(frappe.get_traceback(), "get_student_attendance API Error")
         frappe.local.response.update({
             "success": False,
+            "data": [], 
             "error": str(e)
         })
 
-import frappe
-from frappe.utils.data import formatdate
 
 @frappe.whitelist(allow_guest=True)
 def check_attendance(student_id=None):
@@ -149,12 +138,8 @@ def check_attendance(student_id=None):
             as_dict=True
         )
 
-        if not records:
-            frappe.local.response.update({
-                "success": False,
-                "message": "No unconfirmed attendance records found"
-            })
-            return
+   
+          
 
         formatted_records = []
         for r in records:
@@ -183,5 +168,6 @@ def check_attendance(student_id=None):
         frappe.log_error(frappe.get_traceback(), "check_attendance API Error")
         frappe.local.response.update({
             "success": False,
+            "data": [], 
             "error": str(e)
         })

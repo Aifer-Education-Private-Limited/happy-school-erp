@@ -1,17 +1,14 @@
 {
  "actions": [],
  "allow_rename": 1,
- "creation": "2025-09-17 14:24:17.090655",
+ "creation": "2025-09-17 19:12:23.919151",
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
   "history_id",
-  "test_id",
-  "student_id",
-  "attended_date",
-  "total_time",
-  "attempt_count",
-  "marks"
+  "set_id",
+  "question_id",
+  "answer"
  ],
  "fields": [
   {
@@ -21,45 +18,28 @@
    "options": "Test User History"
   },
   {
-   "fieldname": "test_id",
-   "fieldtype": "Link",
-   "label": "Test ID",
-   "options": "Tests"
-  },
-  {
-   "fieldname": "student_id",
-   "fieldtype": "Link",
-   "label": "Student ID",
-   "options": "Student"
-  },
-  {
-   "fieldname": "attended_date",
-   "fieldtype": "Datetime",
-   "label": "Attended Date"
-  },
-  {
-   "fieldname": "total_time",
+   "fieldname": "set_id",
    "fieldtype": "Data",
-   "label": "Total_time"
+   "label": "Set ID"
   },
   {
-   "fieldname": "attempt_count",
-   "fieldtype": "Int",
-   "label": "Attempt Count"
+   "fieldname": "question_id",
+   "fieldtype": "Data",
+   "label": "Question_id"
   },
   {
-   "fieldname": "marks",
-   "fieldtype": "Int",
-   "label": "Marks"
+   "fieldname": "answer",
+   "fieldtype": "Data",
+   "label": "Answer"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-09-17 18:51:03.489740",
+ "modified": "2025-09-17 19:20:20.262936",
  "modified_by": "Administrator",
  "module": "happyschool",
- "name": "Test User History",
+ "name": "Test User Answers",
  "owner": "Administrator",
  "permissions": [
   {
