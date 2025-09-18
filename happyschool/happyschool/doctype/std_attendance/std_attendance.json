@@ -9,7 +9,8 @@
   "course_id",
   "date",
   "time",
-  "confirm"
+  "confirm",
+  "session_id"
  ],
  "fields": [
   {
@@ -38,12 +39,18 @@
    "fieldname": "confirm",
    "fieldtype": "Int",
    "label": "Confirm"
+  },
+  {
+   "fieldname": "session_id",
+   "fieldtype": "Link",
+   "label": "Session Id",
+   "options": "Live Classroom"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-09-16 15:59:32.982964",
+ "modified": "2025-09-17 18:12:55.829569",
  "modified_by": "Administrator",
  "module": "happyschool",
  "name": "Std Attendance",

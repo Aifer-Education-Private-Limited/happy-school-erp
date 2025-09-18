@@ -564,19 +564,19 @@ def tutor_home():
         # ---- Upcoming Classes ----
         upcoming_classes_raw = frappe.get_all(
             "Live Classroom",
-            filters={"tutor_id": tutor_id, "status": "Upcoming"},
+            filters={"tutor_id": tutor_id, "status": "Ongoing"},
             fields=["name", "topic", "subtopic", "meeting_start_time", "student_id", "scheduled_date"]
         )
 
         upcoming_classes = []
         for c in upcoming_classes_raw:
             student_info = {}
-            if c.student_id and frappe.db.exists("Students", c.student_id):
-                student_doc = frappe.get_doc("Students", c.student_id)
+            if c.student_id and frappe.db.exists("Student", c.student_id):
+                student_doc = frappe.get_doc("Student", c.student_id)
                 student_info = {
                     "student_id": student_doc.name,
-                    "student_name": student_doc.get("student_name"),
-                    "grade": student_doc.get("grade")
+                    "student_name": student_doc.get("first_name"),
+                    "grade": student_doc.get("custom_grade")
                 }
 
             upcoming_classes.append({
@@ -604,7 +604,7 @@ def tutor_home():
             "students_count": students_count,
             "live_classes_today": live_classes_today,
             "feedback_avg": avg_rating,
-            "upcoming_classes": upcoming_classes,
+            "ongoing_classes": upcoming_classes,
             "pending_uploads": pending_uploads  
 
         })
