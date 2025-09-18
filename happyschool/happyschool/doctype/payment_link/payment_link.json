@@ -1,0 +1,136 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2025-09-17 14:47:10.033776",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "lead",
+  "customer_name",
+  "email_id",
+  "mobile_number",
+  "payment_type",
+  "offer_applied",
+  "column_break_zr3q",
+  "fee",
+  "total_fees",
+  "grand_total",
+  "state",
+  "payment_link",
+  "discount_perc",
+  "discount_amnt",
+  "program_section",
+  "items"
+ ],
+ "fields": [
+  {
+   "fieldname": "email_id",
+   "fieldtype": "Data",
+   "label": "Email Id"
+  },
+  {
+   "fieldname": "fee",
+   "fieldtype": "Currency",
+   "label": "Fee After Discount"
+  },
+  {
+   "fieldname": "customer_name",
+   "fieldtype": "Data",
+   "label": "Customer Name"
+  },
+  {
+   "fieldname": "mobile_number",
+   "fieldtype": "Phone",
+   "label": "Mobile Number"
+  },
+  {
+   "fieldname": "state",
+   "fieldtype": "Select",
+   "label": "State",
+   "options": "Andhra Pradesh\nArunachal Pradesh\nAssam\nBihar\nChhattisgarh\nGoa\nGujarat\nHaryana\nHimachal Pradesh\nJharkhand\nKarnataka\nKerala\nMadhya Pradesh\nMaharashtra\nManipur\nMeghalaya\nMizoram\nNagaland\nOdisha\nPunjab\nRajasthan\nSikkim\nTamil Nadu\nTelangana\nTripura\nUttar Pradesh\nUttarakhand\nWest Bengal\nDelhi\nJammu and Kashmir\nLadakh\nPuducherry\nChandigarh\nDadra and Nagar Haveli and Daman and Diu\nLakshadweep\nAndaman and Nicobar Islands"
+  },
+  {
+   "fieldname": "payment_type",
+   "fieldtype": "Data",
+   "label": "Payment Type"
+  },
+  {
+   "fieldname": "column_break_zr3q",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "lead",
+   "fieldtype": "Link",
+   "label": "Lead",
+   "options": "Lead"
+  },
+  {
+   "fieldname": "total_fees",
+   "fieldtype": "Data",
+   "label": "Total Fees"
+  },
+  {
+   "fieldname": "payment_link",
+   "fieldtype": "Small Text",
+   "label": "Payment Link"
+  },
+  {
+   "fieldname": "grand_total",
+   "fieldtype": "Data",
+   "label": "Grand Total"
+  },
+  {
+   "fieldname": "discount_perc",
+   "fieldtype": "Data",
+   "label": "Additional Discount Percentage"
+  },
+  {
+   "fieldname": "discount_amnt",
+   "fieldtype": "Data",
+   "label": "Additional Discount Amount"
+  },
+  {
+   "fieldname": "offer_applied",
+   "fieldtype": "Select",
+   "label": "Offer Applied",
+   "options": "\nTrue\nFalse"
+  },
+  {
+   "fieldname": "program_section",
+   "fieldtype": "Section Break",
+   "label": "Program"
+  },
+  {
+   "fieldname": "items",
+   "fieldtype": "Table",
+   "label": "Items",
+   "options": "Payment Link Items"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2025-09-17 18:28:18.531397",
+ "modified_by": "Administrator",
+ "module": "happyschool",
+ "name": "Payment Link",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

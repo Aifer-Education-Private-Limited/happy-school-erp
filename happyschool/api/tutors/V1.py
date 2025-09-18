@@ -544,7 +544,6 @@ def tutor_home():
             total_rating = sum([float(f.rating) for f in feedbacks if f.rating])
             avg_rating = round(total_rating / len(feedbacks), 1)
 
-        # ---- Upcoming Classes ----
         upcoming_classes_raw = frappe.get_all(
             "Live Classroom",
             filters={"tutor_id": tutor_id, "status": "Ongoing"},
