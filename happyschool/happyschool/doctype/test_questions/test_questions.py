@@ -3,7 +3,15 @@
 
 # import frappe
 from frappe.model.document import Document
-
+import frappe
 
 class TestQuestions(Document):
 	pass
+
+
+from frappe.model.naming import make_autoname
+
+class TestQuestions(frappe.model.document.Document):
+    def autoname(self):
+        # Only 3 digits instead of 5
+        self.name = make_autoname("PST-.YYYY.-.###")

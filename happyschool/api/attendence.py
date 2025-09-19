@@ -118,19 +118,19 @@ def make_attendance(student_id, confirm, session_id,course_id=None, tutor_id=Non
             "success": False,
             "error": str(e)
         })
-
-
+        
+        
 @frappe.whitelist(allow_guest=True)
 def get_student_attendance(student_id, course_id):
     try:
-        # Fetch only records where material_confirm = 2
+        # Fetch all records for the student and course
         records = frappe.db.sql(
             """
-            SELECT name, date, time, session_id, material_confirm
+            SELECT name, date, time, session_id, material_confirm, attendance
             FROM `tabStd Attendance`
             WHERE student_id = %s 
               AND course_id = %s
-              AND material_confirm = 2
+              AND (material_confirm = 2 OR attendance = 'Absent')
             ORDER BY date DESC
             """,
             (student_id, course_id),
@@ -140,7 +140,6 @@ def get_student_attendance(student_id, course_id):
         formatted = []
         for r in records:
             caption = None
-
             if r.session_id:
                 caption = frappe.db.get_value("Live Classroom", r.session_id, "caption")
 
@@ -148,8 +147,8 @@ def get_student_attendance(student_id, course_id):
                 "attendance_id": r.name,
                 "time": r.time,
                 "date": formatdate(r.date, "dd-MM-yyyy"),
-                # "confirm": r.material_confirm,
-                "session_caption": caption
+                "session_caption": caption,
+                "attendance": r.attendance
             })
 
         frappe.local.response.update({
@@ -181,7 +180,7 @@ def check_attendance(student_id=None):
 
         records = frappe.db.sql(
             """
-            SELECT name, student_id, course_id, date, tutor_confirm, session_id,attendance
+            SELECT name, student_id, course_id, date, tutor_confirm, session_id
             FROM `tabStd Attendance`
             WHERE student_id = %s
               AND tutor_confirm = 1
@@ -210,7 +209,6 @@ def check_attendance(student_id=None):
                 "date": formatdate(r.date, "dd-MM-yyyy"),
                 "tutor_confirm": r.tutor_confirm,
                 "tutor_id": tutor_id ,
-                "attendance":r.attendance
             })
 
         frappe.local.response.update({
