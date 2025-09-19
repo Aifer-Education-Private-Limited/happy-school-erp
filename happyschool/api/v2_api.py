@@ -130,7 +130,7 @@ def get_announcements_by_student_or_parent():
         frappe.local.response.update({
             "success": True,
             "announcements": announcements,
-            "events": events_data if student_id else []  # Include events only if student_id is present
+            "events": events_data
         })
 
     except Exception as e:
