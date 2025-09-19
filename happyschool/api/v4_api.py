@@ -55,7 +55,8 @@ def get_student_materials():
                     "files": material.files,  
                     "submitted_date": material.submitted_date,
                     "session_id": material.session_id,
-                    "student_id": material.student_id
+                    "student_id": material.student_id,
+                    "type": "material"
                 }
 
                 topic_dict[material.topic][material.subtopic].append(material_data)
