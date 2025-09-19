@@ -159,6 +159,7 @@ def student_list():
 
 
 
+
 @frappe.whitelist(allow_guest=True)
 def tutor_profile():
     """
@@ -211,14 +212,10 @@ def tutor_profile():
 
         tutor_data["sessions_completed"] = completed_sessions
 
-        active_students = 0
-        student_links = frappe.get_all("Students List", filters={"tutor_id": tutor_id}, fields=["student_id"])
-
-        for link in student_links:
-            if frappe.db.exists("Student", {"name": link.student_id, "type": "Active"}):
-                active_students += 1
-
-        tutor_data["active_students"] = active_students
+       
+        # Count total students assigned to this tutor from Students List
+        students_count = frappe.db.count("Students List", {"tutor_id": tutor_id})
+        tutor_data["students_count"] = students_count
 
         # ---- Final Response ----
         frappe.local.response.update({

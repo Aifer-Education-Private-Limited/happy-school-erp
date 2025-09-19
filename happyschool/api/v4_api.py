@@ -35,7 +35,7 @@ def get_student_materials():
 
             live_classroom = frappe.get_all(
                 "Live Classroom",
-                filters={"name": session_id},  # Correct field to refer to Live Classroom session
+                filters={"name": session_id},  
                 fields=["course_id"]
             )
 
@@ -52,7 +52,7 @@ def get_student_materials():
                     "subject": material.subject,
                     "topic": material.topic,
                     "subtopic": material.subtopic,
-                    "files": material.files,  # Assuming files are linked correctly in the material doctype
+                    "files": material.files,  
                     "submitted_date": material.submitted_date,
                     "session_id": material.session_id,
                     "student_id": material.student_id

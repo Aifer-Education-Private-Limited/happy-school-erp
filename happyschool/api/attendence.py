@@ -10,7 +10,7 @@ def make_attendance(student_id, course_id, confirm, session_id, tutor_id=None, r
     try:
         today = nowdate()
 
-        # Map confirm → correct field
+        # Map confirm → field name
         confirm_field_map = {
             "0": "tutor_confirm",
             "1": "student_confirm",
@@ -35,37 +35,40 @@ def make_attendance(student_id, course_id, confirm, session_id, tutor_id=None, r
         if existing:
             attendance_name, existing_tutor, existing_student, existing_material = existing
 
+            # Get existing value of the corresponding field
             existing_value = {
                 "tutor_confirm": existing_tutor,
                 "student_confirm": existing_student,
                 "material_confirm": existing_material,
             }.get(confirm_field)
 
-            if str(existing_value) == str(confirm):
+            # Only update if current value is 0
+            if str(existing_value) == "1":
                 frappe.local.response.update({
                     "success": False,
                     "message": f"Attendance already marked for {confirm_field}"
                 })
                 return
             else:
-                frappe.db.set_value("Std Attendance", attendance_name, confirm_field, confirm)
+                # Update status from 0 → 1
+                frappe.db.set_value("Std Attendance", attendance_name, confirm_field, 1)
                 frappe.db.commit()
 
                 frappe.local.response.update({
                     "success": True,
-                    "message": f"{confirm_field} updated successfully",
+                    "message": f"{confirm_field} updated successfully to 1",
                     "attendance_id": attendance_name,
-                    "updated_confirm": confirm
+                    "updated_confirm": 1
                 })
         else:
-            # New record
+            # New record: set the field to 1
             doc = frappe.get_doc({
                 "doctype": "Std Attendance",
                 "student_id": student_id,
                 "course_id": course_id,
                 "date": today,
                 "time": now_datetime(),
-                confirm_field: confirm,
+                confirm_field: 1,  # set status to 1 directly
                 "session_id": session_id
             })
             doc.insert(ignore_permissions=True)
@@ -73,7 +76,7 @@ def make_attendance(student_id, course_id, confirm, session_id, tutor_id=None, r
 
             frappe.local.response.update({
                 "success": True,
-                "message": f"Attendance marked successfully in {confirm_field}",
+                "message": f"Attendance marked successfully in {confirm_field} with status 1",
                 "attendance_id": doc.name
             })
 
