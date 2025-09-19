@@ -74,7 +74,9 @@ def get_announcements_by_student_or_parent():
         if not student_id and not parent_id:
             frappe.local.response.update({
                 "success": False,
-                "message": "Either Student ID or Parent ID is required"
+                "message": "Either Student ID or Parent ID is required",
+                "announcements": [],
+                "events": []
             })
             return
 
@@ -99,7 +101,9 @@ def get_announcements_by_student_or_parent():
         if not announcements:
             frappe.local.response.update({
                 "success": False,
-                "message": "No announcements found for the provided ID(s)"
+                "message": "No announcements found for the provided ID(s)",
+                "announcements": [],
+                "events": []
             })
             return
 
