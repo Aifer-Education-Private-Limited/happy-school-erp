@@ -11,6 +11,12 @@ def get_parent_home_page_details(student_id: str, parent_id: str):
     """
 
     try:
+        if not student_id and not parent_id:
+            frappe.local.response.update({
+                "success": False,
+                "datas": []
+            })
+            return
 
         datas = {
             "student_id": student_id,
@@ -28,7 +34,7 @@ def get_parent_home_page_details(student_id: str, parent_id: str):
                     "attended_data_count": 2
                 },
                 {
-                    "subject_name": "English",
+                    "name": "English",
                     "total_data_count": 2,
                     "attended_data_count": 1
                 }

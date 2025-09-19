@@ -4,9 +4,8 @@ from frappe.model.document import Document
 from frappe.model.naming import make_autoname
 from frappe.utils.data import formatdate
 
-
 @frappe.whitelist(allow_guest=True)
-def make_attendance(student_id, course_id, confirm, session_id, tutor_id=None, rating=None, review=None):
+def make_attendance(student_id, confirm, session_id,course_id=None, tutor_id=None, rating=None, review=None, attendance=None):
     try:
         today = nowdate()
 
@@ -25,40 +24,57 @@ def make_attendance(student_id, course_id, confirm, session_id, tutor_id=None, r
             })
             return
 
+        # Map attendance value → field string
+        attendance_status = None
+        if attendance is not None:
+            if str(attendance) == "0":
+                attendance_status = "Absent"
+            elif str(attendance) == "1":
+                attendance_status = "Present"
+            else:
+                frappe.local.response.update({
+                    "success": False,
+                    "message": "Invalid attendance value. Must be 0 or 1"
+                })
+                return
+
         # Check if attendance already exists
         existing = frappe.db.get_value(
             "Std Attendance",
             {"student_id": student_id, "course_id": course_id, "date": today, "session_id": session_id},
-            ["name", "tutor_confirm", "student_confirm", "material_confirm"]
+            ["name", "tutor_confirm", "student_confirm", "material_confirm", "attendance"]
         )
 
         if existing:
-            attendance_name, existing_tutor, existing_student, existing_material = existing
+            attendance_name, existing_tutor, existing_student, existing_material, existing_attendance = existing
 
-            # Get existing value of the corresponding field
+            # Only update confirm field if current value is 0
             existing_value = {
                 "tutor_confirm": existing_tutor,
                 "student_confirm": existing_student,
                 "material_confirm": existing_material,
             }.get(confirm_field)
 
-            # Only update if current value is 0
             if str(existing_value) == "1":
                 frappe.local.response.update({
                     "success": False,
-                    "message": f"Attendance already marked for {confirm_field}"
+                    "message": f"Attendance already marked for {confirm_field}",
+                    "attendance_status": existing_attendance
                 })
                 return
             else:
                 # Update status from 0 → 1
                 frappe.db.set_value("Std Attendance", attendance_name, confirm_field, 1)
+                if attendance_status:
+                    frappe.db.set_value("Std Attendance", attendance_name, "attendance", attendance_status)
                 frappe.db.commit()
 
                 frappe.local.response.update({
                     "success": True,
                     "message": f"{confirm_field} updated successfully to 1",
                     "attendance_id": attendance_name,
-                    "updated_confirm": 1
+                    "updated_confirm": 1,
+                    "attendance_status": attendance_status
                 })
         else:
             # New record: set the field to 1
@@ -69,7 +85,8 @@ def make_attendance(student_id, course_id, confirm, session_id, tutor_id=None, r
                 "date": today,
                 "time": now_datetime(),
                 confirm_field: 1,  # set status to 1 directly
-                "session_id": session_id
+                "session_id": session_id,
+                "attendance": attendance_status
             })
             doc.insert(ignore_permissions=True)
             frappe.db.commit()
@@ -77,7 +94,8 @@ def make_attendance(student_id, course_id, confirm, session_id, tutor_id=None, r
             frappe.local.response.update({
                 "success": True,
                 "message": f"Attendance marked successfully in {confirm_field} with status 1",
-                "attendance_id": doc.name
+                "attendance_id": doc.name,
+                "attendance_status": attendance_status
             })
 
         # Insert Feedback if rating & review provided
@@ -105,7 +123,7 @@ def make_attendance(student_id, course_id, confirm, session_id, tutor_id=None, r
 @frappe.whitelist(allow_guest=True)
 def get_student_attendance(student_id, course_id):
     try:
-        # ✅ Fetch only records where material_confirm = 2
+        # Fetch only records where material_confirm = 2
         records = frappe.db.sql(
             """
             SELECT name, date, time, session_id, material_confirm
@@ -163,12 +181,10 @@ def check_attendance(student_id=None):
 
         records = frappe.db.sql(
             """
-            SELECT name, student_id, course_id, date, tutor_confirm, session_id
+            SELECT name, student_id, course_id, date, tutor_confirm, session_id,attendance
             FROM `tabStd Attendance`
             WHERE student_id = %s
-              AND tutor_confirm = 0
-              AND tutor_confirm IS NOT NULL
-              AND tutor_confirm != ''
+              AND tutor_confirm = 1
               AND (student_confirm IS NULL OR student_confirm = '')
               AND (material_confirm IS NULL OR material_confirm = '')
             ORDER BY date DESC
@@ -193,7 +209,8 @@ def check_attendance(student_id=None):
                 "session_title": session_title,
                 "date": formatdate(r.date, "dd-MM-yyyy"),
                 "tutor_confirm": r.tutor_confirm,
-                "tutor_id": tutor_id  # Include tutor_id assigned to student
+                "tutor_id": tutor_id ,
+                "attendance":r.attendance
             })
 
         frappe.local.response.update({
