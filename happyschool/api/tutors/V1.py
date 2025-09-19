@@ -176,6 +176,7 @@ def student_list():
 
 
 
+
 @frappe.whitelist(allow_guest=True)
 def tutor_profile():
     """
@@ -228,14 +229,10 @@ def tutor_profile():
 
         tutor_data["sessions_completed"] = completed_sessions
 
-        active_students = 0
-        student_links = frappe.get_all("Students List", filters={"tutor_id": tutor_id}, fields=["student_id"])
-
-        for link in student_links:
-            if frappe.db.exists("Student", {"name": link.student_id, "type": "Active"}):
-                active_students += 1
-
-        tutor_data["active_students"] = active_students
+       
+        # Count total students assigned to this tutor from Students List
+        students_count = frappe.db.count("Students List", {"tutor_id": tutor_id})
+        tutor_data["students_count"] = students_count
 
         # ---- Final Response ----
         frappe.local.response.update({
@@ -381,6 +378,7 @@ def completed_live_sessions():
                 "status", "scheduled_date", "thumbnail"
             ]
         )
+        student_attendance =frappe.get_all
 
         session_data = []
         for s in sessions:
@@ -399,6 +397,17 @@ def completed_live_sessions():
             material_status = "Material Pending"
             if frappe.db.exists("Materials", {"tutor_id": tutor_id, "session_id": s.name}):
                 material_status = "Material Uploaded"
+                
+            attendance_status = "Not Marked"        
+            attendance_record = frappe.db.get_value(
+             "Std Attendance",
+            {"student_id": s.student_id, "session_id": s.name},
+             "attendance"
+               )
+            if attendance_record:
+             attendance_status = attendance_record  # Present / Absent
+    
+
 
             # ---- Session Details ----
             session_data.append({
@@ -416,7 +425,9 @@ def completed_live_sessions():
                 "scheduled_date": s.scheduled_date,
                 "thumbnail": s.thumbnail,
                 "student": student_info,
-                "material_upload": material_status
+                "material_upload": material_status,      
+                "attendance": attendance_status 
+
             })
 
         frappe.local.response.update({

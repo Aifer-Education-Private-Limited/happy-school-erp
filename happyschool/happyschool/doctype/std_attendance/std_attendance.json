@@ -12,7 +12,8 @@
   "session_id",
   "tutor_confirm",
   "student_confirm",
-  "material_confirm"
+  "material_confirm",
+  "attendance"
  ],
  "fields": [
   {
@@ -45,24 +46,30 @@
   },
   {
    "fieldname": "tutor_confirm",
-   "fieldtype": "Data",
+   "fieldtype": "Int",
    "label": " Tutor Confirm"
   },
   {
    "fieldname": "student_confirm",
-   "fieldtype": "Data",
+   "fieldtype": "Int",
    "label": "Student Confirm"
   },
   {
    "fieldname": "material_confirm",
-   "fieldtype": "Data",
+   "fieldtype": "Int",
    "label": "Material Confirm"
+  },
+  {
+   "fieldname": "attendance",
+   "fieldtype": "Select",
+   "label": "Attendance",
+   "options": "Present\nAbsent"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-09-18 10:39:25.996939",
+ "modified": "2025-09-19 09:59:11.579493",
  "modified_by": "Administrator",
  "module": "happyschool",
  "name": "Std Attendance",
