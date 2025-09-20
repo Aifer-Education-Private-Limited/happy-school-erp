@@ -1,0 +1,200 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2025-09-17 14:47:10.033776",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "lead",
+  "customer_name",
+  "email_id",
+  "mobile_number",
+  "offer_applied",
+  "opportunity",
+  "column_break_zr3q",
+  "state",
+  "discount_perc",
+  "discount_amnt",
+  "date",
+  "program_section",
+  "items",
+  "section_break_stgd",
+  "column_break_skwg",
+  "customer_payment",
+  "balance",
+  "custom_paid",
+  "column_break_lkki",
+  "total_fees",
+  "amount_after_discount",
+  "column_break_erht",
+  "grand_total",
+  "payment_type",
+  "payment_link",
+  "section_break_drkr",
+  "fess_structure"
+ ],
+ "fields": [
+  {
+   "fieldname": "email_id",
+   "fieldtype": "Data",
+   "label": "Email Id"
+  },
+  {
+   "fieldname": "customer_name",
+   "fieldtype": "Data",
+   "label": "Customer Name"
+  },
+  {
+   "fieldname": "mobile_number",
+   "fieldtype": "Phone",
+   "label": "Mobile Number"
+  },
+  {
+   "fieldname": "state",
+   "fieldtype": "Select",
+   "label": "State",
+   "options": "Andhra Pradesh\nArunachal Pradesh\nAssam\nBihar\nChhattisgarh\nGoa\nGujarat\nHaryana\nHimachal Pradesh\nJharkhand\nKarnataka\nKerala\nMadhya Pradesh\nMaharashtra\nManipur\nMeghalaya\nMizoram\nNagaland\nOdisha\nPunjab\nRajasthan\nSikkim\nTamil Nadu\nTelangana\nTripura\nUttar Pradesh\nUttarakhand\nWest Bengal\nDelhi\nJammu and Kashmir\nLadakh\nPuducherry\nChandigarh\nDadra and Nagar Haveli and Daman and Diu\nLakshadweep\nAndaman and Nicobar Islands"
+  },
+  {
+   "fieldname": "payment_type",
+   "fieldtype": "Select",
+   "label": "Payment Type",
+   "options": "\nFull Payment\nCustom Payment"
+  },
+  {
+   "fieldname": "column_break_zr3q",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "lead",
+   "fieldtype": "Link",
+   "label": "Lead",
+   "options": "HS Lead"
+  },
+  {
+   "fieldname": "total_fees",
+   "fieldtype": "Data",
+   "label": "Total Fees"
+  },
+  {
+   "fieldname": "payment_link",
+   "fieldtype": "Small Text",
+   "label": "Payment Link"
+  },
+  {
+   "fieldname": "grand_total",
+   "fieldtype": "Data",
+   "label": "Grand Total"
+  },
+  {
+   "fieldname": "discount_perc",
+   "fieldtype": "Data",
+   "label": "Additional Discount Percentage"
+  },
+  {
+   "fieldname": "discount_amnt",
+   "fieldtype": "Data",
+   "label": "Additional Discount Amount"
+  },
+  {
+   "fieldname": "offer_applied",
+   "fieldtype": "Select",
+   "label": "Offer Applied",
+   "options": "\nTrue\nFalse"
+  },
+  {
+   "fieldname": "program_section",
+   "fieldtype": "Section Break",
+   "label": "Program"
+  },
+  {
+   "fieldname": "items",
+   "fieldtype": "Table",
+   "label": "Items",
+   "options": "Payment Link Items"
+  },
+  {
+   "fieldname": "section_break_stgd",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "column_break_lkki",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "column_break_erht",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "column_break_skwg",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "opportunity",
+   "fieldtype": "Link",
+   "label": "Opportunity",
+   "options": "HS Opportunity"
+  },
+  {
+   "fieldname": "customer_payment",
+   "fieldtype": "Currency",
+   "label": "Customer Payment"
+  },
+  {
+   "fieldname": "balance",
+   "fieldtype": "Currency",
+   "label": "Balance To Pay"
+  },
+  {
+   "fieldname": "amount_after_discount",
+   "fieldtype": "Currency",
+   "label": "Amount After Discount"
+  },
+  {
+   "fieldname": "date",
+   "fieldtype": "Date",
+   "label": "Date"
+  },
+  {
+   "fieldname": "fess_structure",
+   "fieldtype": "Table",
+   "label": "Fees Structure",
+   "options": "HS Fees Structure"
+  },
+  {
+   "fieldname": "section_break_drkr",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "custom_paid",
+   "fieldtype": "Currency",
+   "label": "Last customer Paid"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2025-09-20 17:28:27.841329",
+ "modified_by": "Administrator",
+ "module": "happyschool",
+ "name": "HS Payment Link",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}
