@@ -5,7 +5,6 @@
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
-  "history_id",
   "test_id",
   "student_id",
   "attended_date",
@@ -14,12 +13,6 @@
   "marks"
  ],
  "fields": [
-  {
-   "fieldname": "history_id",
-   "fieldtype": "Link",
-   "label": "History ID",
-   "options": "Test User History"
-  },
   {
    "fieldname": "test_id",
    "fieldtype": "Link",
@@ -56,7 +49,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-09-17 18:51:03.489740",
+ "modified": "2025-09-19 14:47:14.572095",
  "modified_by": "Administrator",
  "module": "happyschool",
  "name": "Test User History",

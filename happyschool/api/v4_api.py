@@ -3,6 +3,7 @@
 import frappe
 import json
 from datetime import datetime
+from frappe.utils import now_datetime, now
 
 @frappe.whitelist(allow_guest=True)
 def get_student_materials():
@@ -171,3 +172,323 @@ def get_announcements_by_student_or_parent():
             "message": str(e)
         })
 
+
+import frappe
+from frappe.utils import now_datetime
+
+@frappe.whitelist(allow_guest=True)
+def get_test(course_id=None, type=None, student_id=None):
+    try:
+        if not course_id or not type:
+            frappe.local.response.update({
+                "success": False,
+                "message": "course_id and type are required",
+                "data": {}
+            })
+            return
+
+        # ------------------------------
+        # Get Active Tests
+        # ------------------------------
+        sort_order = "asc"
+        if type in ["dt", "mmt"]:
+            sort_order = "desc"
+
+        active_tests = frappe.db.sql(
+            """
+            SELECT
+                name as id,
+                title,
+                type,
+                topic,
+                is_paid,
+                total_questions,
+                valid_from,
+                valid_to,
+                duration,
+                general_instruction,
+                question_batch_id,
+                is_free,
+                correct_answer_mark,
+                wrong_answer_mark,
+                question_attend_limit,
+                question_set_id
+            FROM `tabTests`
+            WHERE type = %s
+              AND course_id LIKE %s
+              AND is_active = 1
+            ORDER BY creation {sort}
+            """.format(sort=sort_order),
+            (type, f"%{course_id}%"),
+            as_dict=True
+        )
+
+        for t in active_tests:
+            t["set_id"] = t.pop("question_set_id", None)
+            if not t.get("correct_answer_mark"):
+                t["correct_answer_mark"] = 1
+            if not t.get("wrong_answer_mark"):
+                t["wrong_answer_mark"] = 0
+
+        # Get Attended Tests
+        attended_tests = []
+        if student_id:
+            attended_tests = frappe.db.sql(
+                """
+                SELECT
+                    tests.name as id,
+                    tests.title,
+                    tests.type,
+                    tests.topic,
+                    tests.total_questions,
+                    tests.valid_from,
+                    tests.valid_to,
+                    tests.duration,
+                    tests.general_instruction,
+                    tuh.name as history_id,
+                    tuh.attended_date,
+                    tuh.total_time,
+                    tuh.marks,
+                    tuh.attempt_count,
+                    tests.is_result_published,
+                    tests.question_set_id,
+                    tests.correct_answer_mark,
+                    tests.wrong_answer_mark,
+                    tests.is_response_sheet_needed
+                FROM `tabTest User History` tuh
+                INNER JOIN `tabTests` tests
+                    ON tuh.test_id = tests.name
+                WHERE tuh.student_id = %s
+                  AND tests.type = %s
+                  AND tests.course_id LIKE %s
+                """,
+                (student_id, type, f"%{course_id}%"),
+                as_dict=True
+            )
+
+            for t in attended_tests:
+                t["is_response_sheet_needed"] = True if t.get("is_response_sheet_needed") else False
+
+        frappe.local.response.update({
+            "success": True,
+            "message": "Success",
+            "data": {
+                "active_tests": active_tests,
+                "attended_tests": attended_tests,
+                "server_time": now_datetime()
+            }
+        })
+
+    except Exception as e:
+        frappe.log_error(frappe.get_traceback(), "get_test API Error")
+        frappe.local.response.update({
+            "success": False,
+            "error": str(e),
+            "data": {}
+        })
+
+
+
+import frappe, json
+from frappe.utils import now_datetime
+
+@frappe.whitelist(allow_guest=True)
+def test_complete():
+    """
+    One-shot submit API (no SQS, no Set History writes):
+      - Upsert Test User History (attempt_count logic)
+      - Upsert Test User Answers (set_id nullable)
+      - Upsert Test User History Topic (set_id nullable)
+
+    Body (raw JSON or form_dict):
+    {
+      "test_id": "786658",
+      "student_id": "danisqnmtao1706683276089",   # or legacy key "uid"
+      "date": "2024-03-04T12:28:23.225208",
+      "total_time": "-939",
+      "marks": "0.0",
+      "test_sets": "[\"{\\\"set_id\\\":null,\\\"mark\\\":0.0,\\\"time_took\\\":999,\\\"topic_marks\\\":\\\"[...]\\\",\\\"answers\\\":\\\"[...]\\\"}\"]"
+    }
+    """
+    try:
+        # -------- read body (form_dict or raw) ----------
+        payload = dict(frappe.local.form_dict or {})
+        if not payload:
+            try:
+                if hasattr(frappe, "request") and frappe.request and frappe.request.data:
+                    payload = json.loads(frappe.request.data)
+            except Exception:
+                pass
+
+        test_id     = payload.get("test_id")
+        student_id  = payload.get("student_id") or payload.get("uid")  # alias, but we STORE as student_id
+        attended_at = payload.get("date") or now_datetime()
+        total_time  = payload.get("total_time")
+        marks       = payload.get("marks")
+        test_sets   = payload.get("test_sets")  # escaped JSON string (array of JSON strings)
+
+        if not test_id or not student_id:
+            frappe.local.response.update({"success": False, "message": "test_id and student_id are required", "data": {}})
+            return
+
+        # -------- helpers ----------
+        def deep_loads(obj):
+            """Handle double/triple-encoded JSON until it becomes dict/list."""
+            cur = obj
+            for _ in range(5):
+                if isinstance(cur, (dict, list)):
+                    return cur
+                if isinstance(cur, str):
+                    cur = json.loads(cur)
+                else:
+                    break
+            return cur
+
+        def is_nullish(v):
+            return v in (None, "null", "None", "", 0, "0")
+
+        # -------- history: fetch/create & attempt_count ----------
+        hist = frappe.db.sql("""
+            SELECT name, attempt_count
+            FROM `tabTest User History`
+            WHERE test_id=%s AND student_id=%s
+        """, (test_id, student_id), as_dict=True)
+
+        if not hist:
+            hdoc = frappe.get_doc({
+                "doctype": "Test User History",
+                "test_id": test_id,
+                "student_id": student_id,
+                "attended_date": attended_at,
+                "total_time": total_time,
+                "marks": marks,
+                "attempt_count": 1
+            })
+            hdoc.insert(ignore_permissions=True)
+            history_id = hdoc.name
+            attempt_count = 1
+        else:
+            history_id = hist[0].name
+            previous = hist[0].attempt_count or 0
+
+            # If answers exist already, this submit increments attempt.
+            ans_ct = frappe.db.sql("""
+                SELECT COUNT(*) AS c FROM `tabTest User Answers` WHERE history_id=%s
+            """, (history_id,), as_dict=True)[0].c
+            attempt_count = previous + 1 if int(ans_ct or 0) > 0 else 1
+
+            frappe.db.set_value("Test User History", history_id, {
+                "attended_date": attended_at,
+                "total_time": total_time,
+                "marks": marks,
+                "attempt_count": attempt_count
+            })
+
+        # -------- parse test_sets (array of JSON strings) ----------
+        sets_list = deep_loads(test_sets) if test_sets else []
+        # Each element may still be a JSON string → deep_loads again below
+
+        # -------- upserts: answers + topic marks (NO set history) ----------
+        for item in sets_list:
+            set_obj = deep_loads(item) or {}
+            set_id = set_obj.get("set_id")  # may be None/NULL
+            answers_blob = set_obj.get("answers")
+            topics_blob  = set_obj.get("topic_marks")
+
+            # --- (COMMENTED OUT) Test User Set History ---
+            # time_took = set_obj.get("time_took")
+            # mark = set_obj.get("mark")
+            # # Skipped per your instruction:
+            # # _upsert_set_summary(history_id, set_id, time_took, mark)
+            # ---------------------------------------------
+
+            # --- answers ---
+            if answers_blob:
+                answers_list = deep_loads(answers_blob) or []
+                for one in answers_list:
+                    ans = deep_loads(one) or {}
+                    qid = ans.get("question_id")
+                    aval = ans.get("answer")
+
+                    if is_nullish(set_id):
+                        row = frappe.db.sql("""
+                            SELECT name FROM `tabTest User Answers`
+                            WHERE history_id=%s AND set_id IS NULL AND question_id=%s
+                        """, (history_id, qid), as_dict=True)
+                        if row:
+                            frappe.db.sql("""UPDATE `tabTest User Answers` SET answer=%s WHERE name=%s""", (aval, row[0].name))
+                        else:
+                            adoc = frappe.get_doc({
+                                "doctype": "Test User Answers",
+                                "history_id": history_id,
+                                "question_id": qid,
+                                "answer": aval
+                            })
+                            adoc.insert(ignore_permissions=True)
+                    else:
+                        row = frappe.db.sql("""
+                            SELECT name FROM `tabTest User Answers`
+                            WHERE history_id=%s AND set_id=%s AND question_id=%s
+                        """, (history_id, set_id, qid), as_dict=True)
+                        if row:
+                            frappe.db.sql("""UPDATE `tabTest User Answers` SET answer=%s WHERE name=%s""", (aval, row[0].name))
+                        else:
+                            adoc = frappe.get_doc({
+                                "doctype": "Test User Answers",
+                                "history_id": history_id,
+                                "set_id": set_id,
+                                "question_id": qid,
+                                "answer": aval
+                            })
+                            adoc.insert(ignore_permissions=True)
+
+            # --- topic marks ---
+            if topics_blob:
+                topics_list = deep_loads(topics_blob) or []
+                for one in topics_list:
+                    tm = deep_loads(one) or {}
+                    topic = tm.get("topic")
+                    mval  = tm.get("mark")
+
+                    if is_nullish(set_id):
+                        row = frappe.db.sql("""
+                            SELECT name FROM `tabTest User History Topic`
+                            WHERE history_id=%s AND set_id IS NULL AND topic=%s
+                        """, (history_id, topic), as_dict=True)
+                        if row:
+                            frappe.db.sql("""UPDATE `tabTest User History Topic` SET mark=%s WHERE name=%s""", (mval, row[0].name))
+                        else:
+                            tdoc = frappe.get_doc({
+                                "doctype": "Test User History Topic",
+                                "history_id": history_id,
+                                "topic": topic,
+                                "mark": mval
+                            })
+                            tdoc.insert(ignore_permissions=True)
+                    else:
+                        row = frappe.db.sql("""
+                            SELECT name FROM `tabTest User History Topic`
+                            WHERE history_id=%s AND set_id=%s AND topic=%s
+                        """, (history_id, set_id, topic), as_dict=True)
+                        if row:
+                            frappe.db.sql("""UPDATE `tabTest User History Topic` SET mark=%s WHERE name=%s""", (mval, row[0].name))
+                        else:
+                            tdoc = frappe.get_doc({
+                                "doctype": "Test User History Topic",
+                                "history_id": history_id,
+                                "set_id": set_id,
+                                "topic": topic,
+                                "mark": mval
+                            })
+                            tdoc.insert(ignore_permissions=True)
+
+        frappe.db.commit()
+        frappe.local.response.update({
+            "success": True,
+            "message": "Test completed & saved successfully",
+            "data": {"history_id": history_id, "attempt_count": attempt_count}
+        })
+
+    except Exception as e:
+        frappe.log_error(frappe.get_traceback(), "test_complete API Error")
+        frappe.local.response.update({"success": False, "error": str(e), "data": {}})
