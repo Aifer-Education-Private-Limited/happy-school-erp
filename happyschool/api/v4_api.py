@@ -5,6 +5,7 @@ import json
 from datetime import datetime
 from frappe.utils import now_datetime, now
 
+
 @frappe.whitelist(allow_guest=True)
 def get_student_materials():
 
@@ -289,8 +290,6 @@ def get_test(course_id=None, type=None, student_id=None):
 
 
 
-import frappe, json
-from frappe.utils import now_datetime
 
 @frappe.whitelist(allow_guest=True)
 def test_complete():
@@ -300,18 +299,8 @@ def test_complete():
       - Upsert Test User Answers (set_id nullable)
       - Upsert Test User History Topic (set_id nullable)
 
-    Body (raw JSON or form_dict):
-    {
-      "test_id": "786658",
-      "student_id": "danisqnmtao1706683276089",   # or legacy key "uid"
-      "date": "2024-03-04T12:28:23.225208",
-      "total_time": "-939",
-      "marks": "0.0",
-      "test_sets": "[\"{\\\"set_id\\\":null,\\\"mark\\\":0.0,\\\"time_took\\\":999,\\\"topic_marks\\\":\\\"[...]\\\",\\\"answers\\\":\\\"[...]\\\"}\"]"
-    }
     """
     try:
-        # -------- read body (form_dict or raw) ----------
         payload = dict(frappe.local.form_dict or {})
         if not payload:
             try:
@@ -321,11 +310,11 @@ def test_complete():
                 pass
 
         test_id     = payload.get("test_id")
-        student_id  = payload.get("student_id") or payload.get("uid")  # alias, but we STORE as student_id
+        student_id  = payload.get("student_id") or payload.get("uid") 
         attended_at = payload.get("date") or now_datetime()
         total_time  = payload.get("total_time")
         marks       = payload.get("marks")
-        test_sets   = payload.get("test_sets")  # escaped JSON string (array of JSON strings)
+        test_sets   = payload.get("test_sets") 
 
         if not test_id or not student_id:
             frappe.local.response.update({"success": False, "message": "test_id and student_id are required", "data": {}})
@@ -347,7 +336,6 @@ def test_complete():
         def is_nullish(v):
             return v in (None, "null", "None", "", 0, "0")
 
-        # -------- history: fetch/create & attempt_count ----------
         hist = frappe.db.sql("""
             SELECT name, attempt_count
             FROM `tabTest User History`
@@ -492,3 +480,87 @@ def test_complete():
     except Exception as e:
         frappe.log_error(frappe.get_traceback(), "test_complete API Error")
         frappe.local.response.update({"success": False, "error": str(e), "data": {}})
+
+
+
+
+
+
+
+
+import frappe, re
+
+BASE_FILE_URL = "https://myfiles.space/user_files/85248_60f241cdfd3eef9a/85248_custom_files/"
+
+def clean_html(value):
+    """Remove Quill wrappers & fix file URLs"""
+    if not value:
+        return ""
+
+    # Remove ql-editor divs
+    value = re.sub(r'<div class="ql-editor[^>]*>', '', value)
+    value = value.replace("</div>", "")
+
+    # Fix relative /private/files/... → BASE_FILE_URL
+    value = re.sub(r'src="\/private\/files\/([^"]+)"',
+                   lambda m: f'src="{BASE_FILE_URL}{m.group(1)}"',
+                   value)
+
+    return value.strip()
+
+@frappe.whitelist(allow_guest=True)
+def get_set_questions(questions_batch_id=None):
+    try:
+        if not questions_batch_id:
+            frappe.local.response.update({
+                "success": False,
+                "error": "questions_batch_id is required",
+                "data": []
+            })
+            return
+
+        rows = frappe.db.sql(
+            """
+            SELECT
+                name AS id,
+                question_number,
+                question,
+                option_1, option_2, option_3, option_4,
+                right_answer,
+                explenation,
+                topic
+            FROM `tabTest Questions`
+            WHERE questions_batch_id = %s
+            ORDER BY question_number ASC
+            """,
+            (questions_batch_id,),
+            as_dict=True
+        )
+
+        formatted = []
+        for r in rows:
+            formatted.append({
+                "id": r.id,
+                "question": clean_html(r.question),
+                "option_1": clean_html(r.option_1),
+                "option_2": clean_html(r.option_2),
+                "option_3": clean_html(r.option_3),
+                "option_4": clean_html(r.option_4),
+                "right_answer": r.right_answer,
+                "explenation": clean_html(r.explenation),
+                "topic": r.topic,
+                "question_no": r.question_number
+            })
+
+        frappe.local.response.update({
+            "success": True,
+            "data": formatted
+        })
+
+    except Exception as e:
+        frappe.log_error(frappe.get_traceback(), "get_set_questions API Error")
+        frappe.local.response.update({
+            "success": False,
+            "error": str(e),
+            "data": []
+        })
