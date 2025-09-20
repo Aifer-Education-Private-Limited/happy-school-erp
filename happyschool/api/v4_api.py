@@ -4,7 +4,7 @@ import frappe
 import json
 from datetime import datetime
 from frappe.utils import now_datetime, now
-
+import re
 
 @frappe.whitelist(allow_guest=True)
 def get_student_materials():
@@ -487,35 +487,34 @@ def test_complete():
 
 
 
-
-import frappe, re
-
-BASE_FILE_URL = "https://myfiles.space/user_files/85248_60f241cdfd3eef9a/85248_custom_files/"
-
-def clean_html(value):
-    """Remove Quill wrappers & fix file URLs"""
-    if not value:
-        return ""
-
-    # Remove ql-editor divs
-    value = re.sub(r'<div class="ql-editor[^>]*>', '', value)
-    value = value.replace("</div>", "")
-
-    # Fix relative /private/files/... → BASE_FILE_URL
-    value = re.sub(r'src="\/private\/files\/([^"]+)"',
-                   lambda m: f'src="{BASE_FILE_URL}{m.group(1)}"',
-                   value)
-
-    return value.strip()
-
 @frappe.whitelist(allow_guest=True)
 def get_set_questions(questions_batch_id=None):
+    """
+    Return questions for a given questions_batch_id in exact format:
+    {
+        "questions_batch_id": "...",
+        "questions_array": [
+            {
+                "id": ...,
+                "question": "<p><img src='https://...'></p>",
+                "option_1": "<p>...</p>",
+                "option_2": "<p>...</p>",
+                "option_3": "<p>...</p>",
+                "option_4": "<p>...</p>",
+                "right_answer": ...,
+                "explenation": "<p>...</p>",
+                "topic": "...",
+                "question_no": ...
+            }
+        ]
+    }
+    """
     try:
         if not questions_batch_id:
             frappe.local.response.update({
                 "success": False,
                 "error": "questions_batch_id is required",
-                "data": []
+                "data": {}
             })
             return
 
@@ -537,9 +536,22 @@ def get_set_questions(questions_batch_id=None):
             as_dict=True
         )
 
-        formatted = []
+        def clean_html(val):
+            """Ensure <p> wrap and public file path"""
+            if not val:
+                return "<p></p>"
+            # Remove unnecessary Quill wrappers
+            val = re.sub(r'<div class="ql-editor.*?">(.*?)</div>', r"\1", val, flags=re.S)
+            # Replace private path → public
+            val = val.replace('/private/files/', '/files/')
+            # Ensure wrapped in <p>...</p>
+            if not str(val).strip().startswith("<p>"):
+                val = f"<p>{val}</p>"
+            return val
+
+        questions_array = []
         for r in rows:
-            formatted.append({
+            questions_array.append({
                 "id": r.id,
                 "question": clean_html(r.question),
                 "option_1": clean_html(r.option_1),
@@ -554,7 +566,10 @@ def get_set_questions(questions_batch_id=None):
 
         frappe.local.response.update({
             "success": True,
-            "data": formatted
+            "data": [{
+                "questions_batch_id": questions_batch_id,
+                "questions_array": questions_array
+          } ],
         })
 
     except Exception as e:

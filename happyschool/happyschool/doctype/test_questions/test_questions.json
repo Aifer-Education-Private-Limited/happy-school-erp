@@ -20,12 +20,12 @@
  "fields": [
   {
    "fieldname": "questions_batch_id",
-   "fieldtype": "Data",
+   "fieldtype": "Int",
    "label": "Questions Batch ID"
   },
   {
    "fieldname": "question_number",
-   "fieldtype": "Data",
+   "fieldtype": "Int",
    "label": "Question Number"
   },
   {
@@ -55,7 +55,7 @@
   },
   {
    "fieldname": "right_answer",
-   "fieldtype": "Text Editor",
+   "fieldtype": "Int",
    "label": "Right Answer"
   },
   {
@@ -77,7 +77,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-09-20 15:42:25.311602",
+ "modified": "2025-09-20 18:14:07.041198",
  "modified_by": "Administrator",
  "module": "happyschool",
  "name": "Test Questions",
