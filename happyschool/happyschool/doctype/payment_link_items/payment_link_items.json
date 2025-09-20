@@ -6,35 +6,43 @@
  "editable_grid": 1,
  "engine": "InnoDB",
  "field_order": [
-  "item_code",
   "program",
-  "rate"
+  "qty",
+  "rate",
+  "amount"
  ],
  "fields": [
   {
-   "fieldname": "item_code",
-   "fieldtype": "Data",
-   "in_list_view": 1,
-   "label": "Item Code"
-  },
-  {
    "fieldname": "program",
-   "fieldtype": "Data",
+   "fieldtype": "Link",
    "in_list_view": 1,
-   "label": "Program"
+   "label": "Program",
+   "options": "HS Program List"
   },
   {
    "fieldname": "rate",
    "fieldtype": "Data",
    "in_list_view": 1,
    "label": "Rate"
+  },
+  {
+   "fieldname": "qty",
+   "fieldtype": "Int",
+   "in_list_view": 1,
+   "label": "Qty"
+  },
+  {
+   "fieldname": "amount",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "label": "Amount"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2025-09-17 15:05:22.204066",
+ "modified": "2025-09-19 15:26:15.490913",
  "modified_by": "Administrator",
  "module": "happyschool",
  "name": "Payment Link Items",
