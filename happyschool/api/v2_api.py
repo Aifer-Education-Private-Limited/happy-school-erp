@@ -11,6 +11,12 @@ def get_parent_home_page_details(student_id: str, parent_id: str):
     """
 
     try:
+        if not student_id and not parent_id:
+            frappe.local.response.update({
+                "success": False,
+                "datas": []
+            })
+            return
 
         datas = {
             "student_id": student_id,
@@ -28,13 +34,13 @@ def get_parent_home_page_details(student_id: str, parent_id: str):
                     "attended_data_count": 2
                 },
                 {
-                    "subject_name": "English",
+                    "name": "English",
                     "total_data_count": 2,
                     "attended_data_count": 1
                 }
             ]
         }
-        # ✅ Directly set the response object (no "message")
+        #  Directly set the response object (no "message")
         frappe.local.response.update({
             "success": True,
             "datas": datas
@@ -51,12 +57,13 @@ def get_parent_home_page_details(student_id: str, parent_id: str):
 @frappe.whitelist(allow_guest=True)
 def get_announcements_by_student_or_parent():
     """
-    Fetch announcements based on student_id or parent_id.
-    If student_id is passed, show audience_type "Student" and "Both" and also fetch student-related events.
-    If parent_id is passed, show audience_type "Parent" and "Both".
+    Fetch announcements and events based on student_id or parent_id.
+    If student_id is passed -> audience_type "Student" and "Both" + events for student.
+    If parent_id is passed -> audience_type "Parent" and "Both" + events for parent (or linked students).
+    
     Request body:
         {
-            "student_id": "ST001", 
+            "student_id": "ST001",
             "parent_id": "PR001"
         }
     """
@@ -68,59 +75,85 @@ def get_announcements_by_student_or_parent():
         if not student_id and not parent_id:
             frappe.local.response.update({
                 "success": False,
-                "message": "Either Student ID or Parent ID is required"
+                "message": "Either Student ID or Parent ID is required",
+                "announcements": [],
+                "events": []
             })
             return
 
+        # --------------------------
+        # Announcements
+        # --------------------------
         filters = {}
-
-        # Filters for announcements
         if student_id:
             filters["audience_type"] = ["in", ["Student", "Both"]]
             filters["student_id"] = student_id
-
         if parent_id:
             filters["audience_type"] = ["in", ["Parent", "Both"]]
             filters["parent_id"] = parent_id
 
-        # Fetch announcements
         announcements = frappe.get_all(
             "Announcement",
             filters=filters,
             fields=["title", "description", "creation"]
         )
 
-        if not announcements:
-            frappe.local.response.update({
-                "success": False,
-                "message": "No announcements found for the provided ID(s)"
-            })
-            return
-
-        # ---- Fetch student events if student_id is provided ----
+        # --------------------------
+        # Events
+        # --------------------------
         events_data = []
+        events = []
+
         if student_id:
             events = frappe.get_all(
                 "Events",
-                filters= filters,
+                filters={"student_id": student_id},
                 fields=["title","description","event_date", "start_time", "end_time", "meeting_link", "expiry_date"]
             )
-            for event in events:
-                events_data.append({
-                    "title": event.title,
-                    "description": event.description,
-                    "event_date": event.event_date,
-                    "start_time": event.start_time,
-                    "end_time": event.end_time,
-                    "meeting_link": event.meeting_link,
-                    "expiry_date": event.expiry_date
-                })
 
-        # Return the list of announcements and events
+        elif parent_id:
+            # If events are directly linked to parent
+            events = frappe.get_all(
+                "Events",
+                filters={"parent_id": parent_id},
+                fields=["title","description","event_date", "start_time", "end_time", "meeting_link", "expiry_date"]
+            )
+
+            # If events are linked via student, get student_ids for this parent
+            if not events:
+                student_list = frappe.get_all(
+                    "Student",
+                    filters={"parent_id": parent_id},
+                    fields=["name"]
+                )
+                student_ids = [s.name for s in student_list]
+
+                if student_ids:
+                    events = frappe.get_all(
+                        "Events",
+                        filters={"student_id": ["in", student_ids]},
+                        fields=["title","description","event_date", "start_time", "end_time", "meeting_link", "expiry_date"]
+                    )
+
+        for event in events:
+            events_data.append({
+                "title": event.title,
+                "description": event.description,
+                "event_date": event.event_date,
+                "start_time": event.start_time,
+                "end_time": event.end_time,
+                "meeting_link": event.meeting_link,
+                "expiry_date": event.expiry_date
+            })
+
+        # --------------------------
+        # Response
+        # --------------------------
         frappe.local.response.update({
             "success": True,
+            "message": "Announcements and events fetched successfully",
             "announcements": announcements,
-            "events": events_data if student_id else []  # Include events only if student_id is present
+            "events": events_data
         })
 
     except Exception as e:

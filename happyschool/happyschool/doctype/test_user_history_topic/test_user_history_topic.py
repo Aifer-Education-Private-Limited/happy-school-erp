@@ -3,13 +3,16 @@
 
 # import frappe
 from frappe.model.document import Document
-import frappe
 
-class StdAttendance(Document):
+
+class TestUserHistoryTopic(Document):
 	pass
+
+import frappe
 
 from frappe.model.naming import make_autoname
 
-class StdAttendance(frappe.model.document.Document):
+class TestUserHistoryTopic(frappe.model.document.Document):
     def autoname(self):
-        self.name = make_autoname("PST-.YYYY.-.#####")
+        # Only 3 digits instead of 5
+        self.name = make_autoname("PST-.YYYY.-.###")
