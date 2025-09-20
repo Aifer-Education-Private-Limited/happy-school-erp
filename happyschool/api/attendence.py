@@ -130,7 +130,7 @@ def get_student_attendance(student_id, course_id):
             FROM `tabStd Attendance`
             WHERE student_id = %s 
               AND course_id = %s
-              AND (material_confirm = 2 OR attendance = 'Absent')
+              AND (material_confirm = 1 OR attendance = 'Absent')
             ORDER BY date DESC
             """,
             (student_id, course_id),

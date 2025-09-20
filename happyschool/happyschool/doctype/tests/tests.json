@@ -6,7 +6,6 @@
  "engine": "InnoDB",
  "field_order": [
   "course_id",
-  "student_id",
   "title",
   "type",
   "question_set_id",
@@ -31,13 +30,9 @@
  "fields": [
   {
    "fieldname": "course_id",
-   "fieldtype": "Data",
-   "label": "Course Id"
-  },
-  {
-   "fieldname": "student_id",
-   "fieldtype": "Data",
-   "label": "Student Id"
+   "fieldtype": "Link",
+   "label": "Course Id",
+   "options": "Courses"
   },
   {
    "fieldname": "title",
@@ -47,7 +42,8 @@
   {
    "fieldname": "type",
    "fieldtype": "Select",
-   "label": "Type"
+   "label": "Type",
+   "options": "dt\nmmt"
   },
   {
    "fieldname": "question_set_id",
@@ -142,7 +138,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-09-15 12:07:20.487844",
+ "modified": "2025-09-19 14:03:18.497902",
  "modified_by": "Administrator",
  "module": "happyschool",
  "name": "Tests",
