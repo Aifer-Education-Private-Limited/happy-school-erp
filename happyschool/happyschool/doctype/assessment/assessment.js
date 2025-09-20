@@ -32,7 +32,7 @@ frappe.ui.form.on("Assessment", {
                     frappe.call({
                         method: "frappe.client.set_value",
                         args: {
-                            doctype: "Opportunity",
+                            doctype: "HS Opportunity",
                             name: frm.doc.opportunity,
                             fieldname: "custom_assessment_status",
                             value: "Shared"

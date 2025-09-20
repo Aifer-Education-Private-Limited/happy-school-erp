@@ -43,7 +43,7 @@
    "fieldname": "lead",
    "fieldtype": "Link",
    "label": "Lead",
-   "options": "Lead"
+   "options": "HS Lead"
   },
   {
    "fieldname": "student_name",
@@ -64,7 +64,7 @@
    "fieldname": "curriculum",
    "fieldtype": "Select",
    "label": "Curriculum",
-   "options": "\nCBSE\nState\nICSE\nOthers"
+   "options": "\nCBSE\nKerala Board\nICSE\nOthers"
   },
   {
    "fieldname": "date",
@@ -205,13 +205,13 @@
    "fieldname": "opportunity",
    "fieldtype": "Link",
    "label": "Opportunity",
-   "options": "Opportunity"
+   "options": "HS Opportunity"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-09-15 12:30:33.972607",
+ "modified": "2025-09-19 12:31:10.695218",
  "modified_by": "Administrator",
  "module": "happyschool",
  "name": "Assessment",
