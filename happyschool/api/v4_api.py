@@ -47,6 +47,7 @@ def get_student_materials():
                     topic_dict[material.topic][material.subtopic] = []
 
                 material_data = {
+                    "material_id": material.name,
                     "material_name": material.material_name,
                     "tutor_id": material.tutor_id,
                     "subject": material.subject,
