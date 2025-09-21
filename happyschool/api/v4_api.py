@@ -5,6 +5,8 @@ import json
 from datetime import datetime
 from frappe.utils import now_datetime, now
 import re
+from frappe import _
+from frappe.utils import nowdate, now_datetime
 
 @frappe.whitelist(allow_guest=True)
 def get_student_materials():
@@ -188,11 +190,9 @@ def get_test(course_id=None, type=None, student_id=None):
             })
             return
 
-        # ------------------------------
         # Get Active Tests
-        # ------------------------------
         sort_order = "asc"
-        if type in ["dt", "mmt"]:
+        if type in ["dt", "mt"]:
             sort_order = "desc"
 
         active_tests = frappe.db.sql(
@@ -213,7 +213,10 @@ def get_test(course_id=None, type=None, student_id=None):
                 correct_answer_mark,
                 wrong_answer_mark,
                 question_attend_limit,
-                question_set_id
+                question_set_id,
+                uploaded_time,
+                is_response_sheet_needed,
+                is_result_published
             FROM `tabTests`
             WHERE type = %s
               AND course_id LIKE %s
@@ -255,7 +258,10 @@ def get_test(course_id=None, type=None, student_id=None):
                     tests.question_set_id,
                     tests.correct_answer_mark,
                     tests.wrong_answer_mark,
-                    tests.is_response_sheet_needed
+                    tests.is_response_sheet_needed,
+                    tests.uploaded_time,
+                    tests.is_response_sheet_needed,
+                    tests.is_result_published,
                 FROM `tabTest User History` tuh
                 INNER JOIN `tabTests` tests
                     ON tuh.test_id = tests.name
@@ -485,7 +491,8 @@ def test_complete():
 
 
 
-
+import frappe
+import re
 
 @frappe.whitelist(allow_guest=True)
 def get_set_questions(questions_batch_id=None):
@@ -562,5 +569,113 @@ def get_set_questions(questions_batch_id=None):
         frappe.local.response.update({
             "success": False,
             "error": str(e),
+            "data": []
+        })
+
+
+
+
+
+
+@frappe.whitelist(allow_guest=True)
+def get_analytics():
+    try:
+        # Fetch data from the request body
+        data = frappe.local.form_dict
+        # test_id = data.get("test_id")
+        # student_id = data.get("student_id")
+        history_id = data.get("history_id")
+
+        # Validate required parameters
+        if  not history_id:
+            frappe.local.response.update({
+                "success": False,
+                "message": _("Test ID, Student ID, and History ID are required")
+            })
+            return
+
+        base_url = frappe.utils.get_url()  
+
+        def clean_html(val):
+            if not val:
+                return "<p></p>"
+            val = re.sub(r'<div class="ql-editor.*?">(.*?)</div>', r"\1", val, flags=re.S)
+            val = val.replace('/private/files/', '/files/')
+            if not str(val).strip().startswith("<p>"):
+                val = f"<p>{val}</p>"
+            val = re.sub(r'src="(/files/[^"?]+)(?:\?[^"]*)?"', f'src="{base_url}\\1"', val)
+            val = val.replace("<p><br></p>", "")
+            return val
+
+        # Function to get topic marks
+        def get_topic_marks(history_id):
+            query = """
+                SELECT topic, mark
+                FROM `tabTest User History Topic`
+                WHERE history_id = %s
+            """
+            return frappe.db.sql(query, (history_id,), as_dict=True)
+
+        # Function to get user answers based on history_id
+        def get_user_answers(history_id):
+            query = """
+                SELECT 
+                    tq.name AS question_id,  
+                    tq.question_number, 
+                    tq.question, 
+                    tq.option_1, 
+                    tq.option_2, 
+                    tq.option_3, 
+                    tq.option_4, 
+                    tq.right_answer, 
+                    tq.explanation, 
+                    tq.topic, 
+                    tua.answer
+                FROM `tabTest Questions` tq
+                INNER JOIN `tabTest User Answers` tua 
+                ON tua.question_id = tq.question_number  -- Referencing 'name' here as well
+                AND tua.history_id = %s
+                ORDER BY tq.question_number
+            """
+            return frappe.db.sql(query, (history_id,), as_dict=True)
+
+        # Fetch topic marks and user answers
+        user_topic_marks = get_topic_marks(history_id)
+        user_answers = get_user_answers(history_id)
+
+        # Structure the response
+        user_answers_data = []
+        for answer in user_answers:
+            answer_data = {
+                "question": {
+                    "id": answer["question_id"],
+                    "question": clean_html(answer["question"]),
+                    "option_1": clean_html(answer["option_1"]),
+                    "option_2": clean_html(answer["option_2"]),
+                    "option_3": clean_html(answer["option_3"]),
+                    "option_4": clean_html(answer["option_4"]),
+                    "right_answer": answer["right_answer"],
+                    "explenation": clean_html(answer["explanation"]),
+                    "topic": answer["topic"],
+                    "question_no": answer["question_number"]
+                },
+                "user_answer": answer["answer"],
+            }
+            user_answers_data.append(answer_data)
+
+        # Respond with the formatted data
+        frappe.local.response.update({
+            "success": True,
+            "data": {
+                "user_topic_marks": user_topic_marks,
+                "user_answers": user_answers_data
+            }
+        })
+
+    except Exception as e:
+        frappe.log_error(frappe.get_traceback(), "get_analytics API Error")
+        frappe.local.response.update({
+            "success": False,
+            "message": str(e),
             "data": []
         })
