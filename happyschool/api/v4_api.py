@@ -489,26 +489,6 @@ def test_complete():
 
 @frappe.whitelist(allow_guest=True)
 def get_set_questions(questions_batch_id=None):
-    """
-    Return questions for a given questions_batch_id in exact format:
-    {
-        "questions_batch_id": "...",
-        "questions_array": [
-            {
-                "id": ...,
-                "question": "<p><img src='https://...'></p>",
-                "option_1": "<p>...</p>",
-                "option_2": "<p>...</p>",
-                "option_3": "<p>...</p>",
-                "option_4": "<p>...</p>",
-                "right_answer": ...,
-                "explenation": "<p>...</p>",
-                "topic": "...",
-                "question_no": ...
-            }
-        ]
-    }
-    """
     try:
         if not questions_batch_id:
             frappe.local.response.update({
@@ -536,17 +516,22 @@ def get_set_questions(questions_batch_id=None):
             as_dict=True
         )
 
+        base_url = frappe.utils.get_url()  # e.g. http://localhost:8000 or yoursite.com
+
         def clean_html(val):
-            """Ensure <p> wrap and public file path"""
             if not val:
                 return "<p></p>"
             # Remove unnecessary Quill wrappers
             val = re.sub(r'<div class="ql-editor.*?">(.*?)</div>', r"\1", val, flags=re.S)
             # Replace private path → public
             val = val.replace('/private/files/', '/files/')
-            # Ensure wrapped in <p>...</p>
+            # Ensure wrapped in <p>
             if not str(val).strip().startswith("<p>"):
                 val = f"<p>{val}</p>"
+            # Add base_url and strip ?fid=...
+            val = re.sub(r'src="(/files/[^"?]+)(?:\?[^"]*)?"', f'src="{base_url}\\1"', val)
+            # Remove trailing <p><br></p>
+            val = val.replace("<p><br></p>", "")
             return val
 
         questions_array = []
@@ -569,7 +554,7 @@ def get_set_questions(questions_batch_id=None):
             "data": [{
                 "questions_batch_id": questions_batch_id,
                 "questions_array": questions_array
-          } ],
+            }]
         })
 
     except Exception as e:

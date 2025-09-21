@@ -30,20 +30,20 @@ def submit_materials():
         session_id = form.get("session_id")
 
         if not tutor_id or not student_id:
-            frappe.local.response.update( {"success": False, "error": "Tutor ID and Student ID are required"})
+            frappe.local.response.update( {"success": False, "message": "Tutor ID and Student ID are required"})
 
         if not frappe.db.exists("Tutors", tutor_id):
-            frappe.local.response.update( {"success": False, "error": f"Tutor {tutor_id} not found"} )
+            frappe.local.response.update( {"success": False, "message": f"Tutor {tutor_id} not found"} )
 
         if not frappe.db.exists("Students List", {"tutor_id": tutor_id, "student_id": student_id}):
             frappe.local.response.update( {
                 "success": False,
-                "error": f"Student {student_id} is not assigned to Tutor {tutor_id}"
+                "message": f"Student {student_id} is not assigned to Tutor {tutor_id}"
             } )
 
         uploaded_files = frappe.request.files.getlist("files")
         if not uploaded_files:
-            frappe.local.response.update( {"success": False, "error": "No files uploaded"} )
+            frappe.local.response.update( {"success": False, "message": "No files uploaded"} )
 
         assignment_array = []
 
@@ -68,7 +68,7 @@ def submit_materials():
             if response.status_code not in [200, 201]:
                 frappe.local.response.update( {
                     "success": False,
-                    "error": f"Upload failed for {filename}: {response.text}"
+                    "message": f"Upload failed for {filename}: {response.text}"
                 } )
 
             file_url = upload_url  # public/pre-authenticated URL
@@ -95,11 +95,11 @@ def submit_materials():
         doc.insert(ignore_permissions=True)
         frappe.db.commit()
 
-        frappe.local.response.update( {"success": True, "assignment": assignment_array} )
+        frappe.local.response.update( {"success": True, "message": "Materials submitted successfully"} )
 
     except Exception as e:
         frappe.log_error(frappe.get_traceback(), "submit_materials error")
-        frappe.local.response.update( {"success": False, "error": str(e)} )
+        frappe.local.response.update( {"success": False, "message": str(e)} )
 
 
 @frappe.whitelist(allow_guest=True)
