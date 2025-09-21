@@ -43,7 +43,7 @@
    "fieldname": "type",
    "fieldtype": "Select",
    "label": "Type",
-   "options": "dt\nmmt"
+   "options": "dt\nmt"
   },
   {
    "fieldname": "question_set_id",
@@ -138,10 +138,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-09-20 18:16:54.361261",
-
-
-
+ "modified": "2025-09-21 18:08:46.839703",
  "modified_by": "Administrator",
  "module": "happyschool",
  "name": "Tests",
