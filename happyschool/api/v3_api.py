@@ -1,23 +1,26 @@
 import frappe
 from frappe.utils import today, nowdate
+import json
+from frappe.utils import flt, today
 
+from frappe import _  
 @frappe.whitelist(allow_guest=True)
-def get_payment_link_details(mobile=None):
+def get_payment_link_details(payment_id):
     """
     API to fetch Payment Link details along with child tables 'items' and 'fees_structure'.
     Show discount fields only if offer_applied is True.
     """
     try:
-        if not mobile:
+        if not payment_id:
             frappe.local.response.update({
                 "success": False,
-                "message": "Mobile number is required."
+                "message": "payment id is required."
             })
             return
 
         payment_links = frappe.get_all(
             "HS Payment Link",  # removed extra space
-            filters={"mobile_number": mobile},
+            filters={"name": payment_id},
             fields=[
                 "name",
                 "customer_name",
@@ -204,12 +207,15 @@ def create_program_enrollment(student_id, program, academic_year):
 #     try:
 #         data = json.loads(frappe.request.data)
 #         mobile_no = data.get("mobile_no")
-#         mobile_no = format_mobile_number(mobile_no)
-#         program = data.get("program")
-#         installment = data.get("installment")
-#         discount_name = data.get("discount_name")
-#         discount_code = data.get("discount_code")
+#         # mobile_no = format_mobile_number(mobile_no)
+#         # installment = data.get("installment")
+#         programs = data.get("programs")
 #         txn_id = data.get("txn_id")
+#         type_invoice=data.get("type")
+#         discount_in_perc=data.get("discount_perc")
+#         discount_in_amnt=data.get("discount_amnt")
+#         # Apply Discount
+#         amount = data.get("amount")
 
 #         # Fetch Student and Customer details
 #         parent_id = frappe.db.get_value("Parents", {"mobile_number": mobile_no}, "name")
@@ -218,116 +224,79 @@ def create_program_enrollment(student_id, program, academic_year):
 
 #         customer = frappe.db.get_value("Parents", parent_id, "customer")
 
-#         if not frappe.db.get_value("Fees", {
-#             "student": student_id,
-#             "docstatus": 1,
-#             "outstanding_amount": [">", 0]
-#         }):
-#             return {"success": False, "error": "Could not find unpaid student"}
-
+        
 #         # Create Sales Invoice
 #         sales_invoice = frappe.new_doc('Sales Invoice')
 #         sales_invoice.customer = customer
-#         sales_invoice.student = student_id
-#         sales_invoice.program = program
+#         sales_invoice.custom_parent = parent_id
 #         sales_invoice.is_pos = 1
-#         sales_invoice.txn_id = txn_id
+#         sales_invoice.additional_discount_percentage=discount_in_perc
+#         sales_invoice.discount_amount=discount_in_amnt
+#         sales_invoice.custom_txn_id = txn_id
 #         sales_invoice.posting_date = today()
-
-#         # Apply Discount
-#         amount = data.get("amount")
-#         if discount_code:
-#             sales_invoice.discount_name = discount_name if discount_name else frappe.db.get_value("Fee Structure Discount",{"parent": frappe.db.get_value("Fee Structure", {'program': program, "docstatus": 1, "default": True}),"code": discount_code},"discount_name")
-#             discount_percentage = flt(frappe.db.get_value(
-#                 "Fee Structure Discount",
-#                 {
-#                     "parent": frappe.db.get_value("Fee Structure", {'program': program, "docstatus": 1, "default": True}),
-#                     "code": discount_code
-#                 },
-#                 "discount_percentage")
-#             )
-#             if discount_percentage:
-#                 amount = flt(amount / (1 - (discount_percentage / 100)))
-#                 sales_invoice.apply_discount_on = "Net Total"
-#                 sales_invoice.additional_discount_percentage = flt(discount_percentage)
-#                 sales_invoice._discount_applied = discount_code
-
-#         if program:
-#             label = frappe.db.get_value("Program", {"name": program}, "label")
-#             sales_invoice.label = label
-
+#         sales_invoice.custom_type=type_invoice
+        
+#         if programs:
+#             for prog in programs:
+#                 sales_invoice.append("custom_hs_program", {
+#                     "program": prog.get("program"),
+#                     "qty": prog.get("qty") or 1,
+#                     "rate": flt(prog.get("rate")) or 0
+#                 })
 
 #         # Add Fee Item
 #         sales_invoice.append('items', {
 #             'item_code': 'FEES',
-#             'description': f"{program} {installment}",
 #             'qty': 1,
 #             'rate': amount
 #         })
-#         sales_invoice.installment = installment
-
-#         # Assign Sales Person
-#         sales_person = get_student_sales_person(mobile_no)
-#         if sales_person:
-#             sales_invoice.append('sales_team', {
-#                 "sales_person": sales_person,
-#                 "allocated_percentage": 100
-#             })
+#         # sales_invoice.installment = installment
 
 #         # Add Mode of Payment
-#         sales_invoice.append('payments', {
-#             "mode_of_payment": "Wire Transfer",
-#             "amount": flt(data.get("amount")),
-#             "account": frappe.db.get_value("Mode of Payment Account", {"parent": "Wire Transfer"}, "default_account")
-#         })
+#         # sales_invoice.append('payments', {
+#         #     "mode_of_payment": "Wire Transfer",
+#         #     "amount": flt(data.get("amount")),
+#         #     "account": frappe.db.get_value("Mode of Payment Account", {"parent": "Wire Transfer"}, "default_account")
+#         # })
 
 #         # **Fetch and Set Lead Source**
-#         lead_id = frappe.db.get_value("Student", {"name": student_id}, "lead")
+#         lead_id = frappe.db.get_value("Parents", {"name": parent_id}, "lead_id")
 #         if lead_id:
-#             lead_source = frappe.db.get_value("Lead", lead_id, "source")
+#             lead_source = frappe.db.get_value("HS Lead", lead_id, "source")
 #             if lead_source:
-#                 sales_invoice.lead_source = lead_source  # Set the lead source
+#                 sales_invoice.custom_lead_source = lead_source  # Set the lead source
 #                 frappe.logger().info(f"Lead Source set: {lead_source}")
 
-#             new_source = frappe.db.get_value("Lead", lead_id, "new_source")
-#             if new_source:
-#                 sales_invoice.new_source = new_source  # Set the lead source
-#                 frappe.logger().info(f"New Source set: {new_source}")
-
-#         program_fees = frappe.db.get_value("Fee Structure", {"default": 1, "program": program}, "total_amount")
-#         if program_fees:
-#             sales_invoice.program_fees = program_fees
-#             frappe.logger().info(f"Program Fees set: {program_fees}")
-
-
+        
 #         # Calculate Taxes and Submit
-#         sales_invoice.set_missing_values()
-#         sales_invoice.calculate_taxes_and_totals()
 #         sales_invoice.submit()
+#         doc={
+#             "id":sales_invoice.name,
+#             "type":sales_invoice.custom_type,
+#             "customer":sales_invoice.customer,
+#             "discount":sales_invoice.additional_discount_percentage,
+#             "programs":sales_invoice.custom_hs_program,
+#             "items":sales_invoice.items
+#         }
 
-#         return download_pdf(sales_invoice.doctype, sales_invoice.name)
+#         return {
+#             "success":True,
+#             "details":doc
+#         }
 
 #     except Exception as e:
 #         frappe.db.rollback()
 #         frappe.log_error(str(frappe.get_traceback()), "Make Fee Payment")
-#         create_request_log(
-#             data=json.loads(frappe.request.data),
-#             request_description="Make Fee Payment",
-#             service_name="Aifer",
-#             request_headers=frappe.request.headers,
-#             error=str(e),
-#             status="Failed"
-#         )
 #         return {"success": False, "error": str(e)}
 
+        
 # def format_mobile_number(number):
-# 	try:
-# 		import phonenumbers
-# 		parsed_number = phonenumbers.parse(number)
-# 		country_code = parsed_number.country_code
-# 		number = re.sub('[^0-9]', '', number)
-# 		if country_code:
-# 			number = number.replace(str(country_code),'',1)
-# 			return f"+{country_code}-{number}"
-# 	except Exception as e:
-# 		frappe.throw(_("Missing Country Code"))
+#     try:
+#         parsed_number = phonenumbers.parse(number)
+#         country_code = parsed_number.country_code
+#         number = re.sub('[^0-9]', '', number)
+#         if country_code:
+#             number = number.replace(str(country_code),'',1)
+#             return f"+{country_code}-{number}"
+#     except Exception as e:
+#         frappe.throw(_("Missing Country Code"))

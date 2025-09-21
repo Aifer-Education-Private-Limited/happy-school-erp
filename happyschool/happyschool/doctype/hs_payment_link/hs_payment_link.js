@@ -107,29 +107,13 @@ frappe.ui.form.on('HS Payment Link', {
             frm.set_value("date", frappe.datetime.get_today());
         }
     },
-    payment_type: function(frm) {
+    after_save: function(frm) {
         if (frm.doc.payment_type) {
             let base_url = `https://happyschool.app/complete-payment/`;
+            let payment_link = `${base_url}${frm.doc.name}`;
 
-            // Collect programs from child table
-            let programs = (frm.doc.items || [])
-                .map(row => row.program)
-                .filter(p => p); // remove empty programs
-
-            // Create object as string: program: ENGLISH,MATHS
-            let objString = `{program:${programs.join(',')}}`;
-
-            // Encode each character (letters, numbers, and punctuation)
-            let fully_encoded_obj = Array.from(objString)
-                .map(c => '%' + c.charCodeAt(0).toString(16).toUpperCase())
-                .join('');
-
-            // Final payment link
-            let payment_link = `${base_url}${fully_encoded_obj}`;
-
-            frm.set_value("payment_link", payment_link);
-        } else {
-            frm.set_value("payment_link", "");
+            // Set payment_link field without triggering another save
+            frm.set_value("payment_link", payment_link, false, true); // false=don’t trigger change, true=refresh field
         }
     }
 });
