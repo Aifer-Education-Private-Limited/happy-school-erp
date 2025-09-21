@@ -1,8 +1,15 @@
 import frappe
 from datetime import datetime
 from frappe.utils import get_datetime, format_datetime, format_date
+import razorpay
 import requests
+# Fetch Razorpay Key ID and Secret from the configuration
 RAZORPAY_KEY_ID = frappe.conf.get("RAZORPAY_KEY_ID")
+RAZORPAY_KEY_SECRET = frappe.conf.get("RAZORPAY_KEY_SECRET")
+
+razorpay_client = razorpay.Client(auth=("RAZORPAY_KEY_ID", "RAZORPAY_KEY_SECRET"))
+
+print("razorpay_client", razorpay_client)
 
 @frappe.whitelist(allow_guest=True)
 def get_parent_home_page_details(student_id: str, parent_id: str):
@@ -165,16 +172,87 @@ def get_announcements_by_student_or_parent():
 
 
 @frappe.whitelist(allow_guest=True)
-def get_razorpay_key ():
+def get_razorpay_key():
+    """Return Razorpay Key ID for client-side integration"""
     try:
-        frappe.local.response.update({
+        frappe.local.response.update( {
             "success": True,
             "key": RAZORPAY_KEY_ID
-        })
-
+        } )
     except Exception as e:
         frappe.log_error(frappe.get_traceback(), "Get Razorpay Key API Error")
-        frappe.local.response.update({
+        frappe.local.response.update( {
             "success": False,
             "error": str(e)
-        })
+        } )
+
+
+@frappe.whitelist(allow_guest=True)
+def checkout(
+    txn_id=None,
+    amount=None,
+    firebase_uid=None,
+    name=None,
+    email=None,
+    course_id=None,
+    time=None,
+    title=None,
+    payable=None,
+    terms=None,
+    state=None,
+    project=None,
+    discount=None,
+    promoCode=None,
+    offerType=None,
+    erpCode=None,
+    payment_link=None,
+    pincode=None,
+    counselling_qns=None,
+    mobile=None
+):
+    try:
+        # ✅ Ensure firebase_uid is provided
+        if not firebase_uid:
+            frappe.local.response.update( {
+                "success": False,
+                "message": "Firebase UID is required"
+            } )
+            return
+
+        # ✅ Default values
+        if not payment_link:
+            payment_link = 0
+        if not offerType:
+            offerType, discount, promoCode = "", 0, ""
+
+        # ✅ Ensure counselling_qns is JSON string
+        # counselling_qns = json.dumps(counselling_qns) if counselling_qns else "[]"
+
+        # ✅ Generate unique name
+        unique_name = frappe.generate_hash(length=12)
+
+        # ✅ Insert into table
+        frappe.db.sql("""
+            INSERT INTO `tabHS Transactions`
+            (name, txn_id, amount, payable, products, email, customer_name, parent_id, time, state,
+             item_code, refferal_code, discount, offer_type, erp_code, payment_link)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+        """, (
+            unique_name, txn_id, amount, payable, course_id, email, name, firebase_uid,
+            time, state, project, promoCode, discount, offerType,
+            erpCode, payment_link
+        ))
+        frappe.db.commit()
+
+        frappe.local.response.update( {
+            "success": True,
+            "message": "Checkout data saved successfully"
+        } )
+
+    except Exception as e:
+        frappe.log_error(frappe.get_traceback(), "Checkout API Error")
+        frappe.local.response.update( {
+            "success": False,
+            "message": str(e)
+        } )
+
