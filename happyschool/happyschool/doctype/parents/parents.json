@@ -16,7 +16,8 @@
   "date_of_birth",
   "auth_type",
   "profile",
-  "joindate"
+  "joindate",
+  "pin"
  ],
  "fields": [
   {
@@ -80,12 +81,17 @@
    "fieldtype": "Select",
    "label": "Type",
    "options": "Link\nUnlink"
+  },
+  {
+   "fieldname": "pin",
+   "fieldtype": "Int",
+   "label": "Pin"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-09-16 09:12:19.187531",
+ "modified": "2025-09-21 11:41:41.425120",
  "modified_by": "Administrator",
  "module": "happyschool",
  "name": "Parents",
