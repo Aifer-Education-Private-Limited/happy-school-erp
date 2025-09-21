@@ -5,18 +5,51 @@
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
-  "section_break_eu3u"
+  "test_id",
+  "student_id",
+  "attended_date",
+  "total_time",
+  "attempt_count",
+  "marks"
  ],
  "fields": [
   {
-   "fieldname": "section_break_eu3u",
-   "fieldtype": "Section Break"
+   "fieldname": "test_id",
+   "fieldtype": "Link",
+   "label": "Test ID",
+   "options": "Tests"
+  },
+  {
+   "fieldname": "student_id",
+   "fieldtype": "Link",
+   "label": "Student ID",
+   "options": "Student"
+  },
+  {
+   "fieldname": "attended_date",
+   "fieldtype": "Datetime",
+   "label": "Attended Date"
+  },
+  {
+   "fieldname": "total_time",
+   "fieldtype": "Data",
+   "label": "Total_time"
+  },
+  {
+   "fieldname": "attempt_count",
+   "fieldtype": "Int",
+   "label": "Attempt Count"
+  },
+  {
+   "fieldname": "marks",
+   "fieldtype": "Int",
+   "label": "Marks"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-09-17 14:24:17.090655",
+ "modified": "2025-09-19 14:47:14.572095",
  "modified_by": "Administrator",
  "module": "happyschool",
  "name": "Test User History",

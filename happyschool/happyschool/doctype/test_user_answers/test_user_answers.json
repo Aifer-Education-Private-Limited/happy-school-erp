@@ -1,0 +1,62 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2025-09-17 19:12:23.919151",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "history_id",
+  "set_id",
+  "question_id",
+  "answer"
+ ],
+ "fields": [
+  {
+   "fieldname": "history_id",
+   "fieldtype": "Link",
+   "label": "History ID",
+   "options": "Test User History"
+  },
+  {
+   "fieldname": "set_id",
+   "fieldtype": "Data",
+   "label": "Set ID"
+  },
+  {
+   "fieldname": "question_id",
+   "fieldtype": "Data",
+   "label": "Question_id"
+  },
+  {
+   "fieldname": "answer",
+   "fieldtype": "Data",
+   "label": "Answer"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2025-09-17 19:20:20.262936",
+ "modified_by": "Administrator",
+ "module": "happyschool",
+ "name": "Test User Answers",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}
