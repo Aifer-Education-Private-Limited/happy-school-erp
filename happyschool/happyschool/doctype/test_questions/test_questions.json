@@ -20,37 +20,37 @@
  "fields": [
   {
    "fieldname": "questions_batch_id",
-   "fieldtype": "Data",
+   "fieldtype": "Int",
    "label": "Questions Batch ID"
   },
   {
    "fieldname": "question_number",
-   "fieldtype": "Data",
+   "fieldtype": "Int",
    "label": "Question Number"
   },
   {
    "fieldname": "question",
-   "fieldtype": "Data",
+   "fieldtype": "Text Editor",
    "label": "Question"
   },
   {
    "fieldname": "option_1",
-   "fieldtype": "Data",
+   "fieldtype": "Text Editor",
    "label": "option_1"
   },
   {
    "fieldname": "option_2",
-   "fieldtype": "Data",
+   "fieldtype": "Text Editor",
    "label": "option_2"
   },
   {
    "fieldname": "option_3",
-   "fieldtype": "Data",
+   "fieldtype": "Text Editor",
    "label": "option_3"
   },
   {
    "fieldname": "option_4",
-   "fieldtype": "Data",
+   "fieldtype": "Text Editor",
    "label": "option_4"
   },
   {
@@ -60,7 +60,7 @@
   },
   {
    "fieldname": "explenation",
-   "fieldtype": "Data",
+   "fieldtype": "Text Editor",
    "label": "Explenation"
   },
   {
@@ -77,7 +77,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-09-17 19:08:12.199229",
+ "modified": "2025-09-20 18:14:07.041198",
  "modified_by": "Administrator",
  "module": "happyschool",
  "name": "Test Questions",

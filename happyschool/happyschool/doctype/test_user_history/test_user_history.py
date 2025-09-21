@@ -15,4 +15,4 @@ from frappe.model.naming import make_autoname
 class TestUserHistory(frappe.model.document.Document):
     def autoname(self):
         # Only 3 digits instead of 5
-        self.name = make_autoname("PST-.YYYY.-.###")
+        self.name = make_autoname("TUH-.YYYY.-.###")
