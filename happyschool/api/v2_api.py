@@ -7,7 +7,7 @@ import requests
 RAZORPAY_KEY_ID = frappe.conf.get("RAZORPAY_KEY_ID")
 RAZORPAY_KEY_SECRET = frappe.conf.get("RAZORPAY_KEY_SECRET")
 
-razorpay_client = razorpay.Client(auth=("RAZORPAY_KEY_ID", "RAZORPAY_KEY_SECRET"))
+# razorpay_client = razorpay.Client(auth=("RAZORPAY_KEY_ID", "RAZORPAY_KEY_SECRET"))
 
 print("razorpay_client", razorpay_client)
 
