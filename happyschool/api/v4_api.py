@@ -412,9 +412,7 @@ def test_complete():
                 "attempt_count": attempt_count
             })
 
-        # -------- parse test_sets (array of JSON strings) ----------
         sets_list = deep_loads(test_sets) if test_sets else []
-        # Each element may still be a JSON string → deep_loads again below
 
         # -------- upserts: answers + topic marks (NO set history) ----------
         for item in sets_list:
@@ -525,8 +523,7 @@ def test_complete():
 
 
 
-import frappe
-import re
+
 
 @frappe.whitelist(allow_guest=True)
 def get_set_questions(questions_batch_id=None):
@@ -557,21 +554,16 @@ def get_set_questions(questions_batch_id=None):
             as_dict=True
         )
 
-        base_url = frappe.utils.get_url()  # e.g. http://localhost:8000 or yoursite.com
+        base_url = frappe.utils.get_url()  
 
         def clean_html(val):
             if not val:
                 return "<p></p>"
-            # Remove unnecessary Quill wrappers
             val = re.sub(r'<div class="ql-editor.*?">(.*?)</div>', r"\1", val, flags=re.S)
-            # Replace private path → public
             val = val.replace('/private/files/', '/files/')
-            # Ensure wrapped in <p>
             if not str(val).strip().startswith("<p>"):
                 val = f"<p>{val}</p>"
-            # Add base_url and strip ?fid=...
             val = re.sub(r'src="(/files/[^"?]+)(?:\?[^"]*)?"', f'src="{base_url}\\1"', val)
-            # Remove trailing <p><br></p>
             val = val.replace("<p><br></p>", "")
             return val
 
@@ -667,7 +659,7 @@ def get_analytics():
                     tua.answer
                 FROM `tabTest Questions` tq
                 INNER JOIN `tabTest User Answers` tua 
-                ON tua.question_id = tq.question_number  -- Referencing 'name' here as well
+                ON tua.question_id = tq.question_number  
                 AND tua.history_id = %s
                 ORDER BY tq.question_number
             """
