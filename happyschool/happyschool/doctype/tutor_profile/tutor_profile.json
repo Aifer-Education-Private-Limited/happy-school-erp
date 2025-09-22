@@ -13,9 +13,11 @@
   "column_break_gjdv",
   "contact_number",
   "contact_email",
+  "user",
   "column_break_ohjg",
   "time_zone",
   "highest_qualification",
+  "demo_url",
   "section_break_dtxr",
   "certifications",
   "subject_expertise",
@@ -269,12 +271,23 @@
   {
    "fieldname": "column_break_kxjy",
    "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "user",
+   "fieldtype": "Link",
+   "label": "User",
+   "options": "User"
+  },
+  {
+   "fieldname": "demo_url",
+   "fieldtype": "Data",
+   "label": "Demo URL"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-09-15 12:39:31.724486",
+ "modified": "2025-09-22 16:24:14.104840",
  "modified_by": "Administrator",
  "module": "happyschool",
  "name": "Tutor Profile",

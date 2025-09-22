@@ -1,11 +1,9 @@
 # Copyright (c) 2025, esra and contributors
 # For license information, please see license.txt
 
-import frappe
+# import frappe
 from frappe.model.document import Document
 
 
-class TutorProfile(Document):
-	def validate(self):
-		if not self.user:
-			self.user = frappe.session.user
+class TutorExamTable(Document):
+	pass
