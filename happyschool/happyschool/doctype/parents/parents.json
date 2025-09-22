@@ -17,6 +17,8 @@
   "auth_type",
   "profile",
   "joindate",
+  "customer",
+  "lead_id",
   "pin"
  ],
  "fields": [
@@ -83,6 +85,17 @@
    "options": "Link\nUnlink"
   },
   {
+   "fieldname": "customer",
+   "fieldtype": "Link",
+   "label": "Customer",
+   "options": "Customer",
+   "read_only": 1
+  },
+  {
+   "fieldname": "lead_id",
+   "fieldtype": "Link",
+   "label": "Lead Id",
+   "options": "HS Lead",
    "fieldname": "pin",
    "fieldtype": "Int",
    "label": "Pin"
@@ -91,7 +104,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-09-21 11:41:41.425120",
+ "modified": "2025-09-21 16:29:09.528742",
  "modified_by": "Administrator",
  "module": "happyschool",
  "name": "Parents",
