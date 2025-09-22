@@ -185,16 +185,16 @@ from frappe.utils import now_datetime
 @frappe.whitelist(allow_guest=True)
 def get_test(course_id=None, type=None, student_id=None):
     try:
-        if not student_id:
+        if not student_id or not course_id:
             frappe.local.response.update({
                 "success": False,
-                "message": "student_id is required",
+                "message": "student_id and course_id are required",
                 "data": {}
             })
             return
 
         # ------------------------
-        # Check HS Student Tests for assigned tests
+        # Step 1: Check HS Student Tests
         # ------------------------
         hs_tests = frappe.get_all(
             "HS Student Tests",
@@ -204,7 +204,6 @@ def get_test(course_id=None, type=None, student_id=None):
         test_ids = [d.test_id for d in hs_tests if d.test_id]
 
         if not test_ids:
-            # Student has no assigned tests
             frappe.local.response.update({
                 "success": True,
                 "message": "No tests assigned to this student",
@@ -217,11 +216,33 @@ def get_test(course_id=None, type=None, student_id=None):
             return
 
         # ------------------------
-        # Fetch ACTIVE Tests from Tests Doc
+        # Step 2: Filter by Course ID
+        # ------------------------
+        course_tests = frappe.get_all(
+            "Tests",
+            filters={"name": ["in", test_ids], "course_id": ["like", f"%{course_id}%"]},
+            fields=["name"]
+        )
+        valid_test_ids = [t.name for t in course_tests]
+
+        if not valid_test_ids:
+            frappe.local.response.update({
+                "success": True,
+                "message": "No tests for this course",
+                "data": {
+                    "active_tests": [],
+                    "attended_tests": [],
+                    "server_time": now_datetime()
+                }
+            })
+            return
+
+        # ------------------------
+        # Step 3: Active Tests
         # ------------------------
         active_tests = frappe.get_all(
             "Tests",
-            filters={"name": ["in", test_ids], "is_active": 1},
+            filters={"name": ["in", valid_test_ids], "is_active": 1},
             fields=[
                 "name as id",
                 "title",
@@ -247,12 +268,12 @@ def get_test(course_id=None, type=None, student_id=None):
         )
 
         # ------------------------
-        # Fetch Attended Tests from Test User History
+        # Step 4: Attended Tests
         # ------------------------
         attended_tests = []
         histories = frappe.get_all(
             "Test User History",
-            filters={"student_id": student_id},
+            filters={"student_id": student_id, "test_id": ["in", valid_test_ids]},
             fields=["test_id", "name as history_id", "attended_date", "total_time", "marks", "attempt_count"]
         )
         test_ids_history = [h.test_id for h in histories]
@@ -280,7 +301,6 @@ def get_test(course_id=None, type=None, student_id=None):
                 ]
             )
 
-            # Merge history details into test details
             test_map = {t["id"]: t for t in tests}
             for h in histories:
                 if h.test_id in test_map:
