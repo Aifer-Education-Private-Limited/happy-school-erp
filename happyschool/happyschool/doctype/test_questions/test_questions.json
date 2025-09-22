@@ -13,55 +13,50 @@
   "option_3",
   "option_4",
   "right_answer",
-  "explenation",
+  "explanation",
   "topic",
   "subtopic"
  ],
  "fields": [
   {
    "fieldname": "questions_batch_id",
-   "fieldtype": "Data",
+   "fieldtype": "Int",
    "label": "Questions Batch ID"
   },
   {
    "fieldname": "question_number",
-   "fieldtype": "Data",
+   "fieldtype": "Int",
    "label": "Question Number"
   },
   {
    "fieldname": "question",
-   "fieldtype": "Data",
+   "fieldtype": "Text Editor",
    "label": "Question"
   },
   {
    "fieldname": "option_1",
-   "fieldtype": "Data",
+   "fieldtype": "Text Editor",
    "label": "option_1"
   },
   {
    "fieldname": "option_2",
-   "fieldtype": "Data",
+   "fieldtype": "Text Editor",
    "label": "option_2"
   },
   {
    "fieldname": "option_3",
-   "fieldtype": "Data",
+   "fieldtype": "Text Editor",
    "label": "option_3"
   },
   {
    "fieldname": "option_4",
-   "fieldtype": "Data",
+   "fieldtype": "Text Editor",
    "label": "option_4"
   },
   {
    "fieldname": "right_answer",
    "fieldtype": "Int",
    "label": "Right Answer"
-  },
-  {
-   "fieldname": "explenation",
-   "fieldtype": "Data",
-   "label": "Explenation"
   },
   {
    "fieldname": "topic",
@@ -72,12 +67,17 @@
    "fieldname": "subtopic",
    "fieldtype": "Data",
    "label": "Subtopic"
+  },
+  {
+   "fieldname": "explanation",
+   "fieldtype": "Text Editor",
+   "label": "Explanation"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-09-17 19:08:12.199229",
+ "modified": "2025-09-21 12:30:02.106870",
  "modified_by": "Administrator",
  "module": "happyschool",
  "name": "Test Questions",
