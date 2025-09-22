@@ -16,7 +16,9 @@
   "date_of_birth",
   "auth_type",
   "profile",
-  "joindate"
+  "joindate",
+  "customer",
+  "lead_id"
  ],
  "fields": [
   {
@@ -80,12 +82,25 @@
    "fieldtype": "Select",
    "label": "Type",
    "options": "Link\nUnlink"
+  },
+  {
+   "fieldname": "customer",
+   "fieldtype": "Link",
+   "label": "Customer",
+   "options": "Customer",
+   "read_only": 1
+  },
+  {
+   "fieldname": "lead_id",
+   "fieldtype": "Link",
+   "label": "Lead Id",
+   "options": "HS Lead"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-09-16 09:12:19.187531",
+ "modified": "2025-09-21 16:29:09.528742",
  "modified_by": "Administrator",
  "module": "happyschool",
  "name": "Parents",

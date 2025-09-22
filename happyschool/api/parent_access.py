@@ -65,7 +65,19 @@ def parent_signup():
         parent.joindate = frappe.utils.now()
         parent.insert(ignore_permissions=True)
 
+        customer = frappe.new_doc("Customer")
+        customer.customer_name = f"{first_name} {last_name}"
+        customer.customer_type = "Individual"
+        customer.customer_group = "Student"  # change if you have a specific group
 
+        # link Parent to Customer (optional custom field in Customer)
+        if "parent_id" in customer.as_dict():
+            customer.parent_id = parent.name
+
+        customer.insert(ignore_permissions=True)
+    
+        parent.customer = customer.name
+        parent.save(ignore_permissions=True)
         frappe.db.commit()
         
 
@@ -74,7 +86,8 @@ def parent_signup():
         frappe.local.response.update ({
             "success": True,
             "message": "Signup successful.",
-            "parent_id": parent_id
+            "parent_id": parent_id,
+            "customer":customer.name
         })
         return 
         
