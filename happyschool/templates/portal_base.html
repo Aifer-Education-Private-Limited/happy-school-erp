@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="{{boot.lang}}">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="generator" content="frappe">
+
+    {% block meta_block %}
+    {% include "templates/includes/meta_block.html" %}
+    {% endblock %}
+
+    <title>{% block title %}{{ title | striptags }}{% endblock %}</title>
+
+    {% block favicon %}
+    <link rel="shortcut icon" href="{{ (favicon or " /assets/frappe/images/frappe-favicon.svg") | abs_url }}"
+        type="image/x-icon">
+    {% endblock %}
+
+    {%- block head -%}
+    {% include "templates/includes/head.html" %}
+    {%- endblock -%}
+
+    {%- block head_include %}
+    {{ head_include or "" }}
+    {% endblock -%}
+
+    {%- block style %}
+    {% if colocated_css -%}
+    <style>
+        {
+                {
+                colocated_css
+            }
+        }
+    </style>
+    {%- endif %}
+    {%- endblock -%}
+
+    {% if boot.lang == "eo" %}
+    <script type="text/javascript">
+        var _jipt = [];
+        _jipt.push(['project', 'frappe']);
+    </script>
+    <script type="text/javascript" src="https://cdn.crowdin.com/jipt/jipt.js"></script>
+    {% endif %}
+    <script>
+        window.frappe = {};
+        frappe.ready_events = [];
+        frappe.ready = function (fn) {
+            frappe.ready_events.push(fn);
+        }
+        window.dev_server = {{ dev_server }};
+        window.socketio_port = {{ (frappe.socketio_port or 9000) }};
+        window.show_language_picker = {{ show_language_picker or 'false' }};
+
+    </script>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Tutor Job Application</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f8ff;
+            /* light blue background */
+
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .tab-btn.active {
+            border-bottom: 3px solid #198754;
+            /* Bootstrap green */
+            background-color: #e9fce9;
+            color: #14532d;
+            font-weight: 600;
+        }
+    </style>
+</head>
+
+<body class="d-flex align-items-center justify-content-center min-vh-100 p-3"
+    frappe-session-status="{{ 'logged-in' if frappe.session.user != 'Guest' else 'logged-out'}}"
+    data-path="{{ path | e }}" {%- if template and template.endswith('.md') %} frappe-content-type="markdown" {%- endif
+    %} class="{{ body_class or ''}}">
+
+    <!-- Navbar Start -->
+    <nav
+        style="width:100%;background:#fff;border-bottom:1px solid #e6eef6;padding:12px 32px;display:flex;align-items:center;justify-content:space-between;position:fixed;top:0;left:0;z-index:100;">
+        <div style="display:flex;align-items:center;gap:10px;">
+            <img src="{{ favicon or '/assets/frappe/images/frappe-favicon.svg' }}" alt="Logo"
+                style="height:32px;width:32px;border-radius:8px;">
+            <span style="font-weight:700;font-size:18px;color:#0ea5e9;">HappySchool</span>
+        </div>
+        <div>
+            {% if frappe.session.user == "Guest" %}
+            <a href="/login" class="btn" style="background:var(--accent);color:#fff;text-decoration:none;">Login</a>
+            {% else %}
+            <button id="logout-btn" class="btn btn-primary">Logout</button>
+            {% endif %}
+        </div>
+    </nav>
+    <!-- Navbar End -->
+
+    <div style="height:60px"></div> <!-- Spacer for fixed navbar -->
+
+    {% include "public/icons/timeless/icons.svg" %}
+    {% include "public/icons/espresso/icons.svg" %}
+    {%- block banner -%}
+    {% include "templates/includes/banner_extension.html" ignore missing %}
+
+    {% if banner_html -%}
+    {{ banner_html or "" }}
+    {%- endif %}
+    {%- endblock -%}
+
+
+
+    {% block content %}
+    {{ content }}
+    {% endblock %}
+
+
+    {% block base_scripts %}
+    <!-- js should be loaded in body! -->
+    <script>
+        frappe.boot = {{ boot | json }}
+        // for backward compatibility of some libs
+        frappe.sys_defaults = frappe.boot.sysdefaults;
+        document.getElementById("logout-btn").addEventListener("click", function () {
+            frappe.call({
+                method: "logout",
+                callback: function () {
+                    window.location.href = "/"; // redirect to home or login page
+                }
+            });
+        });
+    </script>
+    {{ include_script('frappe-web.bundle.js') }}
+    {% endblock %}
+
+    {%- for link in web_include_js %}
+    {{ include_script(link) }}
+    {%- endfor -%}
+
+    {%- block script %}
+    {% if colocated_js -%}
+    <script>{ { colocated_js } }</script>
+    {%- endif %}
+    {%- endblock %}
+    <!-- csrf_token -->
+    {%- block body_include %}{{ body_include or "" }}{% endblock -%}
+</body>
+
+</html>
