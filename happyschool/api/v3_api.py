@@ -34,7 +34,7 @@ def get_payment_link_details(payment_id):
                 "discount_amnt",
                 "offer_applied",
                 "payment_type",
-
+                "custom_paid",
                 "payment_link"
             ],
             order_by="creation desc"
@@ -62,7 +62,8 @@ def get_payment_link_details(payment_id):
                 {
                     "program": item.get("program"),
                     "qty": item.get("qty"),
-                    "fees": item.get("rate")  # fixed missing comma
+                    "fees": item.get("rate"),
+                    "amount": item.get("amount")         # fixed missing comma
                 } for item in items
             ]
 
@@ -92,6 +93,7 @@ def get_payment_link_details(payment_id):
                 "offer_applied": link.get("offer_applied"),
                 "payment_type": link.get("payment_type"),
                 "state": link.get("state"),
+                "last_customer_paid":link.get("custom_paid"),
                 "payment_link": link.get("payment_link"),
                 "items": mapped_items,
                 "fees_structure": mapped_fees_structure
