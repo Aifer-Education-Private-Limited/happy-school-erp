@@ -1,20 +1,13 @@
 import frappe
 import json
 from datetime import datetime
+from frappe import _
+from frappe.utils import nowdate, now_datetime
 
 
 @frappe.whitelist(allow_guest=True)
 def add_feedback():
-    """
-    Add feedback from a student.
-    Request body:
-        {
-            "student_id": "ST001",
-            "tutor_id": "TUT-0001",
-            "rating": 4.5,
-            "review": "Great tutor!"
-        }
-    """
+
     try:
         data = frappe.local.form_dict
         student_id = data.get("student_id")
@@ -335,4 +328,202 @@ def parent_account_delete():
         frappe.local.response.update({
             "success": False,
             "message": str(e)
+        })
+
+
+
+
+@frappe.whitelist(allow_guest=True)
+def get_tests_by_course(course_id):
+    try:
+        # Fetch all tests related to a given course
+        if not course_id:
+            frappe.local.response.update({
+                "success": False,
+                "error": "Course ID is required",
+                "data": {}
+            })
+            return
+
+        # Query all tests associated with the course_id
+        tests = frappe.db.sql("""
+            SELECT
+                name AS test_id,
+                title,
+                type,
+                topic,
+                question_set_id,
+                question_batch_id,
+                total_questions,
+                duration,
+                general_instruction,
+                valid_from,
+                valid_to,
+                correct_answer_mark,
+                wrong_answer_mark,
+                uploaded_time,
+                is_active,
+                is_paid,
+                is_free,
+                is_result_published,
+                is_response_sheet_needed
+            FROM `tabTests`
+            WHERE course_id = %s
+        """, (course_id,), as_dict=True)
+
+        # Prepare the response structure
+        test_data = []
+        for test in tests:
+            test_data.append({
+                "test_id": test.get("test_id"),
+                "title": test.get("title"),
+                "type": test.get("type"),
+                "question_set_id": test.get("question_set_id"),
+                "question_batch_id": test.get("question_batch_id"),
+                "total_questions": test.get("total_questions"),
+                "duration": test.get("duration"),
+                "topic" : test.get("topic"),
+                "general_instruction": test.get("general_instruction"),
+                "valid_from": test.get("valid_from"),
+                "valid_to": test.get("valid_to"),
+                "correct_answer_mark": test.get("correct_answer_mark"),
+                "wrong_answer_mark": test.get("wrong_answer_mark"),
+                "uploaded_time": test.get("uploaded_time"),
+                "is_active": test.get("is_active"),
+                "is_paid": test.get("is_paid"),
+                "is_free": test.get("is_free"),
+                "is_result_published": test.get("is_result_published"),
+                "is_response_sheet_needed": test.get("is_response_sheet_needed")
+            })
+
+        frappe.local.response.update({
+            "success": True,
+            "data": {
+                "tests": test_data
+            }
+        })
+
+    except Exception as e:
+        frappe.log_error(frappe.get_traceback(), "get_tests_by_course API Error")
+        frappe.local.response.update({
+            "success": False,
+            "error": str(e),
+            "data": []
+        })
+
+
+
+
+
+@frappe.whitelist(allow_guest=True)
+def assign_student_to_test():
+    try:
+        # Fetch data from the request body
+        data = frappe.local.form_dict
+        student_id = data.get("student_id")
+        test_id = data.get("test_id")
+        tutor_id = data.get("tutor_id")
+        
+        # Validate required parameters
+        if not student_id or not test_id or not tutor_id:
+            frappe.local.response.update({
+                "success": False,
+                "message": _("Student ID, Test ID, and Tutor ID are required")
+            })
+            return
+        
+        # Check if the student is already assigned to the test
+        existing_record = frappe.db.exists("HS Student Tests", {
+            "student_id": student_id,
+            "test_id": test_id
+        })
+        
+        if existing_record:
+            frappe.local.response.update({
+                "success": False,
+                "message": _("The student is already assigned to this test.")
+            })
+            return
+
+        # Create a new HS Student Tests record
+        new_record = frappe.get_doc({
+            "doctype": "HS Student Tests",
+            "student_id": student_id,
+            "test_id": test_id,
+            "tutor_id": tutor_id
+        })
+
+        new_record.insert(ignore_permissions=True)
+
+        frappe.local.response.update({
+            "success": True,
+            "message": _("Student has been successfully assigned to the test."),
+            "data": {
+                "student_id": student_id,
+                "test_id": test_id,
+                "tutor_id": tutor_id
+            }
+        })
+
+    except Exception as e:
+        frappe.log_error(frappe.get_traceback(), "assign_student_to_test API Error")
+        frappe.local.response.update({
+            "success": False,
+            "error": str(e),
+            "data": {}
+        })
+
+
+
+
+
+
+@frappe.whitelist(allow_guest=True)
+def unassign_student_from_test():
+    try:
+        data = frappe.local.form_dict
+        student_id = data.get("student_id")
+        test_id = data.get("test_id")
+
+        if not student_id or not test_id:
+            frappe.local.response.update({
+                "success": False,
+                "message": _("Student ID and Test ID are required")
+            })
+            return
+
+        existing_record = frappe.db.exists("HS Student Tests", {
+            "student_id": student_id,
+            "test_id": test_id
+        })
+        
+        if not existing_record:
+            frappe.local.response.update({
+                "success": False,
+                "message": _("The student is not assigned to this test.")
+            })
+            return
+
+        # Delete the assignment record from HS Student Tests
+        frappe.db.delete("HS Student Tests", {
+            "student_id": student_id,
+            "test_id": test_id
+        })
+
+        frappe.local.response.update({
+            "success": True,
+            "message": _("Student has been successfully unassigned from the test."),
+            "data": {
+                "student_id": student_id,
+                "test_id": test_id
+            }
+        })
+
+    except Exception as e:
+        # Handle errors and log them
+        frappe.log_error(frappe.get_traceback(), "unassign_student_from_test API Error")
+        frappe.local.response.update({
+            "success": False,
+            "error": str(e),
+            "data": {}
         })
