@@ -39,7 +39,7 @@ def get_payment_link_details(payment_id):
             ],
             order_by="creation desc"
         )
-
+       
         if not payment_links:
             frappe.local.response.update({
                 "success": False,
@@ -49,6 +49,8 @@ def get_payment_link_details(payment_id):
 
         result = []
         for link in payment_links:
+            parent=frappe.db.get_value("Parents",{"mobile_number":link.get("mobile_number")},"name")
+
             # Fetch items child table
             items = frappe.get_all(
                 "Payment Link Items",
@@ -80,6 +82,7 @@ def get_payment_link_details(payment_id):
             ]
 
             mapped_link = {
+                "parent_id":parent,
                 "payment_id": link.get("name"),
                 "mob": link.get("mobile_number"),
                 "name": link.get("customer_name"),
@@ -202,92 +205,141 @@ def create_program_enrollment(student_id, program, academic_year):
             "message": "Internal server error"
         })
 
-# @frappe.whitelist(methods=["POST"], allow_guest=True)
-# def make_fee_payment():
-#     try:
-#         data = json.loads(frappe.request.data)
-#         mobile_no = data.get("mobile_no")
-#         # mobile_no = format_mobile_number(mobile_no)
-#         # installment = data.get("installment")
-#         programs = data.get("programs")
-#         txn_id = data.get("txn_id")
-#         type_invoice=data.get("type")
-#         discount_in_perc=data.get("discount_perc")
-#         discount_in_amnt=data.get("discount_amnt")
-#         # Apply Discount
-#         amount = data.get("amount")
+@frappe.whitelist(methods=["POST"], allow_guest=True)
+def make_fee_payment():
+    try:
+        data = json.loads(frappe.request.data)
+        mobile_no = data.get("mobile_no")
+        # mobile_no = format_mobile_number(mobile_no)
+        # installment = data.get("installment")
+        programs = data.get("programs")
+        txn_id = data.get("txn_id")
+        type_invoice=data.get("type_invoice")
+        discount_in_perc=data.get("discount_perc")
+        discount_in_amnt=data.get("discount_amnt")
+        # Apply Discount
+        amount = data.get("amount")
+        if type_invoice != "Happy School":
+            return {
+                "success": False,
+                "error": f"Invalid invoice type '{type_invoice}'."
+        }
 
-#         # Fetch Student and Customer details
-#         parent_id = frappe.db.get_value("Parents", {"mobile_number": mobile_no}, "name")
-#         if not parent_id:
-#             return {"success": False, "error": "Could not find student"}
+        # Fetch Student and Customer details
+        parent_id = frappe.db.get_value("Parents", {"mobile_number": mobile_no}, "name")
+        if not parent_id:
+            return {"success": False, "error": "Could not find parent"}
 
-#         customer = frappe.db.get_value("Parents", parent_id, "customer")
+        customer = frappe.db.get_value("Parents", parent_id, "customer")
+        template_name = frappe.db.get_value(
+            "Sales Taxes and Charges Template",
+            {"title":"Output GST In-state"},  # or use "name" field if you know exact
+            "name"
+        )
+
+        if not template_name:
+            frappe.throw("Sales Taxes and Charges Template 'Output GST In-state' not found")
+
+
+        # Create Sales Invoice
+        sales_invoice = frappe.new_doc('Sales Invoice')
+        sales_invoice.customer = customer
+        sales_invoice.custom_parent = parent_id
+        sales_invoice.is_pos = 1
+        sales_invoice.additional_discount_percentage = flt(discount_in_perc) if discount_in_perc else 0
+        sales_invoice.discount_amount = flt(discount_in_amnt) if discount_in_amnt else 0
+        sales_invoice.custom_txn_id = txn_id
+        sales_invoice.posting_date = today()
+        sales_invoice.taxes_and_charges=template_name
+        sales_invoice.custom_type=type_invoice
+        sales_invoice.set_taxes()
+        
+        if programs:
+            for prog in programs:
+                program_name = prog.get("program")
+                qty = flt(prog.get("qty") or 1)
+
+                # Fetch rate from HS Program List
+                rate = frappe.db.get_value("HS Program List", {"program": program_name}, "session_rate")
+                if rate is None:
+                    frappe.throw(f"Program '{program_name}' not found in HS Program List")
+
+                rate = flt(rate)
+                amount_val = rate * qty  
+
+                sales_invoice.append("custom_hs_items", {
+                    "program": program_name,
+                    "qty": qty,
+                    "rate": rate,
+                    "amount": amount_val
+                })
+
+
+
+        # Add Fee Item
+        sales_invoice.append('items', {
+            'item_code': 'OFFER',
+            'qty': 1,
+            'rate': amount
+        })
+        # sales_invoice.installment = installment
+
+        # Add Mode of Payment
+        sales_invoice.append('payments', {
+            "mode_of_payment": "Wire Transfer",
+            "amount": flt(data.get("amount")),
+            "account": frappe.db.get_value("Mode of Payment Account", {"parent": "Wire Transfer"}, "default_account")
+        })
+
+        # **Fetch and Set Lead Source**
+        lead_id = frappe.db.get_value("Parents", {"name": parent_id}, "lead_id")
+        if lead_id:
+            lead_source = frappe.db.get_value("HS Lead", lead_id, "source")
+            if lead_source:
+                sales_invoice.custom_lead_source = lead_source  # Set the lead source
+                frappe.logger().info(f"Lead Source set: {lead_source}")
 
         
-#         # Create Sales Invoice
-#         sales_invoice = frappe.new_doc('Sales Invoice')
-#         sales_invoice.customer = customer
-#         sales_invoice.custom_parent = parent_id
-#         sales_invoice.is_pos = 1
-#         sales_invoice.additional_discount_percentage=discount_in_perc
-#         sales_invoice.discount_amount=discount_in_amnt
-#         sales_invoice.custom_txn_id = txn_id
-#         sales_invoice.posting_date = today()
-#         sales_invoice.custom_type=type_invoice
-        
-#         if programs:
-#             for prog in programs:
-#                 sales_invoice.append("custom_hs_program", {
-#                     "program": prog.get("program"),
-#                     "qty": prog.get("qty") or 1,
-#                     "rate": flt(prog.get("rate")) or 0
-#                 })
+        # Calculate Taxes and Submit
+        sales_invoice.submit()
 
-#         # Add Fee Item
-#         sales_invoice.append('items', {
-#             'item_code': 'FEES',
-#             'qty': 1,
-#             'rate': amount
-#         })
-#         # sales_invoice.installment = installment
+        programs_data = [
+            {
+                "program": row.program,
+                "rate": row.rate,
+                "qty": row.qty,
+                "amount":row.amount
+            }
+            for row in sales_invoice.custom_hs_items
+        ]
 
-#         # Add Mode of Payment
-#         # sales_invoice.append('payments', {
-#         #     "mode_of_payment": "Wire Transfer",
-#         #     "amount": flt(data.get("amount")),
-#         #     "account": frappe.db.get_value("Mode of Payment Account", {"parent": "Wire Transfer"}, "default_account")
-#         # })
+        items_data = [
+            {
+                "item_code": row.item_code,
+                "qty": row.qty,
+                "rate": row.rate
+            }
+            for row in sales_invoice.items
+        ]
+        doc={
+            "id":sales_invoice.name,
+            "type":sales_invoice.custom_type,
+            "customer":sales_invoice.customer,
+            "discount_perc":sales_invoice.additional_discount_percentage,
+            "discount_amnt":sales_invoice.discount_amount,
+            "programs": programs_data,
+            "items":items_data
+        }
 
-#         # **Fetch and Set Lead Source**
-#         lead_id = frappe.db.get_value("Parents", {"name": parent_id}, "lead_id")
-#         if lead_id:
-#             lead_source = frappe.db.get_value("HS Lead", lead_id, "source")
-#             if lead_source:
-#                 sales_invoice.custom_lead_source = lead_source  # Set the lead source
-#                 frappe.logger().info(f"Lead Source set: {lead_source}")
+        return {
+            "success":True,
+            "details":doc
+        }
 
-        
-#         # Calculate Taxes and Submit
-#         sales_invoice.submit()
-#         doc={
-#             "id":sales_invoice.name,
-#             "type":sales_invoice.custom_type,
-#             "customer":sales_invoice.customer,
-#             "discount":sales_invoice.additional_discount_percentage,
-#             "programs":sales_invoice.custom_hs_program,
-#             "items":sales_invoice.items
-#         }
-
-#         return {
-#             "success":True,
-#             "details":doc
-#         }
-
-#     except Exception as e:
-#         frappe.db.rollback()
-#         frappe.log_error(str(frappe.get_traceback()), "Make Fee Payment")
-#         return {"success": False, "error": str(e)}
+    except Exception as e:
+        frappe.db.rollback()
+        frappe.log_error(str(frappe.get_traceback()), "Make Fee Payment")
+        return {"success": False, "error": str(e)}
 
         
 # def format_mobile_number(number):
