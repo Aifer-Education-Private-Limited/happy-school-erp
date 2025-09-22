@@ -179,8 +179,7 @@ def get_announcements_by_student_or_parent():
 
 
 
-import frappe
-from frappe.utils import now_datetime
+
 
 @frappe.whitelist(allow_guest=True)
 def get_test(course_id=None, type=None, student_id=None):
@@ -601,8 +600,6 @@ def get_set_questions(questions_batch_id=None):
 
 
 
-
-
 @frappe.whitelist(allow_guest=True)
 def get_analytics():
     try:
@@ -659,7 +656,7 @@ def get_analytics():
                     tua.answer
                 FROM `tabTest Questions` tq
                 INNER JOIN `tabTest User Answers` tua 
-                ON tua.question_id = tq.question_number  
+                ON tua.question_id = tq.name 
                 AND tua.history_id = %s
                 ORDER BY tq.question_number
             """
