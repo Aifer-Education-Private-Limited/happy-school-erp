@@ -176,106 +176,121 @@ def get_announcements_by_student_or_parent():
         })
 
 
+
+
+
 import frappe
 from frappe.utils import now_datetime
 
 @frappe.whitelist(allow_guest=True)
 def get_test(course_id=None, type=None, student_id=None):
     try:
-        if not course_id or not type:
+        if not student_id:
             frappe.local.response.update({
                 "success": False,
-                "message": "course_id and type are required",
+                "message": "student_id is required",
                 "data": {}
             })
             return
 
-        # Get Active Tests
-        sort_order = "asc"
-        if type in ["dt", "mt"]:
-            sort_order = "desc"
+        # ------------------------
+        # Check HS Student Tests for assigned tests
+        # ------------------------
+        hs_tests = frappe.get_all(
+            "HS Student Tests",
+            filters={"student_id": student_id},
+            fields=["test_id"]
+        )
+        test_ids = [d.test_id for d in hs_tests if d.test_id]
 
-        active_tests = frappe.db.sql(
-            """
-            SELECT
-                name as id,
-                title,
-                type,
-                topic,
-                is_paid,
-                total_questions,
-                valid_from,
-                valid_to,
-                duration,
-                general_instruction,
-                question_batch_id,
-                is_free,
-                correct_answer_mark,
-                wrong_answer_mark,
-                question_attend_limit,
-                question_set_id,
-                uploaded_time,
-                is_response_sheet_needed,
-                is_result_published
-            FROM `tabTests`
-            WHERE type = %s
-              AND course_id LIKE %s
-              AND is_active = 1
-            ORDER BY creation {sort}
-            """.format(sort=sort_order),
-            (type, f"%{course_id}%"),
-            as_dict=True
+        if not test_ids:
+            # Student has no assigned tests
+            frappe.local.response.update({
+                "success": True,
+                "message": "No tests assigned to this student",
+                "data": {
+                    "active_tests": [],
+                    "attended_tests": [],
+                    "server_time": now_datetime()
+                }
+            })
+            return
+
+        # ------------------------
+        # Fetch ACTIVE Tests from Tests Doc
+        # ------------------------
+        active_tests = frappe.get_all(
+            "Tests",
+            filters={"name": ["in", test_ids], "is_active": 1},
+            fields=[
+                "name as id",
+                "title",
+                "type",
+                "topic",
+                "is_paid",
+                "total_questions",
+                "valid_from",
+                "valid_to",
+                "duration",
+                "general_instruction",
+                "question_batch_id",
+                "is_free",
+                "correct_answer_mark",
+                "wrong_answer_mark",
+                "question_attend_limit",
+                "uploaded_time",
+                "is_response_sheet_needed",
+                "is_result_published",
+                "course_id"
+            ],
+            order_by="creation desc"
         )
 
-        for t in active_tests:
-            t["set_id"] = t.pop("question_set_id", None)
-            if not t.get("correct_answer_mark"):
-                t["correct_answer_mark"] = 1
-            if not t.get("wrong_answer_mark"):
-                t["wrong_answer_mark"] = 0
-
-        # Get Attended Tests
+        # ------------------------
+        # Fetch Attended Tests from Test User History
+        # ------------------------
         attended_tests = []
-        if student_id:
-            attended_tests = frappe.db.sql(
-                """
-                SELECT
-                    tests.name as id,
-                    tests.title,
-                    tests.type,
-                    tests.topic,
-                    tests.total_questions,
-                    tests.valid_from,
-                    tests.valid_to,
-                    tests.duration,
-                    tests.general_instruction,
-                    tuh.name as history_id,
-                    tuh.attended_date,
-                    tuh.total_time,
-                    tuh.marks,
-                    tuh.attempt_count,
-                    tests.is_result_published,
-                    tests.question_set_id,
-                    tests.correct_answer_mark,
-                    tests.wrong_answer_mark,
-                    tests.is_response_sheet_needed,
-                    tests.uploaded_time,
-                    tests.is_response_sheet_needed,
-                    tests.is_result_published,
-                FROM `tabTest User History` tuh
-                INNER JOIN `tabTests` tests
-                    ON tuh.test_id = tests.name
-                WHERE tuh.student_id = %s
-                  AND tests.type = %s
-                  AND tests.course_id LIKE %s
-                """,
-                (student_id, type, f"%{course_id}%"),
-                as_dict=True
+        histories = frappe.get_all(
+            "Test User History",
+            filters={"student_id": student_id},
+            fields=["test_id", "name as history_id", "attended_date", "total_time", "marks", "attempt_count"]
+        )
+        test_ids_history = [h.test_id for h in histories]
+
+        if test_ids_history:
+            tests = frappe.get_all(
+                "Tests",
+                filters={"name": ["in", test_ids_history]},
+                fields=[
+                    "name as id",
+                    "title",
+                    "type",
+                    "topic",
+                    "total_questions",
+                    "valid_from",
+                    "valid_to",
+                    "duration",
+                    "general_instruction",
+                    "correct_answer_mark",
+                    "wrong_answer_mark",
+                    "is_response_sheet_needed",
+                    "is_result_published",
+                    "uploaded_time",
+                    "course_id"
+                ]
             )
 
-            for t in attended_tests:
-                t["is_response_sheet_needed"] = True if t.get("is_response_sheet_needed") else False
+            # Merge history details into test details
+            test_map = {t["id"]: t for t in tests}
+            for h in histories:
+                if h.test_id in test_map:
+                    attended = test_map[h.test_id].copy()
+                    attended.update(h)
+                    attended_tests.append(attended)
 
+        # ------------------------
+        # Final Response
+        # ------------------------
         frappe.local.response.update({
             "success": True,
             "message": "Success",
@@ -293,7 +308,6 @@ def get_test(course_id=None, type=None, student_id=None):
             "error": str(e),
             "data": {}
         })
-
 
 
 

@@ -416,7 +416,7 @@ def get_tests_by_course(course_id):
 
 
 @frappe.whitelist(allow_guest=True)
-def assign_student_to_test():
+def assign_test_to_student():
     try:
         # Fetch data from the request body
         data = frappe.local.form_dict
@@ -526,4 +526,90 @@ def unassign_student_from_test():
             "success": False,
             "error": str(e),
             "data": {}
+        })
+
+
+
+
+
+
+
+@frappe.whitelist(allow_guest=True)
+def get_tutor_assigned_student_tests():
+    try:
+        data = frappe.local.form_dict
+        student_id = data.get("student_id")
+        tutor_id = data.get("tutor_id")
+
+        # Validate inputs
+        if not student_id or not tutor_id:
+            frappe.local.response.update({
+                "success": False,
+                "message": _("student_id and tutor_id are required"),
+                "data": []
+            })
+            return
+
+        # Step 1: Check HS Student Tests for matching records
+        student_tests = frappe.db.sql(
+            """
+            SELECT test_id 
+            FROM `tabHS Student Tests`
+            WHERE student_id = %s AND tutor_id = %s
+            """,
+            (student_id, tutor_id),
+            as_dict=True
+        )
+
+        if not student_tests:
+            frappe.local.response.update({
+                "success": True,
+                "message": _("No tests assigned for this student and tutor"),
+                "data": []
+            })
+            return
+
+        # Extract test_ids
+        test_ids = [st.test_id for st in student_tests]
+
+        # Step 2: Fetch test details from Tests doctype
+        tests_data = frappe.db.sql(
+            """
+            SELECT
+                name AS test_id,
+                course_id,
+                title,
+                topic,
+                total_questions,
+                valid_from,
+                valid_to,
+                duration,
+                general_instruction,
+                is_active,
+                is_paid,
+                is_free,
+                is_result_published,
+                is_response_sheet_needed,
+                correct_answer_mark,
+                wrong_answer_mark,
+                uploaded_time
+            FROM `tabTests`
+            WHERE name IN (%s)
+            """ % (", ".join(["%s"] * len(test_ids))),
+            tuple(test_ids),
+            as_dict=True
+        )
+
+        frappe.local.response.update({
+            "success": True,
+            "message": _("Tutor assigned tests fetched successfully"),
+            "data": tests_data
+        })
+
+    except Exception as e:
+        frappe.log_error(frappe.get_traceback(), "get_tutor_assigned_student_tests API Error")
+        frappe.local.response.update({
+            "success": False,
+            "error": str(e),
+            "data": []
         })
