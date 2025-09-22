@@ -18,7 +18,8 @@
   "profile",
   "joindate",
   "customer",
-  "lead_id"
+  "lead_id",
+  "pin"
  ],
  "fields": [
   {
@@ -94,7 +95,10 @@
    "fieldname": "lead_id",
    "fieldtype": "Link",
    "label": "Lead Id",
-   "options": "HS Lead"
+   "options": "HS Lead",
+   "fieldname": "pin",
+   "fieldtype": "Int",
+   "label": "Pin"
   }
  ],
  "grid_page_length": 50,

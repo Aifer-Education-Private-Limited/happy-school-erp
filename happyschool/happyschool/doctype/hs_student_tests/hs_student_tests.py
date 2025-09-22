@@ -5,15 +5,14 @@
 from frappe.model.document import Document
 
 
-class Tests(Document):
+class HSStudentTests(Document):
 	pass
-
-
 import frappe
+
 
 from frappe.model.naming import make_autoname
 
-class Tests(frappe.model.document.Document):
+class HSStudentTests(frappe.model.document.Document):
     def autoname(self):
         # Only 3 digits instead of 5
-        self.name = make_autoname("TS-.YYYY.-.###")
+        self.name = make_autoname("ST-.YYYY.-.###")

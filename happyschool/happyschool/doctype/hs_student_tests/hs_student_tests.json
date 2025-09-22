@@ -1,45 +1,41 @@
 {
  "actions": [],
  "allow_rename": 1,
- "creation": "2025-09-17 19:12:23.919151",
+ "creation": "2025-09-21 18:19:30.824462",
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
-  "history_id",
-  "set_id",
-  "question_id",
-  "answer"
+  "student_id",
+  "tutor_id",
+  "test_id"
  ],
  "fields": [
   {
-   "fieldname": "history_id",
+   "fieldname": "student_id",
    "fieldtype": "Link",
-   "label": "History ID",
-   "options": "Test User History"
+   "label": "Student ID",
+   "options": "Student"
   },
   {
-   "fieldname": "set_id",
-   "fieldtype": "Data",
-   "label": "Set ID"
+   "fieldname": "tutor_id",
+   "fieldtype": "Link",
+   "label": "Tutor ID",
+   "options": "Tutors"
   },
   {
-   "fieldname": "question_id",
-   "fieldtype": "Data",
-   "label": "Question_id"
-  },
-  {
-   "fieldname": "answer",
-   "fieldtype": "Int",
-   "label": "Answer"
+   "fieldname": "test_id",
+   "fieldtype": "Link",
+   "label": "Test ID",
+   "options": "Tests"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-09-21 16:18:46.021595",
+ "modified": "2025-09-21 18:21:14.311468",
  "modified_by": "Administrator",
  "module": "happyschool",
- "name": "Test User Answers",
+ "name": "HS Student Tests",
  "owner": "Administrator",
  "permissions": [
   {
