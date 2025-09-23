@@ -134,14 +134,14 @@ def create_program_enrollment():
         student_id = data.get("student_id")
         program = data.get("program")
 
-        student = frappe.db.get_value("HS Students", {"name": student_id}, "name")
+        student = frappe.db.get_value("Student", {"name": student_id}, "name")
         if not student:
             frappe.local.response.update({
                 "success": False,
                 "message": "Could not find student"
             })
             return
-        student_name=frappe.db.get_value("HS Students",{"name":student_id},"student_name")
+        student_name=frappe.db.get_value("Student",{"name":student_id},"first_name")
         project=frappe.db.get_value("HS Program List",{"program":program},"project")
         program_enrollment = frappe.new_doc("HS Program Enrollment")
         program_enrollment.student = student_id
@@ -178,6 +178,45 @@ def create_program_enrollment():
         })
         return
     
+
+@frappe.whitelist(allow_guest=True)
+def check_program_enrollment():
+
+    data = json.loads(frappe.request.data)
+    student_id = data.get("student_id")
+    program_name = data.get("program")
+
+    if not student_id or not program_name:
+        return {
+            "status": "error",
+            "message": _("Student Id and program name are required.")
+        }
+
+    try:
+        student = frappe.db.get_value("Student", {"name": student_id}, "name")
+
+        if not student:
+            return {
+                "status": "success",
+                "exists": False,
+                "message": _("No student found with the given stduent id")
+            }
+
+        enrollment_exists = frappe.db.exists("HS Program Enrollment", {
+            "student": student,
+            "program": program_name
+        })
+
+        return {
+            "status": "success",
+            "exists": bool(enrollment_exists)
+        }
+
+    except Exception as e:
+        return {
+            "status": "error",
+            "message": str(e)
+        }
     
 
 @frappe.whitelist(methods=["POST"], allow_guest=True)
