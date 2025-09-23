@@ -1,6 +1,7 @@
 import frappe
 from frappe.utils import today, nowdate
 import json
+from frappe.integrations.utils import create_request_log
 from frappe.utils import flt, today
 
 from frappe import _  
@@ -50,6 +51,9 @@ def get_payment_link_details(payment_id):
         result = []
         for link in payment_links:
             parent=frappe.db.get_value("Parents",{"mobile_number":link.get("mobile_number")},"name")
+            parent_email=frappe.db.get_value("Parents",{"mobile_number":link.get("mobile_number")},"email")
+            parent_firstname=frappe.db.get_value("Parents",{"mobile_number":link.get("mobile_number")},"first_name")
+            parent_lastname=frappe.db.get_value("Parents",{"mobile_number":link.get("mobile_number")},"last_name")
 
             # Fetch items child table
             items = frappe.get_all(
@@ -86,8 +90,8 @@ def get_payment_link_details(payment_id):
                 "parent_id":parent,
                 "payment_id": link.get("name"),
                 "mob": link.get("mobile_number"),
-                "name": link.get("customer_name"),
-                "email": link.get("email_id"),
+                "name": f"{parent_firstname} {parent_lastname}",
+                "email": parent_email,
                 "total": link.get("total_fees"),
                 "grand_total": link.get("grand_total"),
                 "offer_applied": link.get("offer_applied"),
@@ -123,89 +127,58 @@ def get_payment_link_details(payment_id):
         return
 
 @frappe.whitelist(allow_guest=True)
-def create_program_enrollment(student_id, program, academic_year):
+def create_program_enrollment():
+    from frappe.utils import today
     try:
-        if not student_id:
-            frappe.local.response.update({
-                "success": False,
-                "message": "Student_id is required"
-            })
-            return
-        if not program:
-            frappe.local.response.update({
-                "success": False,
-                "message": "Program is required."
-            })
-            return
-        if not academic_year:
-            frappe.local.response.update({
-                "success": False,
-                "message": "Academic year is required."
-            })
-            return
-        if not frappe.db.exists("Student", {"name": student_id}):
-            frappe.local.response.update({
-                "success": False,
-                "message": f"{student_id} not found"
-            })
-            return
-        if not frappe.db.exists("Program", {"name": program}):
-            frappe.local.response.update({
-                "success": False,
-                "message": f"{program} not found"
-            })
-            return
-        if not frappe.db.exists("Academic Year", {"name": academic_year}):
-            frappe.local.response.update({
-                "success": False,
-                "message": f"{academic_year} not found"
-            })
-            return
+        data = json.loads(frappe.request.data)
+        student_id = data.get("student_id")
+        program = data.get("program")
 
-        existing = frappe.db.exists(
-            "Program Enrollment",
-            {
-                "student": student_id,
-                "program": program,
-                "academic_year": academic_year
-            }
-        )
-        if existing:
+        student = frappe.db.get_value("HS Students", {"name": student_id}, "name")
+        if not student:
             frappe.local.response.update({
                 "success": False,
-                "message": "Student is already enrolled in this program and academic year"
+                "message": "Could not find student"
             })
             return
-
-        todays_date = nowdate()
-        doc = frappe.new_doc("Program Enrollment")
-        doc.student = student_id
-        doc.program = program
-        doc.academic_year = academic_year
-        doc.enrollment_date = todays_date
-        doc.insert(ignore_permissions=True)
+        student_name=frappe.db.get_value("HS Students",{"name":student_id},"student_name")
+        project=frappe.db.get_value("HS Program List",{"program":program},"project")
+        program_enrollment = frappe.new_doc("HS Program Enrollment")
+        program_enrollment.student = student_id
+        program_enrollment.student_name=student_name
+        program_enrollment.program = program
+        program_enrollment.project=project
+        program_enrollment.academic_year = frappe.db.get_single_value('Education Settings', 'current_academic_year')
+        program_enrollment.enrollment_date = today()
+        program_enrollment.save(ignore_permissions=True)
         frappe.db.commit()
 
-        enrollment_details = {
-            "student_name": doc.student_name,
-            "program": doc.program,
-            "academic_year": doc.academic_year,
-            "enrollment_date": doc.enrollment_date
-        }
+
+        enroll = {
+            "program": program_enrollment.program,
+            "student_id": program_enrollment.student,
+            "student_name": student_name,
+            "academic_year": program_enrollment.academic_year,
+            "project": project,
+            "enrollment_date": program_enrollment.enrollment_date
+            }
 
         frappe.local.response.update({
             "success": True,
-            "message": "Created program enrollment successfully",
-            "enrollments": enrollment_details
+            "message": "Student Enrolled",
+            "program_enrollment": enroll
         })
         return
 
     except Exception as e:
-        frappe.log_error(frappe.get_traceback(), "Program Enrollment Creation Error")
+        frappe.log_error(frappe.get_traceback(), "program enrollment  error")
         frappe.local.response.update({
             "success": False,
-            "message": "Internal server error"
+            "message": f"An error occurred: {str(e)}"
         })
+        return
+    
+    
 
 @frappe.whitelist(methods=["POST"], allow_guest=True)
 def make_fee_payment():
