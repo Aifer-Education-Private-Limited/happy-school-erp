@@ -17,7 +17,7 @@ def student_signup():
         profile = data.get("profile")
 
         # Check duplicate student
-        if frappe.db.exists("HS Students", {"student_name": student_name, "parent_id": parent_id}):
+        if frappe.db.exists("Student", {"student_name": student_name, "parent_id": parent_id}):
             frappe.local.response.update ( {"success": False, "message": "Already registered"} )
             return
 
@@ -28,7 +28,7 @@ def student_signup():
 
 
         # Create student
-        student = frappe.new_doc("HS Students")
+        student = frappe.new_doc("Student")
         student.parent_id = parent_id
         student.student_name = student_name
         student.mobile = mobile
@@ -63,7 +63,7 @@ def student_signup():
 @frappe.whitelist(allow_guest=True)
 def student_login(student_id,password):
     try:
-        student = frappe.db.get_value("HS Students", {"name":student_id,"password":password}, "name")
+        student = frappe.db.get_value("Student", {"name":student_id,"password":password}, "name")
         if not student:
             frappe.local.response.update({
                 "success": False,
