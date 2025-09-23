@@ -1,5 +1,8 @@
 import frappe
 import uuid
+from datetime import datetime
+
+
 
 
 @frappe.whitelist(allow_guest=True)
@@ -119,13 +122,6 @@ def get_student(parent_id):
             "error": str(e)
         })
         return
-
-
-
-
-
-import frappe
-from datetime import datetime
 
 @frappe.whitelist(allow_guest=True)
 def edit_student(student_id):
@@ -315,9 +311,16 @@ def create_student():
         frappe.db.commit()
 
         student_details = {
+            "parent_id":student.custom_parent_id,
             "student_id": student.name,
             "name": student.first_name,
-            "password": student.custom_password,  
+            "mobile":student.student_mobile_number,
+            "grade":student.custom_grade,
+            "joining_date":student.joining_date,
+            "date_of_birth": student.date_of_birth,
+            "profile":student.custom_profile,
+            "status":student.custom_status,
+            "type":student.custom_type
         }
 
         frappe.local.response.update ( {"success": True, "message": "Created Student Successfully", "student": student_details} )
