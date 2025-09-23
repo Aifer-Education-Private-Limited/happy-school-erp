@@ -377,7 +377,7 @@ def make_transactions():
 		if frappe.db.exists('HS Transactions', {'payment_id': payment_id, 'razorpay_order_id': razorpay_id}):
 			return {"success": False, "error": "Transaction already exists"}
 
-		transaction = frappe.new_doc('HS Transactions')
+		transaction = frappe.new_doc('HS Payment Transactions')
 		transaction.payment_id = payment_id
 		transaction.razorpay_order_id = razorpay_id
 		transaction.amount = amount
