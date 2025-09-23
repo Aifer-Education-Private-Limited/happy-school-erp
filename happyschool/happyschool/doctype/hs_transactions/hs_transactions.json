@@ -40,7 +40,7 @@
   },
   {
    "fieldname": "products",
-   "fieldtype": "Data",
+   "fieldtype": "JSON",
    "label": "Products"
   },
   {
