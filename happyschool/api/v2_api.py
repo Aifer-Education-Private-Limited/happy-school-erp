@@ -255,3 +255,19 @@ def checkout(
             "message": str(e)
         } )
 
+
+@frappe.whitelist(allow_guest=True)
+def get_transaction_by_txn_id(txn_id=None):
+    try:
+        frappe.local.response.update( {
+            "success": True,
+            "transactions": frappe.get_all("HS Transactions", filters={"txn_id": txn_id}, fields=["*"])
+        } )
+    except Exception as e:
+        frappe.log_error(frappe.get_traceback(), "Get Transactions Using Txn ID API Error")
+        frappe.local.response.update( {
+            "success": False,
+            "error": str(e)
+        } )
+
+
