@@ -207,7 +207,6 @@ def checkout(
     erpCode=None,
     payment_link=None,
     pincode=None,
-    counselling_qns=None,
     mobile=None
 ):
     try:
