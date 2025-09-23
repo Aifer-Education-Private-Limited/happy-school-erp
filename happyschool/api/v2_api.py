@@ -260,10 +260,10 @@ def checkout(
     try:
         # ✅ Ensure firebase_uid is provided
         if not firebase_uid:
-            frappe.local.response.update( {
+            frappe.local.response.update({
                 "success": False,
                 "message": "Firebase UID is required"
-            } )
+            })
             return
 
         # ✅ Default values
@@ -272,37 +272,34 @@ def checkout(
         if not offerType:
             offerType, discount, promoCode = "", 0, ""
 
-        # ✅ Ensure counselling_qns is JSON string
-        # counselling_qns = json.dumps(counselling_qns) if counselling_qns else "[]"
-
         # ✅ Generate unique name
         unique_name = frappe.generate_hash(length=12)
 
         # ✅ Insert into table
-frappe.db.sql("""
-    INSERT INTO `tabHS Transactions`
-    (name, txn_id, amount, payable, products, email, customer_name, parent_id, time, state,
-     item_code, refferal_code, discount, offer_type, erp_code, payment_link, mobile)
-    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
-""", (
-    unique_name, txn_id, amount, payable, course_id, email, name, firebase_uid,
-    time, state, project, promoCode, discount, offerType,
-    erpCode, payment_link, mobile
-))
+        frappe.db.sql("""
+            INSERT INTO `tabHS Transactions`
+            (name, txn_id, amount, payable, products, email, customer_name, parent_id, time, state,
+             item_code, refferal_code, discount, offer_type, erp_code, payment_link, mobile)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+        """, (
+            unique_name, txn_id, amount, payable, course_id, email, name, firebase_uid,
+            time, state, project, promoCode, discount, offerType,
+            erpCode, payment_link, mobile
+        ))
 
         frappe.db.commit()
 
-        frappe.local.response.update( {
+        frappe.local.response.update({
             "success": True,
             "message": "Checkout data saved successfully"
-        } )
+        })
 
     except Exception as e:
         frappe.log_error(frappe.get_traceback(), "Checkout API Error")
-        frappe.local.response.update( {
+        frappe.local.response.update({
             "success": False,
             "message": str(e)
-        } )
+        })
 
 
 @frappe.whitelist(allow_guest=True)
