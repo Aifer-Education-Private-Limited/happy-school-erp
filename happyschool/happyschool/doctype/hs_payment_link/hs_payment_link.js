@@ -23,6 +23,20 @@ frappe.ui.form.on("Payment Link Items", {
 });
 
 frappe.ui.form.on('HS Payment Link', {
+    qty: function(frm, cdt, cdn) {
+        let row = locals[cdt][cdn];
+        row.amount = (parseFloat(row.session_count || 0) * parseFloat(row.rate || 0));
+
+        frm.refresh_field('items');
+        frm.trigger('calculate_totals');  // recalc totals & balance
+    },
+    rate: function(frm, cdt, cdn) {
+        let row = locals[cdt][cdn];
+        row.amount = (parseFloat(row.session_count || 0) * parseFloat(row.rate || 0));
+
+        frm.refresh_field('items');
+        frm.trigger('calculate_totals');
+    },
     onload_post_render: function(frm) {
         toggle_fields_by_offer_type(frm);
         if (!frm.doc.custom_paid) {
@@ -60,22 +74,28 @@ frappe.ui.form.on('HS Payment Link', {
         let amount_after_discount = total_fees - discount_amount;
         let grand_total = amount_after_discount;
     
-        // 2) balance logic
+
         let custom_paid = parseFloat(frm.doc.custom_paid || 0);
-        let customer_payment = parseFloat(frm.doc.customer_payment || 0);
+        
     
-        let balance_preview = 0;  // default = 0
-        if (customer_payment > 0) {
-            balance_preview = grand_total - (custom_paid + customer_payment);
-        }
+        // balance = grand_total - custom_paid
+        let balance_preview = grand_total - custom_paid;
     
         frm.set_value("total_fees", total_fees);
         frm.set_value("amount_after_discount", amount_after_discount);
         frm.set_value("grand_total", grand_total);
         frm.set_value("balance", balance_preview);
     
+        
+        if (frm.doc.fess_structure && frm.doc.fess_structure.length > 0) {
+            frm.doc.fess_structure[0].balance_amount = balance_preview;
+            frm.doc.fess_structure[0].customer_paid = custom_paid;  // keep showing last paid
+            frm.refresh_field("fess_structure");
+        }
+    
         toggle_balance_field(frm);
     },
+    
     
 
     // This runs client-side just before save. It updates the child table, increments custom_paid,
@@ -83,53 +103,40 @@ frappe.ui.form.on('HS Payment Link', {
     before_save: function(frm) {
         let payment = parseFloat(frm.doc.customer_payment || 0);
         if (payment <= 0) return;
-
-        // 1) compute new cumulative paid
+    
         let new_custom_paid = parseFloat(frm.doc.custom_paid || 0) + payment;
-
-        // 2) add a child row to the fees table properly
-        let row = frm.add_child('fess_structure');   // change to 'fees_structure' if that's your field
+    
+        // Clear all old rows first (so only one remains)
+        frm.clear_table('fess_structure');
+    
+        // Add a single row
+        let row = frm.add_child('fess_structure');
         row.date = frappe.datetime.get_today();
         row.customer_paid = payment;
         row.balance_amount = (parseFloat(frm.doc.grand_total || 0) - new_custom_paid);
-
-        frm.refresh_field('fess_structure');
-
-        // 3) update cumulative paid + reset the transient payment
+    
+        frm.refresh_field('fees_structure');
+    
         frm.set_value('custom_paid', new_custom_paid);
         frm.set_value('customer_payment', 0);
-
-        // 4) final balance after saving
         frm.set_value('balance', (parseFloat(frm.doc.grand_total || 0) - new_custom_paid));
     },
+    
     onload: function(frm) {
         if (!frm.doc.date) {
             frm.set_value("date", frappe.datetime.get_today());
         }
     },
-    payment_type: function(frm) {
-        if (frm.doc.payment_type) {
+    after_save: function(frm) {
+        if (frm.doc.payment_type && !frm.doc.payment_link) {
             let base_url = `https://happyschool.app/complete-payment/`;
-
-            // Collect programs from child table
-            let programs = (frm.doc.items || [])
-                .map(row => row.program)
-                .filter(p => p); // remove empty programs
-
-            // Create object as string: program: ENGLISH,MATHS
-            let objString = `{program:${programs.join(',')}}`;
-
-            // Encode each character (letters, numbers, and punctuation)
-            let fully_encoded_obj = Array.from(objString)
-                .map(c => '%' + c.charCodeAt(0).toString(16).toUpperCase())
-                .join('');
-
-            // Final payment link
-            let payment_link = `${base_url}${fully_encoded_obj}`;
-
+            let payment_link = `${base_url}${frm.doc.name}`;
+    
+            // Set the field
             frm.set_value("payment_link", payment_link);
-        } else {
-            frm.set_value("payment_link", "");
+    
+            // Save again to persist
+            frm.save();
         }
     }
 });

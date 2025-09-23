@@ -68,14 +68,18 @@ doctype_js={
     "Lead": "public/js/lead.js",
     "Opportunity":"public/js/opportunity.js",
     "Quotation":"public/js/quotation.js",
-    "Payment Link Items":"public/js/payment_link_items.js"
+    "Payment Link Items":"public/js/payment_link_items.js",
+    "Sales Invoice":"public/js/hs_sales_invoice.js"
+
     }
 
 
 doc_events={
     "HS Lead": {
         "validate": "happyschool.happyschool.doctype.hs_lead.hs_lead.validate_salesperson_limit",
-        "after_insert":"happyschool.happyschool.doctype.hs_lead.hs_lead.create_opportunity_for_lead"
+        "after_insert":["happyschool.happyschool.doctype.hs_lead.hs_lead.create_or_update_opportunity_for_lead",
+                        "happyschool.happyschool.doctype.hs_lead.hs_lead.create_parent_from_lead"],
+        "on_update":"happyschool.happyschool.doctype.hs_lead.hs_lead.create_or_update_opportunity_for_lead"
     },
     "Parent Or Student Ticket":{
         "validate":"happyschool.happyschool.doctype.parent_or_student_ticket.parent_or_student_ticket.update_ticket_times"
@@ -89,7 +93,7 @@ doc_events={
 }
 override_doctype_class={
      "Student":"happyschool.happyschool.doc_events.student.CustomStudent"
-}
+     }
 # Home Pages
 # ----------
 

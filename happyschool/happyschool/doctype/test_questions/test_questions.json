@@ -13,7 +13,7 @@
   "option_3",
   "option_4",
   "right_answer",
-  "explenation",
+  "explanation",
   "topic",
   "subtopic"
  ],
@@ -59,11 +59,6 @@
    "label": "Right Answer"
   },
   {
-   "fieldname": "explenation",
-   "fieldtype": "Text Editor",
-   "label": "Explenation"
-  },
-  {
    "fieldname": "topic",
    "fieldtype": "Data",
    "label": "Topic"
@@ -72,12 +67,17 @@
    "fieldname": "subtopic",
    "fieldtype": "Data",
    "label": "Subtopic"
+  },
+  {
+   "fieldname": "explanation",
+   "fieldtype": "Text Editor",
+   "label": "Explanation"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-09-20 18:14:07.041198",
+ "modified": "2025-09-21 12:30:02.106870",
  "modified_by": "Administrator",
  "module": "happyschool",
  "name": "Test Questions",
