@@ -5,6 +5,8 @@ import json
 from datetime import datetime
 from frappe.utils import now_datetime, now
 import re
+from frappe import _
+from frappe.utils import nowdate, now_datetime
 
 @frappe.whitelist(allow_guest=True)
 def get_student_materials():
@@ -174,102 +176,140 @@ def get_announcements_by_student_or_parent():
         })
 
 
-import frappe
-from frappe.utils import now_datetime
+
+
+
+
 
 @frappe.whitelist(allow_guest=True)
 def get_test(course_id=None, type=None, student_id=None):
     try:
-        if not course_id or not type:
+        if not student_id or not course_id:
             frappe.local.response.update({
                 "success": False,
-                "message": "course_id and type are required",
+                "message": "student_id and course_id are required",
                 "data": {}
             })
             return
 
-        # ------------------------------
-        # Get Active Tests
-        # ------------------------------
-        sort_order = "asc"
-        if type in ["dt", "mmt"]:
-            sort_order = "desc"
+        # ------------------------
+        # Step 1: Check HS Student Tests
+        # ------------------------
+        hs_tests = frappe.get_all(
+            "HS Student Tests",
+            filters={"student_id": student_id},
+            fields=["test_id"]
+        )
+        test_ids = [d.test_id for d in hs_tests if d.test_id]
 
-        active_tests = frappe.db.sql(
-            """
-            SELECT
-                name as id,
-                title,
-                type,
-                topic,
-                is_paid,
-                total_questions,
-                valid_from,
-                valid_to,
-                duration,
-                general_instruction,
-                question_batch_id,
-                is_free,
-                correct_answer_mark,
-                wrong_answer_mark,
-                question_attend_limit,
-                question_set_id
-            FROM `tabTests`
-            WHERE type = %s
-              AND course_id LIKE %s
-              AND is_active = 1
-            ORDER BY creation {sort}
-            """.format(sort=sort_order),
-            (type, f"%{course_id}%"),
-            as_dict=True
+        if not test_ids:
+            frappe.local.response.update({
+                "success": True,
+                "message": "No tests assigned to this student",
+                "data": {
+                    "active_tests": [],
+                    "attended_tests": [],
+                    "server_time": now_datetime()
+                }
+            })
+            return
+
+        # ------------------------
+        # Step 2: Filter by Course ID
+        # ------------------------
+        course_tests = frappe.get_all(
+            "Tests",
+            filters={"name": ["in", test_ids], "course_id": ["like", f"%{course_id}%"]},
+            fields=["name"]
+        )
+        valid_test_ids = [t.name for t in course_tests]
+
+        if not valid_test_ids:
+            frappe.local.response.update({
+                "success": True,
+                "message": "No tests for this course",
+                "data": {
+                    "active_tests": [],
+                    "attended_tests": [],
+                    "server_time": now_datetime()
+                }
+            })
+            return
+
+        # ------------------------
+        # Step 3: Active Tests
+        # ------------------------
+        active_tests = frappe.get_all(
+            "Tests",
+            filters={"name": ["in", valid_test_ids], "is_active": 1},
+            fields=[
+                "name as id",
+                "title",
+                "type",
+                "topic",
+                "is_paid",
+                "total_questions",
+                "valid_from",
+                "valid_to",
+                "duration",
+                "general_instruction",
+                "question_batch_id",
+                "is_free",
+                "correct_answer_mark",
+                "wrong_answer_mark",
+                "question_attend_limit",
+                "uploaded_time",
+                "is_response_sheet_needed",
+                "is_result_published",
+                "course_id"
+            ],
+            order_by="creation desc"
         )
 
-        for t in active_tests:
-            t["set_id"] = t.pop("question_set_id", None)
-            if not t.get("correct_answer_mark"):
-                t["correct_answer_mark"] = 1
-            if not t.get("wrong_answer_mark"):
-                t["wrong_answer_mark"] = 0
-
-        # Get Attended Tests
+        # ------------------------
+        # Step 4: Attended Tests
+        # ------------------------
         attended_tests = []
-        if student_id:
-            attended_tests = frappe.db.sql(
-                """
-                SELECT
-                    tests.name as id,
-                    tests.title,
-                    tests.type,
-                    tests.topic,
-                    tests.total_questions,
-                    tests.valid_from,
-                    tests.valid_to,
-                    tests.duration,
-                    tests.general_instruction,
-                    tuh.name as history_id,
-                    tuh.attended_date,
-                    tuh.total_time,
-                    tuh.marks,
-                    tuh.attempt_count,
-                    tests.is_result_published,
-                    tests.question_set_id,
-                    tests.correct_answer_mark,
-                    tests.wrong_answer_mark,
-                    tests.is_response_sheet_needed
-                FROM `tabTest User History` tuh
-                INNER JOIN `tabTests` tests
-                    ON tuh.test_id = tests.name
-                WHERE tuh.student_id = %s
-                  AND tests.type = %s
-                  AND tests.course_id LIKE %s
-                """,
-                (student_id, type, f"%{course_id}%"),
-                as_dict=True
+        histories = frappe.get_all(
+            "Test User History",
+            filters={"student_id": student_id, "test_id": ["in", valid_test_ids]},
+            fields=["test_id", "name as history_id", "attended_date", "total_time", "marks", "attempt_count"]
+        )
+        test_ids_history = [h.test_id for h in histories]
+
+        if test_ids_history:
+            tests = frappe.get_all(
+                "Tests",
+                filters={"name": ["in", test_ids_history]},
+                fields=[
+                    "name as id",
+                    "title",
+                    "type",
+                    "topic",
+                    "total_questions",
+                    "valid_from",
+                    "valid_to",
+                    "duration",
+                    "general_instruction",
+                    "correct_answer_mark",
+                    "wrong_answer_mark",
+                    "is_response_sheet_needed",
+                    "is_result_published",
+                    "uploaded_time",
+                    "course_id"
+                ]
             )
 
-            for t in attended_tests:
-                t["is_response_sheet_needed"] = True if t.get("is_response_sheet_needed") else False
+            test_map = {t["id"]: t for t in tests}
+            for h in histories:
+                if h.test_id in test_map:
+                    attended = test_map[h.test_id].copy()
+                    attended.update(h)
+                    attended_tests.append(attended)
 
+        # ------------------------
+        # Final Response
+        # ------------------------
         frappe.local.response.update({
             "success": True,
             "message": "Success",
@@ -287,7 +327,6 @@ def get_test(course_id=None, type=None, student_id=None):
             "error": str(e),
             "data": {}
         })
-
 
 
 
@@ -372,9 +411,7 @@ def test_complete():
                 "attempt_count": attempt_count
             })
 
-        # -------- parse test_sets (array of JSON strings) ----------
         sets_list = deep_loads(test_sets) if test_sets else []
-        # Each element may still be a JSON string → deep_loads again below
 
         # -------- upserts: answers + topic marks (NO set history) ----------
         for item in sets_list:
@@ -516,21 +553,16 @@ def get_set_questions(questions_batch_id=None):
             as_dict=True
         )
 
-        base_url = frappe.utils.get_url()  # e.g. http://localhost:8000 or yoursite.com
+        base_url = frappe.utils.get_url()  
 
         def clean_html(val):
             if not val:
                 return "<p></p>"
-            # Remove unnecessary Quill wrappers
             val = re.sub(r'<div class="ql-editor.*?">(.*?)</div>', r"\1", val, flags=re.S)
-            # Replace private path → public
             val = val.replace('/private/files/', '/files/')
-            # Ensure wrapped in <p>
             if not str(val).strip().startswith("<p>"):
                 val = f"<p>{val}</p>"
-            # Add base_url and strip ?fid=...
             val = re.sub(r'src="(/files/[^"?]+)(?:\?[^"]*)?"', f'src="{base_url}\\1"', val)
-            # Remove trailing <p><br></p>
             val = val.replace("<p><br></p>", "")
             return val
 
@@ -563,4 +595,216 @@ def get_set_questions(questions_batch_id=None):
             "success": False,
             "error": str(e),
             "data": []
+        })
+
+
+
+
+@frappe.whitelist(allow_guest=True)
+def get_analytics():
+    try:
+        # Fetch data from the request body
+        data = frappe.local.form_dict
+        # test_id = data.get("test_id")
+        # student_id = data.get("student_id")
+        history_id = data.get("history_id")
+    
+        if  not history_id:
+            frappe.local.response.update({
+                "success": False,
+                "message": _("Test ID, Student ID, and History ID are required")
+            })
+            return
+
+        base_url = frappe.utils.get_url()  
+
+        def clean_html(val):
+            if not val:
+                return "<p></p>"
+            val = re.sub(r'<div class="ql-editor.*?">(.*?)</div>', r"\1", val, flags=re.S)
+            val = val.replace('/private/files/', '/files/')
+            if not str(val).strip().startswith("<p>"):
+                val = f"<p>{val}</p>"
+            val = re.sub(r'src="(/files/[^"?]+)(?:\?[^"]*)?"', f'src="{base_url}\\1"', val)
+            val = val.replace("<p><br></p>", "")
+            return val
+
+        def get_topic_marks(history_id):
+            query = """
+                SELECT topic, mark
+                FROM `tabTest User History Topic`
+                WHERE history_id = %s
+            """
+            return frappe.db.sql(query, (history_id,), as_dict=True)
+
+        def get_user_answers(history_id):
+            query = """
+                SELECT 
+                    tq.name AS question_id,  
+                    tq.question_number, 
+                    tq.question, 
+                    tq.option_1, 
+                    tq.option_2, 
+                    tq.option_3, 
+                    tq.option_4, 
+                    tq.right_answer, 
+                    tq.explanation, 
+                    tq.topic, 
+                    tua.answer
+                FROM `tabTest Questions` tq
+                INNER JOIN `tabTest User Answers` tua 
+                ON tua.question_id = tq.name 
+                AND tua.history_id = %s
+                ORDER BY tq.question_number
+            """
+            return frappe.db.sql(query, (history_id,), as_dict=True)
+
+        user_topic_marks = get_topic_marks(history_id)
+        user_answers = get_user_answers(history_id)
+
+        user_answers_data = []
+        for answer in user_answers:
+            answer_data = {
+                "question": {
+                    "id": answer["question_id"],
+                    "question": clean_html(answer["question"]),
+                    "option_1": clean_html(answer["option_1"]),
+                    "option_2": clean_html(answer["option_2"]),
+                    "option_3": clean_html(answer["option_3"]),
+                    "option_4": clean_html(answer["option_4"]),
+                    "right_answer": answer["right_answer"],
+                    "explenation": clean_html(answer["explanation"]),
+                    "topic": answer["topic"],
+                    "question_no": answer["question_number"]
+                },
+                "user_answer": answer["answer"],
+            }
+            user_answers_data.append(answer_data)
+
+        # Respond with the formatted data
+        frappe.local.response.update({
+            "success": True,
+            "data": {
+                "user_topic_marks": user_topic_marks,
+                "user_answers": user_answers_data
+            }
+        })
+
+    except Exception as e:
+        frappe.log_error(frappe.get_traceback(), "get_analytics API Error")
+        frappe.local.response.update({
+            "success": False,
+            "message": str(e),
+            "data": []
+        })
+
+
+
+
+
+
+@frappe.whitelist(allow_guest=True)
+def get_progress_report(student_id=None, course_id=None):
+    try:
+        if not student_id or not course_id:
+            frappe.local.response.update({
+                "success": False,
+                "message": "student_id and course_id are required",
+                "data": {}
+            })
+            return
+
+        # -------- 1. Total tests in this course --------
+        total_tests = frappe.db.count("Tests", {"course_id": course_id, "is_active": 1})
+
+        # -------- 2. Total questions in this course --------
+        total_course_questions = frappe.db.sql("""
+            SELECT SUM(total_questions) AS total_q
+            FROM `tabTests`
+            WHERE course_id = %s AND is_active = 1
+        """, (course_id,), as_dict=True)[0].total_q or 0
+
+        # -------- 3. Attended tests (filter course) --------
+        attended_tests = frappe.db.sql("""
+            SELECT tuh.name AS history_id, tuh.test_id
+            FROM `tabTest User History` tuh
+            INNER JOIN `tabTests` t ON t.name = tuh.test_id
+            WHERE tuh.student_id = %s
+              AND t.course_id = %s
+        """, (student_id, course_id), as_dict=True)
+
+        attended_count = len(attended_tests)
+        history_ids = [row.history_id for row in attended_tests] if attended_tests else []
+
+        # -------- 4. Right, Wrong, Attended Questions --------
+        right_count, wrong_count, attended_questions = 0, 0, 0
+
+        if history_ids:
+            answers = frappe.db.sql("""
+                SELECT tua.answer, tq.right_answer
+                FROM `tabTest User Answers` tua
+                INNER JOIN `tabTest Questions` tq ON tq.name = tua.question_id
+                WHERE tua.history_id IN %(history_ids)s
+            """, {"history_ids": tuple(history_ids)}, as_dict=True)
+
+            for ans in answers:
+                if ans.answer is None or str(ans.answer) == "-1":
+                    continue  # not attended
+                attended_questions += 1
+                if str(ans.answer) == str(ans.right_answer):
+                    right_count += 1
+                else:
+                    wrong_count += 1
+
+        # -------- 5. Topic-wise marks --------
+        strong_areas, weak_areas = [], []
+
+        if history_ids:
+            topic_marks = frappe.db.sql("""
+                SELECT topic, SUM(mark) AS total_mark
+                FROM `tabTest User History Topic`
+                WHERE history_id IN %(history_ids)s
+                GROUP BY topic
+            """, {"history_ids": tuple(history_ids)}, as_dict=True)
+
+            for row in topic_marks:
+                topic_info = {
+                    "topic": row.topic,
+                    "marks": row.total_mark
+                }
+                if row.total_mark > 0:
+                    strong_areas.append(topic_info)
+                else:
+                    weak_areas.append(topic_info)
+
+        # -------- 6. Percentages --------
+        completion_percentage = (attended_count / total_tests * 100) if total_tests > 0 else 0
+        attendance_percentage = completion_percentage
+
+        # -------- Response --------
+        frappe.local.response.update({
+            "success": True,
+            "data": {
+                "student_id": student_id,
+                "course_id": course_id,
+                "total_tests": total_tests,
+                "attended_tests": attended_count,
+                "total_course_questions": total_course_questions,
+                "attended_questions": attended_questions,
+                "right_answers": right_count,
+                "wrong_answers": wrong_count,
+                "completion_percentage": round(completion_percentage, 2),
+                "attendance_percentage": round(attendance_percentage, 2),
+                "strong_areas": strong_areas,
+                "weak_areas": weak_areas,
+                "server_time": now_datetime()
+            }
+        })
+
+    except Exception as e:
+        frappe.log_error(frappe.get_traceback(), "get_progress_report API Error")
+        frappe.local.response.update({
+            "success": False,
+            "error": str(e),
+            "data": {}
         })

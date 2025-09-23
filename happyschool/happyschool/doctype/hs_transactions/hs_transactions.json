@@ -1,7 +1,7 @@
 {
  "actions": [],
  "allow_rename": 1,
- "creation": "2025-09-20 17:39:55.325107",
+ "creation": "2025-09-23 16:57:30.905356",
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
@@ -13,7 +13,7 @@
   "email",
   "parent_id",
   "time",
-  "column_break_lj8u",
+  "column_break_qcog",
   "state",
   "item_code",
   "refferal_code",
@@ -42,6 +42,11 @@
    "fieldname": "products",
    "fieldtype": "JSON",
    "label": "Products"
+  },
+  {
+   "fieldname": "customer_name",
+   "fieldtype": "Data",
+   "label": "Customer Name"
   },
   {
    "fieldname": "email",
@@ -94,19 +99,14 @@
    "label": "Payment Link"
   },
   {
-   "fieldname": "column_break_lj8u",
+   "fieldname": "column_break_qcog",
    "fieldtype": "Column Break"
-  },
-  {
-   "fieldname": "customer_name",
-   "fieldtype": "Data",
-   "label": "Customer Name"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-09-23 15:59:49.114965",
+ "modified": "2025-09-23 17:07:46.399536",
  "modified_by": "Administrator",
  "module": "happyschool",
  "name": "HS Transactions",
