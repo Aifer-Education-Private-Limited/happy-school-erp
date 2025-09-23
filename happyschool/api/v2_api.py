@@ -11,53 +11,101 @@ RAZORPAY_KEY_SECRET = frappe.conf.get("RAZORPAY_KEY_SECRET")
 
 # print("razorpay_client", razorpay_client)
 
+
 @frappe.whitelist(allow_guest=True)
 def get_parent_home_page_details(student_id: str, parent_id: str):
     """
-    API that mimics the Node.js GetUserCourseDetails response
+    API: Returns Parent Home Page details dynamically
     """
-
     try:
-        if not student_id and not parent_id:
+        if not student_id or not parent_id:
             frappe.local.response.update({
                 "success": False,
                 "datas": []
             })
             return
 
+        # -------- 1. Student & Parent names --------
+        student_name = frappe.db.get_value("Student", student_id, "student_name") or "Unknown Student"
+        parent_name = frappe.db.get_value("Parents", parent_id, "first_name") or "Unknown Parent"
+
+        # -------- 2. Attendance counts --------
+        total_attendance_count = frappe.db.count("Std Attendance", {"student_id": student_id})
+        total_attendance_earned_count = frappe.db.count("Std Attendance", {
+            "student_id": student_id,
+            "attendance": "Present"
+        })
+
+        # -------- 3. Fetch all courses of student --------
+        courses = frappe.db.sql("""
+            SELECT course_id
+            FROM `tabUser Courses`
+            WHERE student_id = %s
+        """, (student_id,), as_dict=True)
+
+        course_ids = [c.course_id for c in courses] if courses else []
+
+        overall_course_data_count = 0
+        overall_attended_data_count = 0
+        subject_wise_data_count = []
+
+        if course_ids:
+            # -------- 4. Count total tests in all courses --------
+            tests = frappe.db.sql("""
+                SELECT name, course_id
+                FROM `tabTests`
+                WHERE course_id IN %(course_ids)s
+                  AND is_active = 1
+            """, {"course_ids": tuple(course_ids)}, as_dict=True)
+
+            overall_course_data_count = len(tests)
+
+            # -------- 5. Attended tests --------
+            attended = frappe.db.sql("""
+                SELECT test_id
+                FROM `tabTest User History`
+                WHERE student_id = %s
+            """, (student_id,), as_dict=True)
+
+            attended_ids = {a.test_id for a in attended}
+            overall_attended_data_count = len(attended_ids)
+
+            # -------- 6. Subject-wise counts --------
+            for cid in course_ids:
+                course_tests = [t for t in tests if t.course_id == cid]
+                course_test_ids = {t.name for t in course_tests}
+                attended_in_course = len(course_test_ids & attended_ids)
+
+                subject_wise_data_count.append({
+                    "name": cid,  # or fetch course name if you have it
+                    "total_data_count": len(course_tests),
+                    "attended_data_count": attended_in_course
+                })
+
+        # -------- Final response --------
         datas = {
             "student_id": student_id,
             "parent_id": parent_id,
-            "student_name": "John Doe",
-            "parent_name": "Jane Doe Parent",
-            "total_attendance_count": 10,
-            "total_attendance_earned_count": 7,
-            "overall_course_data_count": 5,
-            "overall_attended_data_count": 3,
-            "subject_wise_data_count": [
-                {
-                    "name": "Mathematics",
-                    "total_data_count": 3,
-                    "attended_data_count": 2
-                },
-                {
-                    "name": "English",
-                    "total_data_count": 2,
-                    "attended_data_count": 1
-                }
-            ]
+            "student_name": student_name,
+            "parent_name": parent_name,
+            "total_attendance_count": total_attendance_count,
+            "total_attendance_earned_count": total_attendance_earned_count,
+            "overall_course_data_count": overall_course_data_count,
+            "overall_attended_data_count": overall_attended_data_count,
+            "subject_wise_data_count": subject_wise_data_count
         }
-        #  Directly set the response object (no "message")
+
         frappe.local.response.update({
             "success": True,
             "datas": datas
         })
 
     except Exception as e:
-        frappe.log_error(frappe.get_traceback(), "Get Parent Home Page API Error")
+        frappe.log_error(frappe.get_traceback(), "get_parent_home_page_details API Error")
         frappe.local.response.update({
             "success": False,
-            "error": str(e)
+            "error": str(e),
+            "datas": []
         })
 
 
