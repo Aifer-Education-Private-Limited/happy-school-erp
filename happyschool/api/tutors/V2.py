@@ -552,7 +552,6 @@ def unassign_student_from_test():
 
 
 
-
 @frappe.whitelist(allow_guest=True)
 def get_tutor_assigned_student_tests():
     try:
@@ -621,6 +620,24 @@ def get_tutor_assigned_student_tests():
             tuple(test_ids),
             as_dict=True
         )
+
+        # Step 3: Check Test User History for attended tests
+        history_map = {}
+        if test_ids:
+            histories = frappe.db.sql(
+                """
+                SELECT name AS history_id, test_id
+                FROM `tabTest User History`
+                WHERE student_id = %s AND test_id IN (%s)
+                """ % ("%s", ", ".join(["%s"] * len(test_ids))),
+                tuple([student_id] + test_ids),
+                as_dict=True
+            )
+            for h in histories:
+                history_map[h.test_id] = h.history_id
+
+        for test in tests_data:
+            test["history_id"] = history_map.get(test["test_id"]) 
 
         frappe.local.response.update({
             "success": True,

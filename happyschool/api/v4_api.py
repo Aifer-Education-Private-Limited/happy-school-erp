@@ -608,8 +608,7 @@ def get_analytics():
         # test_id = data.get("test_id")
         # student_id = data.get("student_id")
         history_id = data.get("history_id")
-
-        # Validate required parameters
+    
         if  not history_id:
             frappe.local.response.update({
                 "success": False,
@@ -630,7 +629,6 @@ def get_analytics():
             val = val.replace("<p><br></p>", "")
             return val
 
-        # Function to get topic marks
         def get_topic_marks(history_id):
             query = """
                 SELECT topic, mark
@@ -639,7 +637,6 @@ def get_analytics():
             """
             return frappe.db.sql(query, (history_id,), as_dict=True)
 
-        # Function to get user answers based on history_id
         def get_user_answers(history_id):
             query = """
                 SELECT 
@@ -662,11 +659,9 @@ def get_analytics():
             """
             return frappe.db.sql(query, (history_id,), as_dict=True)
 
-        # Fetch topic marks and user answers
         user_topic_marks = get_topic_marks(history_id)
         user_answers = get_user_answers(history_id)
 
-        # Structure the response
         user_answers_data = []
         for answer in user_answers:
             answer_data = {
@@ -701,4 +696,115 @@ def get_analytics():
             "success": False,
             "message": str(e),
             "data": []
+        })
+
+
+
+
+
+
+@frappe.whitelist(allow_guest=True)
+def get_progress_report(student_id=None, course_id=None):
+    try:
+        if not student_id or not course_id:
+            frappe.local.response.update({
+                "success": False,
+                "message": "student_id and course_id are required",
+                "data": {}
+            })
+            return
+
+        # -------- 1. Total tests in this course --------
+        total_tests = frappe.db.count("Tests", {"course_id": course_id, "is_active": 1})
+
+        # -------- 2. Total questions in this course --------
+        total_course_questions = frappe.db.sql("""
+            SELECT SUM(total_questions) AS total_q
+            FROM `tabTests`
+            WHERE course_id = %s AND is_active = 1
+        """, (course_id,), as_dict=True)[0].total_q or 0
+
+        # -------- 3. Attended tests (filter course) --------
+        attended_tests = frappe.db.sql("""
+            SELECT tuh.name AS history_id, tuh.test_id
+            FROM `tabTest User History` tuh
+            INNER JOIN `tabTests` t ON t.name = tuh.test_id
+            WHERE tuh.student_id = %s
+              AND t.course_id = %s
+        """, (student_id, course_id), as_dict=True)
+
+        attended_count = len(attended_tests)
+        history_ids = [row.history_id for row in attended_tests] if attended_tests else []
+
+        # -------- 4. Right, Wrong, Attended Questions --------
+        right_count, wrong_count, attended_questions = 0, 0, 0
+
+        if history_ids:
+            answers = frappe.db.sql("""
+                SELECT tua.answer, tq.right_answer
+                FROM `tabTest User Answers` tua
+                INNER JOIN `tabTest Questions` tq ON tq.name = tua.question_id
+                WHERE tua.history_id IN %(history_ids)s
+            """, {"history_ids": tuple(history_ids)}, as_dict=True)
+
+            for ans in answers:
+                if ans.answer is None or str(ans.answer) == "-1":
+                    continue  # not attended
+                attended_questions += 1
+                if str(ans.answer) == str(ans.right_answer):
+                    right_count += 1
+                else:
+                    wrong_count += 1
+
+        # -------- 5. Topic-wise marks --------
+        strong_areas, weak_areas = [], []
+
+        if history_ids:
+            topic_marks = frappe.db.sql("""
+                SELECT topic, SUM(mark) AS total_mark
+                FROM `tabTest User History Topic`
+                WHERE history_id IN %(history_ids)s
+                GROUP BY topic
+            """, {"history_ids": tuple(history_ids)}, as_dict=True)
+
+            for row in topic_marks:
+                topic_info = {
+                    "topic": row.topic,
+                    "marks": row.total_mark
+                }
+                if row.total_mark > 0:
+                    strong_areas.append(topic_info)
+                else:
+                    weak_areas.append(topic_info)
+
+        # -------- 6. Percentages --------
+        completion_percentage = (attended_count / total_tests * 100) if total_tests > 0 else 0
+        attendance_percentage = completion_percentage
+
+        # -------- Response --------
+        frappe.local.response.update({
+            "success": True,
+            "data": {
+                "student_id": student_id,
+                "course_id": course_id,
+                "total_tests": total_tests,
+                "attended_tests": attended_count,
+                "total_course_questions": total_course_questions,
+                "attended_questions": attended_questions,
+                "right_answers": right_count,
+                "wrong_answers": wrong_count,
+                "completion_percentage": round(completion_percentage, 2),
+                "attendance_percentage": round(attendance_percentage, 2),
+                "strong_areas": strong_areas,
+                "weak_areas": weak_areas,
+                "server_time": now_datetime()
+            }
+        })
+
+    except Exception as e:
+        frappe.log_error(frappe.get_traceback(), "get_progress_report API Error")
+        frappe.local.response.update({
+            "success": False,
+            "error": str(e),
+            "data": {}
         })
