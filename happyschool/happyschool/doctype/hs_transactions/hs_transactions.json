@@ -1,47 +1,44 @@
 {
  "actions": [],
  "allow_rename": 1,
- "creation": "2025-09-20 17:39:55.325107",
+ "creation": "2025-09-23 14:18:39.124881",
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
-  "txn_id",
+  "payment_id",
+  "razorpay_order_id",
   "amount",
-  "payable",
-  "products",
-  "customer_name",
+  "status",
+  "column_break_dypg",
+  "contact",
   "email",
-  "parent_id",
-  "time",
-  "column_break_lj8u",
-  "state",
-  "item_code",
-  "refferal_code",
-  "discount",
-  "offer_type",
-  "erp_code",
-  "payment_link"
+  "created_at"
  ],
  "fields": [
   {
-   "fieldname": "txn_id",
+   "fieldname": "payment_id",
    "fieldtype": "Data",
-   "label": "Txn Id"
+   "label": "Payment Id"
+  },
+  {
+   "fieldname": "razorpay_order_id",
+   "fieldtype": "Data",
+   "label": "Razorpay Order Id"
   },
   {
    "fieldname": "amount",
-   "fieldtype": "Int",
+   "fieldtype": "Currency",
    "label": "Amount"
   },
   {
-   "fieldname": "payable",
-   "fieldtype": "Int",
-   "label": "Payable"
+   "fieldname": "status",
+   "fieldtype": "Data",
+   "label": "Status"
   },
   {
-   "fieldname": "products",
+   "fieldname": "contact",
    "fieldtype": "Data",
-   "label": "Products"
+   "label": "Contact"
   },
   {
    "fieldname": "email",
@@ -49,64 +46,19 @@
    "label": "Email"
   },
   {
-   "fieldname": "parent_id",
+   "fieldname": "created_at",
    "fieldtype": "Data",
-   "label": "Parent Id"
+   "label": "Created At"
   },
   {
-   "fieldname": "time",
-   "fieldtype": "Datetime",
-   "label": "Time"
-  },
-  {
-   "fieldname": "state",
-   "fieldtype": "Data",
-   "label": "State"
-  },
-  {
-   "fieldname": "item_code",
-   "fieldtype": "Data",
-   "label": "Item Code"
-  },
-  {
-   "fieldname": "refferal_code",
-   "fieldtype": "Data",
-   "label": "Refferal Code"
-  },
-  {
-   "fieldname": "discount",
-   "fieldtype": "Int",
-   "label": "Discount"
-  },
-  {
-   "fieldname": "offer_type",
-   "fieldtype": "Data",
-   "label": "Offer Type"
-  },
-  {
-   "fieldname": "erp_code",
-   "fieldtype": "Int",
-   "label": "Erp Code"
-  },
-  {
-   "fieldname": "payment_link",
-   "fieldtype": "Int",
-   "label": "Payment Link"
-  },
-  {
-   "fieldname": "column_break_lj8u",
+   "fieldname": "column_break_dypg",
    "fieldtype": "Column Break"
-  },
-  {
-   "fieldname": "customer_name",
-   "fieldtype": "Data",
-   "label": "Customer Name"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-09-21 17:22:14.879374",
+ "modified": "2025-09-23 14:22:16.435443",
  "modified_by": "Administrator",
  "module": "happyschool",
  "name": "HS Transactions",

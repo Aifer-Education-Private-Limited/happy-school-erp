@@ -7,10 +7,7 @@ from frappe.utils import flt, today
 from frappe import _  
 @frappe.whitelist(allow_guest=True)
 def get_payment_link_details(payment_id):
-    """
-    API to fetch Payment Link details along with child tables 'items' and 'fees_structure'.
-    Show discount fields only if offer_applied is True.
-    """
+   
     try:
         if not payment_id:
             frappe.local.response.update({
@@ -24,6 +21,7 @@ def get_payment_link_details(payment_id):
             filters={"name": payment_id},
             fields=[
                 "name",
+                "lead",
                 "customer_name",
                 "mobile_number",
                 "email_id",
@@ -54,7 +52,9 @@ def get_payment_link_details(payment_id):
             parent_email=frappe.db.get_value("Parents",{"mobile_number":link.get("mobile_number")},"email")
             parent_firstname=frappe.db.get_value("Parents",{"mobile_number":link.get("mobile_number")},"first_name")
             parent_lastname=frappe.db.get_value("Parents",{"mobile_number":link.get("mobile_number")},"last_name")
-
+            student_name=frappe.db.get_value("HS Lead",{"name":link.get("lead")},"custom_student_name")
+            grade=frappe.db.get_value("HS Lead",{"name":link.get("lead")},"custom_gradeclass")
+            board=frappe.db.get_value("HS Lead",{"name":link.get("lead")},"custom_board")
             # Fetch items child table
             items = frappe.get_all(
                 "Payment Link Items",
@@ -90,7 +90,10 @@ def get_payment_link_details(payment_id):
                 "parent_id":parent,
                 "payment_id": link.get("name"),
                 "mob": link.get("mobile_number"),
-                "name": f"{parent_firstname} {parent_lastname}",
+                "parent_name": f"{parent_firstname} {parent_lastname}",
+                "student_name":student_name,
+                "grade":grade,
+                "board":board,
                 "email": parent_email,
                 "total": link.get("total_fees"),
                 "grand_total": link.get("grand_total"),
@@ -356,13 +359,42 @@ def make_fee_payment():
         return {"success": False, "error": str(e)}
 
         
-# def format_mobile_number(number):
-#     try:
-#         parsed_number = phonenumbers.parse(number)
-#         country_code = parsed_number.country_code
-#         number = re.sub('[^0-9]', '', number)
-#         if country_code:
-#             number = number.replace(str(country_code),'',1)
-#             return f"+{country_code}-{number}"
-#     except Exception as e:
-#         frappe.throw(_("Missing Country Code"))
+@frappe.whitelist(methods=["POST"], allow_guest=True)
+def make_transactions():
+	try:
+		data = json.loads(frappe.request.data)
+		payment_id = data.get("payment_id")
+		razorpay_id = data.get("razorpay_order_id")
+		amount = data.get("amount")
+		email = data.get("email")
+		contact = data.get("contact")
+		created_at = data.get("created_at")
+		status = data.get("status")
+
+		if not all([payment_id, razorpay_id, amount, email, contact, created_at, status]):
+			return {"success": False, "error": "Missing required parameters"}
+
+		if frappe.db.exists('HS Transactions', {'payment_id': payment_id, 'razorpay_order_id': razorpay_id}):
+			return {"success": False, "error": "Transaction already exists"}
+
+		transaction = frappe.new_doc('HS Transactions')
+		transaction.payment_id = payment_id
+		transaction.razorpay_order_id = razorpay_id
+		transaction.amount = amount
+		transaction.email = email
+		transaction.contact = contact
+		transaction.created_at = created_at
+		transaction.status = status
+		transaction.insert(ignore_permissions=True)
+
+		return {
+			"success": True,
+			"message": "Transaction Created",
+			"transaction": transaction.name,
+		}
+	except Exception as e:
+		frappe.log_error(frappe.get_traceback(), "make_transactions API Error")
+		return {
+			"success": False,
+			"error": str(e),
+		}
