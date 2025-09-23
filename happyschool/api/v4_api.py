@@ -714,17 +714,17 @@ def get_progress_report(student_id=None, course_id=None):
             })
             return
 
-        # -------- 1. Total tests in this course --------
+        
         total_tests = frappe.db.count("Tests", {"course_id": course_id, "is_active": 1})
 
-        # -------- 2. Total questions in this course --------
+        
         total_course_questions = frappe.db.sql("""
             SELECT SUM(total_questions) AS total_q
             FROM `tabTests`
             WHERE course_id = %s AND is_active = 1
         """, (course_id,), as_dict=True)[0].total_q or 0
 
-        # -------- 3. Attended tests (filter course) --------
+        
         attended_tests = frappe.db.sql("""
             SELECT tuh.name AS history_id, tuh.test_id
             FROM `tabTest User History` tuh
@@ -749,7 +749,7 @@ def get_progress_report(student_id=None, course_id=None):
 
             for ans in answers:
                 if ans.answer is None or str(ans.answer) == "-1":
-                    continue  # not attended
+                    continue  # skipped question
                 attended_questions += 1
                 if str(ans.answer) == str(ans.right_answer):
                     right_count += 1
@@ -777,9 +777,23 @@ def get_progress_report(student_id=None, course_id=None):
                 else:
                     weak_areas.append(topic_info)
 
-        # -------- 6. Percentages --------
+        # -------- 6. Attendance calculation from Std Attendance --------
+        present_count = frappe.db.count("Std Attendance", {
+            "student_id": student_id,
+            "course_id": course_id,
+            "attendance": "Present"
+        })
+        absent_count = frappe.db.count("Std Attendance", {
+            "student_id": student_id,
+            "course_id": course_id,
+            "attendance": "Absent"
+        })
+
+        total_sessions = present_count + absent_count
+        attendance_percentage = (present_count / total_sessions * 100) if total_sessions > 0 else 0
+
+        # -------- 7. Test Completion percentage --------
         completion_percentage = (attended_count / total_tests * 100) if total_tests > 0 else 0
-        attendance_percentage = completion_percentage
 
         # -------- Response --------
         frappe.local.response.update({
@@ -797,6 +811,8 @@ def get_progress_report(student_id=None, course_id=None):
                 "attendance_percentage": round(attendance_percentage, 2),
                 "strong_areas": strong_areas,
                 "weak_areas": weak_areas,
+                # "present_count": present_count,
+                # "absent_count": absent_count,
                 "server_time": now_datetime()
             }
         })
@@ -808,3 +824,8 @@ def get_progress_report(student_id=None, course_id=None):
             "error": str(e),
             "data": {}
         })
+
+
+
+
+
