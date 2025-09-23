@@ -231,16 +231,17 @@ def checkout(
         unique_name = frappe.generate_hash(length=12)
 
         # ✅ Insert into table
-        frappe.db.sql("""
-            INSERT INTO `tabHS Transactions`
-            (name, txn_id, amount, payable, products, email, customer_name, parent_id, time, state,
-             item_code, refferal_code, discount, offer_type, erp_code, payment_link, mobile)
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
-        """, (
-            unique_name, txn_id, amount, payable, course_id, email, name, firebase_uid,
-            time, state, project, promoCode, discount, offerType,
-            erpCode, payment_link, mobile
-        ))
+frappe.db.sql("""
+    INSERT INTO `tabHS Transactions`
+    (name, txn_id, amount, payable, products, email, customer_name, parent_id, time, state,
+     item_code, refferal_code, discount, offer_type, erp_code, payment_link, mobile)
+    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+""", (
+    unique_name, txn_id, amount, payable, course_id, email, name, firebase_uid,
+    time, state, project, promoCode, discount, offerType,
+    erpCode, payment_link, mobile
+))
+
         frappe.db.commit()
 
         frappe.local.response.update( {
