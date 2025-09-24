@@ -69,7 +69,6 @@ def get_home_page_details(student_id: str):
                     "scheduled_date": live["scheduled_date"]
                 })
 
-        # ✅ Directly set the response object (no "message")
         frappe.local.response.update({
             "success": True,
             "upcoming_data": upcoming,

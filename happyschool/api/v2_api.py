@@ -132,19 +132,12 @@ def get_parent_home_page_details(student_id: str, parent_id: str):
             "datas": []
         })
 
-
 @frappe.whitelist(allow_guest=True)
 def get_announcements_by_student_or_parent():
     """
     Fetch announcements and events based on student_id or parent_id.
     If student_id is passed -> audience_type "Student" and "Both" + events for student.
     If parent_id is passed -> audience_type "Parent" and "Both" + events for parent (or linked students).
-    
-    Request body:
-        {
-            "student_id": "ST001",
-            "parent_id": "PR001"
-        }
     """
     try:
         data = frappe.local.form_dict
@@ -161,68 +154,109 @@ def get_announcements_by_student_or_parent():
             return
 
         # --------------------------
-        # Announcements
+        # Announcements (audience_type-aware)
         # --------------------------
-        filters = {}
+        ann_filters = {}
         if student_id:
-            filters["audience_type"] = ["in", ["Student", "Both"]]
-            filters["student_id"] = student_id
+            ann_filters["audience_type"] = ["in", ["Student", "Both"]]
+            ann_filters["student_id"] = student_id
         if parent_id:
-            filters["audience_type"] = ["in", ["Parent", "Both"]]
-            filters["parent_id"] = parent_id
+            ann_filters["audience_type"] = ["in", ["Parent", "Both"]]
+            ann_filters["parent_id"] = parent_id
 
         announcements = frappe.get_all(
             "Announcement",
-            filters=filters,
+            filters=ann_filters,
             fields=["title", "description", "creation"]
-        )
+        ) or []
 
         # --------------------------
-        # Events
+        # Events (audience_type-aware)
         # --------------------------
+        from datetime import datetime
+
+        def fmt_time(val):
+            """Return time as 'H:MM AM/PM' (e.g., '4:05 PM')."""
+            if not val:
+                return None
+            try:
+                if hasattr(val, "strftime"):
+                    return val.strftime("%I:%M %p").lstrip("0")
+                s = str(val).strip()
+                s = s.split(".")[0]  # drop microseconds if present
+                for fmt in ("%H:%M:%S", "%H:%M"):
+                    try:
+                        dt = datetime.strptime(s, fmt)
+                        return dt.strftime("%I:%M %p").lstrip("0")
+                    except ValueError:
+                        continue
+                return s
+            except Exception:
+                return str(val)
+
         events_data = []
         events = []
 
         if student_id:
+            # Events specifically for the student and audience Student/Both
             events = frappe.get_all(
                 "Events",
-                filters={"student_id": student_id},
-                fields=["title","description","event_date", "start_time", "end_time", "meeting_link", "expiry_date"]
-            )
+                filters={
+                    "audience_type": ["in", ["Student", "Both"]],
+                    "student_id": student_id
+                },
+                fields=[
+                    "title", "description", "event_date",
+                    "start_time", "end_time", "meeting_link", "expiry_date"
+                ]
+            ) or []
 
         elif parent_id:
-            # If events are directly linked to parent
+            # 1) Direct parent events with audience Parent/Both
             events = frappe.get_all(
                 "Events",
-                filters={"parent_id": parent_id},
-                fields=["title","description","event_date", "start_time", "end_time", "meeting_link", "expiry_date"]
-            )
+                filters={
+                    "audience_type": ["in", ["Parent", "Both"]],
+                    "parent_id": parent_id
+                },
+                fields=[
+                    "title", "description", "event_date",
+                    "start_time", "end_time", "meeting_link", "expiry_date"
+                ]
+            ) or []
 
-            # If events are linked via student, get student_ids for this parent
+            # 2) If none, fall back to events attached to the parent's students
             if not events:
+                # Use custom_parent_id (as used elsewhere in your project)
                 student_list = frappe.get_all(
                     "Student",
-                    filters={"parent_id": parent_id},
+                    filters={"custom_parent_id": parent_id},
                     fields=["name"]
-                )
+                ) or []
                 student_ids = [s.name for s in student_list]
 
                 if student_ids:
                     events = frappe.get_all(
                         "Events",
-                        filters={"student_id": ["in", student_ids]},
-                        fields=["title","description","event_date", "start_time", "end_time", "meeting_link", "expiry_date"]
-                    )
+                        filters={
+                            "audience_type": ["in", ["Parent", "Both"]],
+                            "student_id": ["in", student_ids]
+                        },
+                        fields=[
+                            "title", "description", "event_date",
+                            "start_time", "end_time", "meeting_link", "expiry_date"
+                        ]
+                    ) or []
 
-        for event in events:
+        for ev in events:
             events_data.append({
-                "title": event.title,
-                "description": event.description,
-                "event_date": event.event_date,
-                "start_time": event.start_time,
-                "end_time": event.end_time,
-                "meeting_link": event.meeting_link,
-                "expiry_date": event.expiry_date
+                "title": ev.title,
+                "description": ev.description,
+                "event_date": ev.event_date,   # keep date as-is
+                "start_time": fmt_time(ev.start_time),
+                "end_time": fmt_time(ev.end_time),
+                "meeting_link": ev.meeting_link,
+                "expiry_date": ev.expiry_date
             })
 
         # --------------------------
@@ -239,7 +273,9 @@ def get_announcements_by_student_or_parent():
         frappe.log_error(frappe.get_traceback(), "get_announcements_by_student_or_parent API Error")
         frappe.local.response.update({
             "success": False,
-            "message": str(e)
+            "message": str(e),
+            "announcements": [],
+            "events": []
         })
 
 
