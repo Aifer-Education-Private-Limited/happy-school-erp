@@ -702,6 +702,8 @@ def get_analytics():
 
 
 
+import frappe
+from frappe.utils import now_datetime
 
 @frappe.whitelist(allow_guest=True)
 def get_progress_report(student_id=None, course_id=None):
@@ -714,31 +716,58 @@ def get_progress_report(student_id=None, course_id=None):
             })
             return
 
-        
-        total_tests = frappe.db.count("Tests", {"course_id": course_id, "is_active": 1})
+        # -------- 1. Fetch all tests assigned to student (HS Student Tests) --------
+        assigned_tests = frappe.get_all(
+            "HS Student Tests",
+            filters={"student_id": student_id},
+            fields=["test_id"]
+        )
+        assigned_test_ids = [row.test_id for row in assigned_tests]
 
-        
-        total_course_questions = frappe.db.sql("""
-            SELECT SUM(total_questions) AS total_q
-            FROM `tabTests`
-            WHERE course_id = %s AND is_active = 1
-        """, (course_id,), as_dict=True)[0].total_q or 0
+        if not assigned_test_ids:
+            frappe.local.response.update({
+                "success": True,
+                "data": {
+                    "student_id": student_id,
+                    "course_id": course_id,
+                    "total_tests": 0,
+                    "attended_tests": 0,
+                    "total_course_questions": 0,
+                    "attended_questions": 0,
+                    "right_answers": 0,
+                    "wrong_answers": 0,
+                    "completion_percentage": 0,
+                    "attendance_percentage": 0,
+                    "strong_areas": [],
+                    "weak_areas": [],
+                    "server_time": now_datetime()
+                }
+            })
+            return
 
-        
-        attended_tests = frappe.db.sql("""
-            SELECT tuh.name AS history_id, tuh.test_id
-            FROM `tabTest User History` tuh
-            INNER JOIN `tabTests` t ON t.name = tuh.test_id
-            WHERE tuh.student_id = %s
-              AND t.course_id = %s
-        """, (student_id, course_id), as_dict=True)
+        # -------- 2. Fetch only active tests for this course --------
+        active_tests = frappe.get_all(
+            "Tests",
+            filters={"name": ["in", assigned_test_ids], "course_id": course_id, "is_active": 1},
+            fields=["name", "total_questions"]
+        )
+        active_test_ids = [row.name for row in active_tests]
+        total_tests = len(active_tests)
 
+        # -------- 3. Total course questions --------
+        total_course_questions = sum([row.total_questions for row in active_tests])
+
+        # -------- 4. Attended tests (history) --------
+        attended_tests = frappe.get_all(
+            "Test User History",
+            filters={"student_id": student_id, "test_id": ["in", active_test_ids]},
+            fields=["name", "test_id"]
+        )
         attended_count = len(attended_tests)
-        history_ids = [row.history_id for row in attended_tests] if attended_tests else []
+        history_ids = [row.name for row in attended_tests]
 
-        # -------- 4. Right, Wrong, Attended Questions --------
+        # -------- 5. Right, Wrong, Attended Questions --------
         right_count, wrong_count, attended_questions = 0, 0, 0
-
         if history_ids:
             answers = frappe.db.sql("""
                 SELECT tua.answer, tq.right_answer
@@ -756,9 +785,8 @@ def get_progress_report(student_id=None, course_id=None):
                 else:
                     wrong_count += 1
 
-        # -------- 5. Topic-wise marks --------
+        # -------- 6. Topic-wise marks --------
         strong_areas, weak_areas = [], []
-
         if history_ids:
             topic_marks = frappe.db.sql("""
                 SELECT topic, SUM(mark) AS total_mark
@@ -768,34 +796,31 @@ def get_progress_report(student_id=None, course_id=None):
             """, {"history_ids": tuple(history_ids)}, as_dict=True)
 
             for row in topic_marks:
-                topic_info = {
-                    "topic": row.topic,
-                    "marks": row.total_mark
-                }
+                topic_info = {"topic": row.topic, "marks": row.total_mark}
                 if row.total_mark > 0:
                     strong_areas.append(topic_info)
                 else:
                     weak_areas.append(topic_info)
 
-        # -------- 6. Attendance calculation from Std Attendance --------
+        # -------- 7. Attendance calculation --------
         present_count = frappe.db.count("Std Attendance", {
             "student_id": student_id,
-            "course_id": course_id,
+            # "course_id": course_id,
             "attendance": "Present"
         })
         absent_count = frappe.db.count("Std Attendance", {
             "student_id": student_id,
-            "course_id": course_id,
+            # "course_id": course_id,
             "attendance": "Absent"
         })
 
         total_sessions = present_count + absent_count
         attendance_percentage = (present_count / total_sessions * 100) if total_sessions > 0 else 0
 
-        # -------- 7. Test Completion percentage --------
+        # -------- 8. Test Completion percentage --------
         completion_percentage = (attended_count / total_tests * 100) if total_tests > 0 else 0
 
-        # -------- Response --------
+        # -------- Final Response --------
         frappe.local.response.update({
             "success": True,
             "data": {
@@ -811,8 +836,6 @@ def get_progress_report(student_id=None, course_id=None):
                 "attendance_percentage": round(attendance_percentage, 2),
                 "strong_areas": strong_areas,
                 "weak_areas": weak_areas,
-                # "present_count": present_count,
-                # "absent_count": absent_count,
                 "server_time": now_datetime()
             }
         })
@@ -824,8 +847,3 @@ def get_progress_report(student_id=None, course_id=None):
             "error": str(e),
             "data": {}
         })
-
-
-
-
-

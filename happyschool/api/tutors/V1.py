@@ -102,17 +102,18 @@ def submit_materials():
         frappe.local.response.update( {"success": False, "message": str(e)} )
 
 
+
+
+
+
+
 @frappe.whitelist(allow_guest=True)
 def student_list():
     """
-    Get all student details under a given tutor.
-    Request body:
-        {
-            "tutor_id": "TUT-0001"
-        }
+    Get all student details under a given tutor,
+    including assigned, completed, and pending test counts.
     """
     try:
-        # Parse request body
         data = frappe.local.form_dict
         tutor_id = data.get("tutor_id")
 
@@ -123,7 +124,6 @@ def student_list():
             })
             return
 
-        # Check tutor exists
         if not frappe.db.exists("Tutors", tutor_id):
             frappe.local.response.update({
                 "success": False,
@@ -131,7 +131,7 @@ def student_list():
             })
             return
 
-        # Fetch student links for tutor
+        # Fetch tutor's student links
         student_links = frappe.get_all(
             "Students List",
             filters={"tutor_id": tutor_id},
@@ -150,14 +150,41 @@ def student_list():
         for link in student_links:
             if frappe.db.exists("Student", link.student_id):
                 student_doc = frappe.get_doc("Student", link.student_id)
+
+                # -------- Tests data --------
+                # Assigned tests from HS Student Tests
+                assigned_tests = frappe.get_all(
+                    "HS Student Tests",
+                    filters={"student_id": link.student_id, "tutor_id": tutor_id},
+                    fields=["test_id"]
+                )
+                assigned_test_ids = [t.test_id for t in assigned_tests]
+
+                # Completed tests from Test User History
+                completed_tests = []
+                if assigned_test_ids:
+                    completed_tests = frappe.get_all(
+                        "Test User History",
+                        filters={"student_id": link.student_id, "test_id": ["in", assigned_test_ids]},
+                        fields=["test_id"]
+                    )
+                completed_test_ids = [t.test_id for t in completed_tests]
+
+                # Pending tests = assigned - completed
+                pending_count = len(assigned_test_ids) - len(completed_test_ids)
+
+                # -------- Student info --------
                 students_data.append({
                     "student_id": student_doc.name,
                     "student_name": student_doc.get("first_name"),
                     "grade": student_doc.get("custom_grade"),
                     "mobile": student_doc.get("student_mobile_number"),
-                    "profile":student_doc.get("custom_profile"),
-                    "join_date":student_doc.get("joining_date"),
-                    "subject": link.subject
+                    "profile": student_doc.get("custom_profile"),
+                    "join_date": student_doc.get("joining_date"),
+                    "subject": link.subject,
+                    "assigned_count": len(assigned_test_ids),
+                    "completed_count": len(completed_test_ids),
+                    "pending_count": pending_count
                 })
 
         frappe.local.response.update({
@@ -172,7 +199,6 @@ def student_list():
             "success": False,
             "message": str(e)
         })
-
 
 
 
