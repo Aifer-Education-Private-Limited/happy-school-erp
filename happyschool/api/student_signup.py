@@ -118,6 +118,7 @@ def get_student(parent_id):
         })
         return
 
+
 @frappe.whitelist(allow_guest=True)
 def edit_student(student_id):
     try:
