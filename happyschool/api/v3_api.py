@@ -309,12 +309,9 @@ def make_fee_payment():
         })
 
         # **Fetch and Set Lead Source**
-        lead_id = frappe.db.get_value("Parents", {"name": parent_id}, "lead_id")
-        if lead_id:
-            lead_source = frappe.db.get_value("HS Lead", lead_id, "source")
-            if lead_source:
-                sales_invoice.custom_lead_source = lead_source  # Set the lead source
-                frappe.logger().info(f"Lead Source set: {lead_source}")
+        lead_id = frappe.db.get_value("HS Lead", {"custom_mobile_number":mobile_no },"source")
+        sales_invoice.custom_lead_source = lead_id  
+        frappe.logger().info(f"Lead Source set: {lead_id}")
 
         
         # Calculate Taxes and Submit
@@ -398,3 +395,94 @@ def make_transactions():
 			"success": False,
 			"error": str(e),
 		}
+
+@frappe.whitelist(allow_guest=True)
+def student_course_enrollment():
+    try:
+        data = json.loads(frappe.request.data)
+
+        parent_id = data.get("parent_id")
+        student_id = data.get("student_id")
+        program = data.get("program")
+        project = data.get("project")
+        grade=data.get("grade")
+        board=data.get("board")
+        program_enrollment_id = data.get("program_enrollment_id")
+        date=data.get("program_enroll_date")
+
+        if not student_id or not program:
+            return {
+                "status": "error",
+                "message": "Student and Program are required."
+            }
+
+        # Fetch details
+        parent_first_name = frappe.db.get_value("Parents", {"name": parent_id}, "first_name") or ""
+        parent_last_name = frappe.db.get_value("Parents", {"name": parent_id}, "last_name") or ""
+        parent_name = f"{parent_first_name} {parent_last_name}".strip()
+        student_name = frappe.db.get_value("Student", {"name": student_id}, "first_name")
+        mobile=frappe.db.get_value("Parents",{"name":parent_id},"mobile_number")
+        email=frappe.db.get_value("Parents",{"name":parent_id},"email")
+
+        # 🔹 Step 1: Check if a Student Course Enrollment already exists
+        existing_enrollment = frappe.db.get_value(
+            "HS Student Course Enrollment", {"student": student_id}, "name"
+        )
+
+        if existing_enrollment:
+            # 🔹 Step 2: Load existing document and append child row
+            enrollment_doc = frappe.get_doc("HS Student Course Enrollment", existing_enrollment)
+            enrollment_doc.append("enrolled_programs", {
+                "program_enrollment": program_enrollment_id,
+                "program": program,
+                "project": project,
+                "date":date
+            })
+            enrollment_doc.save(ignore_permissions=True)
+            frappe.db.commit()
+
+            return {
+                "status": "success",
+                "message": "Program added to existing student enrollment.",
+                "enrollment_id": enrollment_doc.name,
+                "program_enrollment_id": program_enrollment_id
+            }
+
+        else:
+            # 🔹 Step 3: Create new Student Course Enrollment
+            new_doc = frappe.new_doc("HS Student Course Enrollment")
+            new_doc.parent1=parent_id
+            new_doc.student = student_id
+            new_doc.mobile=mobile
+            new_doc.email=email
+            new_doc.grade=grade
+            new_doc.board=board
+            new_doc.posting_date=today()
+            new_doc.student_name = student_name
+            new_doc.parent = parent_id
+            new_doc.parent_name = parent_name
+            new_doc.status = "Active"
+
+            new_doc.append("enrolled_programs", {
+                "program_enrollment": program_enrollment_id,
+                "program": program,
+                "project": project,
+                "date":date
+            })
+
+            new_doc.insert(ignore_permissions=True)
+            frappe.db.commit()
+
+            return {
+                "status": "success",
+                "message": "New student course enrollment created.",
+                "enrollment_id": new_doc.name,
+                "program_enrollment_id": program_enrollment_id
+            }
+
+    except Exception as e:
+        frappe.log_error(frappe.get_traceback(), "student_course_enrollment API Error")
+        return {
+            "status": "error",
+            "message": str(e)
+        }
