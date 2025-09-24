@@ -77,8 +77,7 @@ doctype_js={
 doc_events={
     "HS Lead": {
         "validate": "happyschool.happyschool.doctype.hs_lead.hs_lead.validate_salesperson_limit",
-        "after_insert":["happyschool.happyschool.doctype.hs_lead.hs_lead.create_or_update_opportunity_for_lead",
-                        "happyschool.happyschool.doctype.hs_lead.hs_lead.create_parent_from_lead"],
+        "after_insert":["happyschool.happyschool.doctype.hs_lead.hs_lead.create_or_update_opportunity_for_lead"],
         "on_update":"happyschool.happyschool.doctype.hs_lead.hs_lead.create_or_update_opportunity_for_lead"
     },
     "Parent Or Student Ticket":{
@@ -282,4 +281,6 @@ override_doctype_class={
 # default_log_clearing_doctypes = {
 # 	"Logging DocType Name": 30  # days to retain logs
 # }
-
+# "happyschool.happyschool.doctype.hs_lead.hs_lead.create_or_update_opportunity_for_lead",
+#  "happyschool.happyschool.doctype.hs_lead.hs_lead.create_parent_from_lead",
+# "happyschool.happyschool.doctype.hs_lead.hs_lead.send_notification"
