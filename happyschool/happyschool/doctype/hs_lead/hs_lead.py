@@ -4,6 +4,7 @@
 # import frappe
 
 import frappe
+from frappe import _
 from frappe.model.document import Document
 from frappe.utils import today
 from frappe.model.naming import make_autoname
@@ -11,11 +12,6 @@ from frappe.model.naming import make_autoname
 class HSLead(Document):
 	def autoname(self):
 		self.name = make_autoname("HS-.lead-.YYYY.-.###")
-		
-
-
-
-
 
 @frappe.whitelist()
 def validate_salesperson_limit(doc, method):
@@ -68,6 +64,7 @@ def create_or_update_opportunity_for_lead(doc, method):
         opportunity.custom_curriculum = doc.custom_board
         opportunity.custom_sales_person = doc.custom_sales_person
         opportunity.parent_name = doc.first_name
+        opportunity.email=doc.email
         opportunity.save(ignore_permissions=True)
     else:
         # Create new opportunity
@@ -81,37 +78,7 @@ def create_or_update_opportunity_for_lead(doc, method):
             "custom_gradeclass": doc.custom_gradeclass,
             "custom_curriculum": doc.custom_board,
             "custom_sales_person": doc.custom_sales_person,
+            "email":doc.email,
             "parent_name": doc.first_name
         })
         opportunity.insert(ignore_permissions=True)
-
-@frappe.whitelist()
-def create_parent_from_lead(doc,method):
-        # Get Lead doc
-        lead_id=doc.name
-        lead = frappe.get_doc("HS Lead", lead_id)
-
-        # Check if any Parent already exists with the same mobile number
-        existing_parent = frappe.db.get_value(
-            "Parents",
-            {"mobile_number": lead.custom_mobile_number},  # match mobile number
-            "name"
-        )
-
-        if existing_parent:
-            # Update the existing Parent with the Lead ID
-            parent = frappe.get_doc("Parents", existing_parent)
-            if not parent.lead_id:   # only update if empty
-                parent.lead_id = lead.name
-                parent.save()
-                frappe.db.commit()
-            return parent
-        else:
-            # No Parent exists → create new one
-            parent = frappe.get_doc({
-                "doctype": "Parents",
-                "lead_id": lead.name,  # link Lead ID
-            })
-            parent.insert()
-            frappe.db.commit()
-            return parent
