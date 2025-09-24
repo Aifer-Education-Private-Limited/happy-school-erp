@@ -578,13 +578,13 @@ def tutor_home():
         live_classes_raw = frappe.get_all(
             "Live Classroom",
             filters={"tutor_id": tutor_id},
-            fields=["scheduled_date"]
+            fields=["meeting_start_time"]
         )
 
         live_classes_today = 0
         for lc in live_classes_raw:
-            if lc.scheduled_date:
-                if getdate(lc.scheduled_date) == today_date:
+            if lc.meeting_start_time:
+                if getdate(lc.meeting_start_time) == today_date:
                     live_classes_today += 1
 
         # ---- Feedback (Avg Rating) ----
@@ -601,7 +601,7 @@ def tutor_home():
         upcoming_classes_raw = frappe.get_all(
             "Live Classroom",
             filters={"tutor_id": tutor_id, "status": "Ongoing"},
-            fields=["name", "topic", "subtopic", "meeting_start_time", "student_id", "scheduled_date"]
+            fields=["name", "topic", "subtopic", "meeting_start_time", "student_id", "scheduled_date" ,"meeting_link", "caption", "description","meeting_start_time","meeting_end_time","thumbnail","scheduled_date", "course_id","tutor_id","faculty_email"]
         )
 
         upcoming_classes = []
@@ -621,6 +621,16 @@ def tutor_home():
                 "subtopic": c.subtopic,
                 "start_time": c.meeting_start_time,
                 "scheduled_date": c.scheduled_date,
+                "meeting_link" : c.meeting_link,
+                "caption" : c.caption,
+                "description": c.description,
+                "meeting_start_time": c.meeting_start_time,
+                "meeting_end_time" :c.meeting_end_time,
+                "thumbnail" :c.thumbnail,
+                "scheduled_date" :c.scheduled_date,
+                "tutor_id":c.tutor_id,
+                "course_id" : c.course_id,
+                "faculty_email":c.faculty_email,
                 "student": student_info
             })
             
