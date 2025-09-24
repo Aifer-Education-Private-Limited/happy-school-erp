@@ -1,0 +1,138 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2025-09-20 17:39:55.325107",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "txn_id",
+  "amount",
+  "payable",
+  "products",
+  "customer_name",
+  "email",
+  "parent_id",
+  "time",
+  "column_break_lj8u",
+  "state",
+  "item_code",
+  "refferal_code",
+  "discount",
+  "offer_type",
+  "erp_code",
+  "payment_link",
+  "mobile"
+ ],
+ "fields": [
+  {
+   "fieldname": "txn_id",
+   "fieldtype": "Data",
+   "label": "Txn Id"
+  },
+  {
+   "fieldname": "amount",
+   "fieldtype": "Int",
+   "label": "Amount"
+  },
+  {
+   "fieldname": "payable",
+   "fieldtype": "Int",
+   "label": "Payable"
+  },
+  {
+   "fieldname": "products",
+   "fieldtype": "JSON",
+   "label": "Products"
+  },
+  {
+   "fieldname": "customer_name",
+   "fieldtype": "Data",
+   "label": "Customer Name"
+  },
+  {
+   "fieldname": "email",
+   "fieldtype": "Data",
+   "label": "Email"
+  },
+  {
+   "fieldname": "parent_id",
+   "fieldtype": "Data",
+   "label": "Parent Id"
+  },
+  {
+   "fieldname": "time",
+   "fieldtype": "Datetime",
+   "label": "Time"
+  },
+  {
+   "fieldname": "state",
+   "fieldtype": "Data",
+   "label": "State"
+  },
+  {
+   "fieldname": "item_code",
+   "fieldtype": "Data",
+   "label": "Item Code"
+  },
+  {
+   "fieldname": "refferal_code",
+   "fieldtype": "Data",
+   "label": "Refferal Code"
+  },
+  {
+   "fieldname": "discount",
+   "fieldtype": "Int",
+   "label": "Discount"
+  },
+  {
+   "fieldname": "offer_type",
+   "fieldtype": "Data",
+   "label": "Offer Type"
+  },
+  {
+   "fieldname": "erp_code",
+   "fieldtype": "Int",
+   "label": "Erp Code"
+  },
+  {
+   "fieldname": "payment_link",
+   "fieldtype": "Int",
+   "label": "Payment Link"
+  },
+  {
+   "fieldname": "column_break_lj8u",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "mobile",
+   "fieldtype": "Phone",
+   "label": "Mobile"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2025-09-23 18:32:52.887255",
+ "modified_by": "Administrator",
+ "module": "happyschool",
+ "name": "HS Transactions",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

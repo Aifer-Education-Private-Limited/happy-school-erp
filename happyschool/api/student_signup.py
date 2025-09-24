@@ -1,5 +1,8 @@
 import frappe
 import uuid
+from datetime import datetime
+
+
 
 
 @frappe.whitelist(allow_guest=True)
@@ -17,7 +20,7 @@ def student_signup():
         profile = data.get("profile")
 
         # Check duplicate student
-        if frappe.db.exists("Student", {"student_name": student_name, "custom_parent_id": parent_id}):
+        if frappe.db.exists("Student", {"student_name": student_name, "parent_id": parent_id}):
             frappe.local.response.update ( {"success": False, "message": "Already registered"} )
             return
 
@@ -29,15 +32,16 @@ def student_signup():
 
         # Create student
         student = frappe.new_doc("Student")
-        student.custom_parent_id = parent_id
+        student.custom_parent_id= parent_id
         student.first_name = student_name
         student.student_mobile_number = mobile
         student.custom_grade = grade
-        student.joining_date = join_date
-        student.custom_password = password  # ⚠️ insecure
+        student.joining_date= join_date
+        student.custom_password = password  
         student.date_of_birth = dob
+        student.student_email_id = f"{uuid}@example.com"
+
         student.custom_profile = profile
-        student.student_email_id = f"student_{uuid.uuid4().hex[:6]}@example.com"
         student.custom_status = "Linked"
         student.custom_type = "Active"
 
@@ -51,7 +55,7 @@ def student_signup():
         student_details = {
             "student_id": student.name,
             "name": student.first_name,
-            "password": student.custom_password,  # ⚠️
+            "password": student.custom_password,  
         }
 
         frappe.local.response.update ( {"success": True, "message": "Signup successful.", "student": student_details} )
@@ -113,12 +117,6 @@ def get_student(parent_id):
             "students": []  
         })
         return
-
-
-
-
-
-
 
 @frappe.whitelist(allow_guest=True)
 def edit_student(student_id):
@@ -308,9 +306,16 @@ def create_student():
         frappe.db.commit()
 
         student_details = {
+            "parent_id":student.custom_parent_id,
             "student_id": student.name,
             "name": student.first_name,
-            "password": student.custom_password,  
+            "mobile":student.student_mobile_number,
+            "grade":student.custom_grade,
+            "joining_date":student.joining_date,
+            "date_of_birth": student.date_of_birth,
+            "profile":student.custom_profile,
+            "status":student.custom_status,
+            "type":student.custom_type
         }
 
         frappe.local.response.update ( {"success": True, "message": "Created Student Successfully", "student": student_details} )
