@@ -5,10 +5,16 @@ import requests
 RAZORPAY_KEY_ID = frappe.conf.get("RAZORPAY_KEY_ID")
 
 
+
 @frappe.whitelist(allow_guest=True)
 def get_parent_home_page_details(student_id: str, parent_id: str):
     """
-    API: Returns Parent Home Page details dynamically
+    Parent Home Page API with proper filtering:
+    - Student & Parent names
+    - Attendance counts
+    - Only active courses from User Courses
+    - Only active tests assigned via HS Student Tests
+    - Course-wise test counts (total & attended)
     """
     try:
         if not student_id or not parent_id:
@@ -29,51 +35,69 @@ def get_parent_home_page_details(student_id: str, parent_id: str):
             "attendance": "Present"
         })
 
-        # -------- 3. Fetch all courses of student --------
-        courses = frappe.db.sql("""
-            SELECT course_id
+        # -------- 3. Get only ACTIVE courses assigned to this student --------
+        user_courses = frappe.db.sql("""
+            SELECT course_id 
             FROM `tabUser Courses`
             WHERE student_id = %s
+              AND is_active = 'Active'
         """, (student_id,), as_dict=True)
-
-        course_ids = [c.course_id for c in courses] if courses else []
+        valid_course_ids = [row.course_id for row in user_courses]
 
         overall_course_data_count = 0
         overall_attended_data_count = 0
         subject_wise_data_count = []
 
-        if course_ids:
-            # -------- 4. Count total tests in all courses --------
-            tests = frappe.db.sql("""
-                SELECT name, course_id
-                FROM `tabTests`
-                WHERE course_id IN %(course_ids)s
-                  AND is_active = 1
-            """, {"course_ids": tuple(course_ids)}, as_dict=True)
-
-            overall_course_data_count = len(tests)
-
-            # -------- 5. Attended tests --------
-            attended = frappe.db.sql("""
+        if valid_course_ids:
+            # -------- 4. Get all assigned tests for this student --------
+            assigned_tests = frappe.db.sql("""
                 SELECT test_id
-                FROM `tabTest User History`
+                FROM `tabHS Student Tests`
                 WHERE student_id = %s
             """, (student_id,), as_dict=True)
+            assigned_test_ids = [row.test_id for row in assigned_tests]
 
-            attended_ids = {a.test_id for a in attended}
-            overall_attended_data_count = len(attended_ids)
+            if assigned_test_ids:
+                # -------- 5. Group by course, but only within ACTIVE courses & ACTIVE tests --------
+                course_tests = frappe.db.sql("""
+                    SELECT t.course_id, c.title AS course_name, COUNT(t.name) AS total_tests
+                    FROM `tabTests` t
+                    INNER JOIN `tabCourses` c ON c.name = t.course_id
+                    WHERE t.name IN %(test_ids)s
+                      AND t.course_id IN %(valid_courses)s
+                      AND t.is_active = 1
+                    GROUP BY t.course_id, c.title
+                """, {
+                    "test_ids": tuple(assigned_test_ids),
+                    "valid_courses": tuple(valid_course_ids)
+                }, as_dict=True)
 
-            # -------- 6. Subject-wise counts --------
-            for cid in course_ids:
-                course_tests = [t for t in tests if t.course_id == cid]
-                course_test_ids = {t.name for t in course_tests}
-                attended_in_course = len(course_test_ids & attended_ids)
+                for row in course_tests:
+                    cid = row.course_id
+                    cname = row.course_name
+                    total_data_count = row.total_tests
 
-                subject_wise_data_count.append({
-                    "name": cid,  # or fetch course name if you have it
-                    "total_data_count": len(course_tests),
-                    "attended_data_count": attended_in_course
-                })
+                    # Attended tests for this course
+                    attended = frappe.db.sql("""
+                        SELECT COUNT(DISTINCT tuh.test_id) AS attended_count
+                        FROM `tabTest User History` tuh
+                        INNER JOIN `tabTests` t ON t.name = tuh.test_id
+                        WHERE tuh.student_id = %s
+                          AND t.course_id = %s
+                          AND t.is_active = 1
+                    """, (student_id, cid), as_dict=True)
+                    attended_data_count = attended[0].attended_count if attended else 0
+
+                    # Update totals
+                    overall_course_data_count += total_data_count
+                    overall_attended_data_count += attended_data_count
+
+                    subject_wise_data_count.append({
+                        "course_id": cid,
+                        "name": cname,
+                        "total_data_count": total_data_count,
+                        "attended_data_count": attended_data_count
+                    })
 
         # -------- Final response --------
         datas = {
