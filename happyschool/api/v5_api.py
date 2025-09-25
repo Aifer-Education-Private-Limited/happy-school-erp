@@ -16,20 +16,38 @@ def get_students_parents_tutors(tutor_id=None, student_id=None, parent_id=None):
 
             for s in students_list:
                 if s.student_id:
-                    student = frappe.get_doc("Student", s.student_id)
-                    student_dict = student.as_dict()
+                    # Fetch only needed fields from Student
+                    student = frappe.get_value(
+                        "Student",
+                        s.student_id,
+                        ["name", "first_name", "student_name", "custom_parent_id", "custom_profile"],
+                        as_dict=True
+                    )
+                    student["chat_subject"] = f"{tutor_id}_{s.student_id}"
+                    student_dict = student
                     student_details.append(student_dict)
 
                     # Fetch parent for each student separately
                     if student_dict.get("custom_parent_id"):
-                        parent = frappe.get_doc("Parents", student_dict["custom_parent_id"])
-                        parent_dict = parent.as_dict()
+                        try:
+                            parent = frappe.get_value(
+                                "Parents",
+                                student_dict["custom_parent_id"],
+                                ["name", "first_name", "last_name", "profile"],
+                                as_dict=True
+                            )
 
-                        # Add student id + name into parent details
-                        parent_dict["student_id"] = student_dict.get("name")
-                        parent_dict["student_name"] = student_dict.get("student_name")
+                            if parent:
+                                # Add student id + name into parent details
+                                parent["student_id"] = student_dict.get("name")
+                                parent["student_name"] = student_dict.get("student_name") or student_dict.get("first_name")
+                                parent["chat_subject"] = f"{tutor_id}_{s.student_id}"
 
-                        parent_details.append(parent_dict)
+                                parent_details.append(parent)
+
+                        except frappe.DoesNotExistError:
+                            # Skip if parent record not found
+                            continue
 
             frappe.local.response.update({
                 "success": True,
@@ -47,8 +65,14 @@ def get_students_parents_tutors(tutor_id=None, student_id=None, parent_id=None):
             tutor_details = []
             for t in tutors_list:
                 if t.tutor_id:
-                    tutor = frappe.get_doc("Tutors", t.tutor_id)
-                    tutor_details.append(tutor.as_dict())
+                    tutor = frappe.get_value(
+                        "Tutors",
+                        t.tutor_id,
+                        ["name", "tutor_name", "subject"],
+                        as_dict=True
+                    )
+                    tutor["chat_subject"] = f"{t.tutor_id}_{student_id or ''}"
+                    tutor_details.append(tutor)
 
             frappe.local.response.update({
                 "success": True,
