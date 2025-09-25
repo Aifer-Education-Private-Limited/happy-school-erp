@@ -1,20 +1,29 @@
 import frappe
 from datetime import datetime
 from frappe.utils import get_datetime, format_datetime, format_date
+import frappe
+from frappe.utils import getdate, today
+from dateutil.relativedelta import relativedelta
+
+
+import frappe
+from frappe.utils import getdate, today
+from dateutil.relativedelta import relativedelta
 
 @frappe.whitelist(allow_guest=True)
 def get_home_page_details(student_id: str):
     """
     API that mimics the Node.js GetUserCourseDetails response
+    with dynamic test counts, attendance percentage, and weeks since joining.
     """
 
     try:
-        # 1. Fetch enrolled courses
+        # 1. Fetch enrolled active courses
         user_courses = frappe.db.sql("""
             SELECT course_id, expiry_date
             FROM `tabUser Courses`
             WHERE student_id=%s
-            AND is_active= "Active"
+              AND is_active="Active"
         """, student_id, as_dict=True)
 
         Course, upcoming = [], []
@@ -32,19 +41,64 @@ def get_home_page_details(student_id: str):
             """, {"course_ids": tuple(course_ids)}, as_dict=True)
 
             for course in dynamic_courses:
+                course_id = course["course_id"]
+
+                # --- Fetch assigned tests for this course ---
+                assigned_test_ids = frappe.db.sql_list("""
+                    SELECT test_id
+                    FROM `tabHS Student Tests`
+                    WHERE student_id=%s
+                """, (student_id,))
+
+                if assigned_test_ids:
+                    total_item_count = frappe.db.count("Tests", {
+                        "name": ["in", assigned_test_ids],
+                        "course_id": course_id,
+                        "is_active": 1
+                    })
+                else:
+                    total_item_count = 0
+
+                # --- Fetch attended tests for this course ---
+                attended_test_ids = frappe.db.sql("""
+                    SELECT tuh.test_id
+                    FROM `tabTest User History` tuh
+                    INNER JOIN `tabTests` t ON t.name = tuh.test_id
+                    WHERE tuh.student_id=%s AND t.course_id=%s
+                """, (student_id, course_id), as_dict=True)
+
+                total_attended_count = len(attended_test_ids)
+
+                # --- Attendance percentage for this course ---
+                present_count = frappe.db.count("Std Attendance", {
+                    "student_id": student_id,
+                    "course_id": course_id,
+                    "attendance": "Present"
+                })
+                absent_count = frappe.db.count("Std Attendance", {
+                    "student_id": student_id,
+                    "course_id": course_id,
+                    "attendance": "Absent"
+                })
+
+                total_sessions = present_count + absent_count
+                attendance_percentage = (present_count / total_sessions * 100) if total_sessions > 0 else 0
+
                 Course.append({
-                    "course_id": course["course_id"],
+                    "course_id": course_id,
                     "title": course["title"],
                     "subject": course["subject"],
-                    "image": f"http://happyschool.localhost:8000/{course['image']}",
+                    "image": f"http://happyschool.localhost:8000/{course['image']}" if course.get("image") else None,
                     "language_of_instruction": course["language_of_instruction"],
                     "description": course["description"],
                     "details": course["details"],
                     "ask_doubt_number": course["ask_doubt_number"],
-                    "total_item_count": 0,
-                    "total_attended_count": 0
+                    "total_item_count": total_item_count,
+                    "total_attended_count": total_attended_count,
+                    "attendance_percentage": round(attendance_percentage, 2)
                 })
 
+            # 3. Upcoming live classes
             upcoming_live = frappe.db.sql("""
                 SELECT topic, subtopic, meeting_link, caption, description,
                        student_id, faculty_email, meeting_start_time, meeting_end_time,
@@ -64,15 +118,26 @@ def get_home_page_details(student_id: str):
                     "faculty_email": live["faculty_email"],
                     "meeting_start_time": live["meeting_start_time"],
                     "meeting_end_time": live["meeting_end_time"],
-                    "thumbnail": f"http://happyschool.localhost:8000/{live['thumbnail']}",
+                    "thumbnail": f"http://happyschool.localhost:8000/{live['thumbnail']}" if live.get("thumbnail") else None,
                     "status": live["status"],
                     "scheduled_date": live["scheduled_date"]
                 })
 
+        # 4. Weeks since student joined
+        weeks_completed = 0
+        if frappe.db.exists("Student", student_id):
+            student_doc = frappe.get_doc("Student", student_id)
+            if student_doc.get("joining_date"):
+                join_date = getdate(student_doc.joining_date)
+                today_date = getdate(today())
+                delta = relativedelta(today_date, join_date)
+                weeks_completed = (delta.years * 52) + (delta.months * 4) + (delta.days // 7)
+
         frappe.local.response.update({
             "success": True,
             "upcoming_data": upcoming,
-            "datas": Course
+            "datas": Course,
+            "total_weeks_completed": weeks_completed
         })
 
     except Exception as e:
@@ -81,6 +146,7 @@ def get_home_page_details(student_id: str):
             "success": False,
             "error": str(e)
         })
+
 
 
 @frappe.whitelist(allow_guest=True)

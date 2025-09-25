@@ -78,7 +78,7 @@ def make_attendance(student_id, confirm, session_id, course_id=None, tutor_id=No
                     frappe.db.commit()
                 frappe.local.response.update({
                     "success": True,
-                    "message": f"{confirm_field} already marked as 1",
+                    "message": f"{confirm_field} already marked",
                     "attendance_id": attendance_name,
                     "updated_confirm": 1,
                     "attendance_status": attendance_status or row.attendance
@@ -93,7 +93,7 @@ def make_attendance(student_id, confirm, session_id, course_id=None, tutor_id=No
 
             frappe.local.response.update({
                 "success": True,
-                "message": f"{confirm_field} updated successfully to 1",
+                "message": f"{confirm_field} updated successfully",
                 "attendance_id": attendance_name,
                 "updated_confirm": 1,
                 "attendance_status": attendance_status or row.attendance
@@ -126,7 +126,7 @@ def make_attendance(student_id, confirm, session_id, course_id=None, tutor_id=No
 
             frappe.local.response.update({
                 "success": True,
-                "message": f"Attendance created and {confirm_field} set to 1",
+                "message": f"Attendance created and {confirm_field}",
                 "attendance_id": doc.name,
                 "attendance_status": attendance_status
             })
