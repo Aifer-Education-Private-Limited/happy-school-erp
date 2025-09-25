@@ -9,7 +9,7 @@ from frappe.utils import today, getdate
 
 ORACLE_UPLOAD_URL = frappe.conf.get("ORACLE_UPLOAD_URL")
 ORACLE_AUTH_TOKEN = frappe.conf.get("ORACLE_AUTH_TOKEN")
-FOLDER_NAME = "Happyschool Materials"   # folder name inside bucket
+FOLDER_NAME = "Happyschool Materials"  
 
 @frappe.whitelist(allow_guest=True)
 def submit_materials():
@@ -424,7 +424,7 @@ def completed_live_sessions():
             if frappe.db.exists("Materials", {"tutor_id": tutor_id, "session_id": s.name}):
                 material_status = "Material Uploaded"
                 
-            attendance_status = "Not Marked"        
+            attendance_status = "Mark Attendance"        
             attendance_record = frappe.db.get_value(
              "Std Attendance",
             {"student_id": s.student_id, "session_id": s.name},
