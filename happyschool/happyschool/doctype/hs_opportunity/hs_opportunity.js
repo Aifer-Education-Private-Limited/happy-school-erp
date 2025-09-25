@@ -150,7 +150,7 @@ frappe.ui.form.on("HS Opportunity", {
         $("#followup-sub-steps .sub-step").on("click", function() {
             const val = $(this).data("value");
             frm.set_value("custom_pipeline_status", "Assessment");
-            frm.set_value("custom_sub_status", val);
+            frm.set_value("custom_pipeline_sub_status", val);
             updateActiveState();
             frm.save();
         });
