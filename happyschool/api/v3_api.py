@@ -486,3 +486,72 @@ def student_course_enrollment():
             "status": "error",
             "message": str(e)
         }
+
+@frappe.whitelist(allow_guest=True)
+def create_user_courses(program):
+    try:
+        data=json.loads(frappe.request.data)
+        student_id=data.get("student_id")
+        tutor_id=data.get("tutor_id")
+        is_active=data.get("is_active")
+        session_count=data.get("session_count")
+
+        course = frappe.db.get_value(
+            "Courses",
+            {"title": program},
+            ["course_id", "expiry_date"],
+            as_dict=True
+        )
+
+        if not course:
+            frappe.local.response.update({
+                "success": False,
+                "message": f"Program '{program}' not found in Courses"
+            })
+            return
+
+        if not program:
+            frappe.local.response.update
+            ({
+                "success": False,
+                "message": "program required"
+            })
+            return
+
+        user_course=frappe.new_doc("User Courses")
+        user_course.student_id=student_id
+        user_course.course_id=course.course_id
+        user_course.tutor_id=tutor_id
+        user_course.admission_date=today()
+        user_course.expiry_date=course.expiry_date
+        user_course.is_active=is_active
+        user_course.session_count=session_count
+        user_course.insert(ignore_permissions=True)
+        frappe.db.commit()
+
+        details={
+            "user_course_id":user_course.name,
+            "program":program,
+            "student_id":user_course.student_id,
+            "course_id":user_course.course_id,
+            "tutor_id":user_course.tutor_id,
+            "admission_date":user_course.admission_date,
+            "expiry_date":user_course.expiry_date,
+            "is_active":user_course.is_active,
+            "session_count":user_course.session_count
+
+        }
+        frappe.local.response.update({
+                "success": True,
+                "message": f"created user course",
+                "user_course_details":details
+            })
+        return
+    except Exception as e:
+        frappe.log_error(frappe.get_traceback(), "create_user_courses API Error")
+        return {
+            "status": "error",
+            "message": str(e)
+        }
+
+
