@@ -5,7 +5,7 @@
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
-  "custom_pipeline_html",
+  "pipeline_html",
   "section_break_agkg",
   "custom_lead",
   "custom_student_name",
@@ -18,7 +18,7 @@
   "custom_curriculum",
   "column_break_szqv",
   "custom_assessment_status",
-  "custom_pipeline_status",
+  "pipeline_status",
   "custom_sub_status"
  ],
  "fields": [
@@ -60,18 +60,6 @@
    "options": "Not Shared\nShared"
   },
   {
-   "fieldname": "custom_pipeline_status",
-   "fieldtype": "Select",
-   "label": "Pipeline Status",
-   "options": "\nProspect\nAssessment\nEnrolled"
-  },
-  {
-   "fieldname": "custom_sub_status",
-   "fieldtype": "Select",
-   "label": "Sub Status",
-   "options": "Open\nProspect\nAssessment\nConnected\nNot Connected\nDS\nLP\nScheduled\nCompleted\nReport Shared\nMaybe Later\nLost"
-  },
-  {
    "fieldname": "column_break_mnsr",
    "fieldtype": "Column Break"
   },
@@ -84,11 +72,6 @@
    "fieldtype": "Section Break"
   },
   {
-   "fieldname": "custom_pipeline_html",
-   "fieldtype": "HTML",
-   "label": "Pipeline HTML"
-  },
-  {
    "fieldname": "parent_name",
    "fieldtype": "Data",
    "label": "Parent Name"
@@ -97,12 +80,29 @@
    "fieldname": "email",
    "fieldtype": "Data",
    "label": "Email"
+  },
+  {
+   "fieldname": "pipeline_status",
+   "fieldtype": "Select",
+   "label": "Pipeline Status",
+   "options": "\nProspect\nAssessment\nEnrolled"
+  },
+  {
+   "fieldname": "pipeline_html",
+   "fieldtype": "HTML",
+   "label": "Pipeline HTML"
+  },
+  {
+   "fieldname": "custom_sub_status",
+   "fieldtype": "Select",
+   "label": "Sub Status",
+   "options": "Open\nProspect\nAssessment\nConnected\nNot Connected\nDS\nLP\nScheduled\nCompleted\nReport Shared\nMaybe Later\nLost"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-09-19 18:36:23.342158",
+ "modified": "2025-09-25 14:32:21.057728",
  "modified_by": "Administrator",
  "module": "happyschool",
  "name": "HS Opportunity",

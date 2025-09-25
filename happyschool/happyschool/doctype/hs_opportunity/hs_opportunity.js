@@ -2,8 +2,8 @@
 frappe.ui.form.on("HS Opportunity", {
     refresh: function (frm) {
         
-        if (!frm.fields_dict.custom_pipeline_html) return;
-        const pipeline_html = frm.get_field("custom_pipeline_html").$wrapper;
+        if (!frm.fields_dict.pipeline_html) return;
+        const pipeline_html = frm.get_field("pipeline_html").$wrapper;
 
         const html = `
         <style>
@@ -58,7 +58,7 @@ frappe.ui.form.on("HS Opportunity", {
             $(".pipeline-step").removeClass("active");
             $(".sub-step").removeClass("green grey");
 
-            const status = frm.doc.custom_pipeline_status;
+            const status = frm.doc.pipeline_status;
             const sub_status = frm.doc.custom_sub_status;
 
             if (status === "Prospect") {
@@ -96,7 +96,7 @@ frappe.ui.form.on("HS Opportunity", {
                     default: current
                 }],
                 primary_action(values) {
-                    frm.set_value("custom_pipeline_status", "Prospect");
+                    frm.set_value("pipeline_status", "Prospect");
                     frm.set_value("custom_sub_status", values.sub_status);
                     updateActiveState();
                     frm.save();
@@ -120,7 +120,7 @@ frappe.ui.form.on("HS Opportunity", {
                     default: current
                 }],
                 primary_action(values) {
-                    frm.set_value("custom_pipeline_status", "Assessment");
+                    frm.set_value("pipeline_status", "Assessment");
                     frm.set_value("custom_sub_status", values.sub_status);
                     updateActiveState();
                     frm.save();
@@ -132,7 +132,7 @@ frappe.ui.form.on("HS Opportunity", {
 
         // Enrolled click
         $("#enrolled-step").on("click", function() {
-            frm.set_value("custom_pipeline_status", "Enrolled");
+            frm.set_value("pipeline_status", "Enrolled");
             frm.set_value("custom_sub_status", "");
             updateActiveState();
             frm.save();
@@ -141,7 +141,7 @@ frappe.ui.form.on("HS Opportunity", {
         // Direct click on sub-steps
         $("#prospect-sub-steps .sub-step").on("click", function() {
             const val = $(this).data("value");
-            frm.set_value("custom_pipeline_status", "Prospect");
+            frm.set_value("pipeline_status", "Prospect");
             frm.set_value("custom_sub_status", val);
             updateActiveState();
             frm.save();
@@ -149,8 +149,8 @@ frappe.ui.form.on("HS Opportunity", {
 
         $("#followup-sub-steps .sub-step").on("click", function() {
             const val = $(this).data("value");
-            frm.set_value("custom_pipeline_status", "Assessment");
-            frm.set_value("custom_pipeline_sub_status", val);
+            frm.set_value("pipeline_status", "Assessment");
+            frm.set_value("custom_sub_status", val);
             updateActiveState();
             frm.save();
         });

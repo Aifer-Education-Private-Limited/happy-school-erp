@@ -27,13 +27,14 @@
    "fieldname": "user",
    "fieldtype": "Link",
    "label": "User",
-   "options": "User"
+   "options": "User",
+   "reqd": 1
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-09-24 10:47:49.302068",
+ "modified": "2025-09-25 14:40:23.234769",
  "modified_by": "Administrator",
  "module": "happyschool",
  "name": "HS Sales Persons",
