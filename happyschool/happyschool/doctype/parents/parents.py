@@ -35,16 +35,4 @@ def create_customer(doc,method):
     doc.customer = customer.name
     doc.save(ignore_permissions=True)
     frappe.db.commit()
-
-# @frappe.whitelist()
-# def createparent(parent_id, first_name=None, last_name=None, mobile_number=None):
-#     student = frappe.get_doc({
-#         "doctype": "Students",
-#         "parent_id": parent_id,
-#         "first_name": first_name,
-#         "last_name": last_name,
-#         "mobile_number": mobile_number
-#     })
-#     student.insert(ignore_permissions=True)
-#     frappe.db.commit()
-#     return student.name
+    

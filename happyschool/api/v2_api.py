@@ -12,10 +12,16 @@ RAZORPAY_KEY_SECRET = frappe.conf.get("RAZORPAY_KEY_SECRET")
 # print("razorpay_client", razorpay_client)
 
 
+
 @frappe.whitelist(allow_guest=True)
 def get_parent_home_page_details(student_id: str, parent_id: str):
     """
-    API: Returns Parent Home Page details dynamically
+    Parent Home Page API with proper filtering:
+    - Student & Parent names
+    - Attendance counts
+    - Only active courses from User Courses
+    - Only active tests assigned via HS Student Tests
+    - Course-wise test counts (total & attended)
     """
     try:
         if not student_id or not parent_id:
@@ -36,51 +42,69 @@ def get_parent_home_page_details(student_id: str, parent_id: str):
             "attendance": "Present"
         })
 
-        # -------- 3. Fetch all courses of student --------
-        courses = frappe.db.sql("""
-            SELECT course_id
+        # -------- 3. Get only ACTIVE courses assigned to this student --------
+        user_courses = frappe.db.sql("""
+            SELECT course_id 
             FROM `tabUser Courses`
             WHERE student_id = %s
+              AND is_active = 'Active'
         """, (student_id,), as_dict=True)
-
-        course_ids = [c.course_id for c in courses] if courses else []
+        valid_course_ids = [row.course_id for row in user_courses]
 
         overall_course_data_count = 0
         overall_attended_data_count = 0
         subject_wise_data_count = []
 
-        if course_ids:
-            # -------- 4. Count total tests in all courses --------
-            tests = frappe.db.sql("""
-                SELECT name, course_id
-                FROM `tabTests`
-                WHERE course_id IN %(course_ids)s
-                  AND is_active = 1
-            """, {"course_ids": tuple(course_ids)}, as_dict=True)
-
-            overall_course_data_count = len(tests)
-
-            # -------- 5. Attended tests --------
-            attended = frappe.db.sql("""
+        if valid_course_ids:
+            # -------- 4. Get all assigned tests for this student --------
+            assigned_tests = frappe.db.sql("""
                 SELECT test_id
-                FROM `tabTest User History`
+                FROM `tabHS Student Tests`
                 WHERE student_id = %s
             """, (student_id,), as_dict=True)
+            assigned_test_ids = [row.test_id for row in assigned_tests]
 
-            attended_ids = {a.test_id for a in attended}
-            overall_attended_data_count = len(attended_ids)
+            if assigned_test_ids:
+                # -------- 5. Group by course, but only within ACTIVE courses & ACTIVE tests --------
+                course_tests = frappe.db.sql("""
+                    SELECT t.course_id, c.title AS course_name, COUNT(t.name) AS total_tests
+                    FROM `tabTests` t
+                    INNER JOIN `tabCourses` c ON c.name = t.course_id
+                    WHERE t.name IN %(test_ids)s
+                      AND t.course_id IN %(valid_courses)s
+                      AND t.is_active = 1
+                    GROUP BY t.course_id, c.title
+                """, {
+                    "test_ids": tuple(assigned_test_ids),
+                    "valid_courses": tuple(valid_course_ids)
+                }, as_dict=True)
 
-            # -------- 6. Subject-wise counts --------
-            for cid in course_ids:
-                course_tests = [t for t in tests if t.course_id == cid]
-                course_test_ids = {t.name for t in course_tests}
-                attended_in_course = len(course_test_ids & attended_ids)
+                for row in course_tests:
+                    cid = row.course_id
+                    cname = row.course_name
+                    total_data_count = row.total_tests
 
-                subject_wise_data_count.append({
-                    "name": cid,  # or fetch course name if you have it
-                    "total_data_count": len(course_tests),
-                    "attended_data_count": attended_in_course
-                })
+                    # Attended tests for this course
+                    attended = frappe.db.sql("""
+                        SELECT COUNT(DISTINCT tuh.test_id) AS attended_count
+                        FROM `tabTest User History` tuh
+                        INNER JOIN `tabTests` t ON t.name = tuh.test_id
+                        WHERE tuh.student_id = %s
+                          AND t.course_id = %s
+                          AND t.is_active = 1
+                    """, (student_id, cid), as_dict=True)
+                    attended_data_count = attended[0].attended_count if attended else 0
+
+                    # Update totals
+                    overall_course_data_count += total_data_count
+                    overall_attended_data_count += attended_data_count
+
+                    subject_wise_data_count.append({
+                        "course_id": cid,
+                        "name": cname,
+                        "total_data_count": total_data_count,
+                        "attended_data_count": attended_data_count
+                    })
 
         # -------- Final response --------
         datas = {
@@ -108,19 +132,12 @@ def get_parent_home_page_details(student_id: str, parent_id: str):
             "datas": []
         })
 
-
 @frappe.whitelist(allow_guest=True)
 def get_announcements_by_student_or_parent():
     """
     Fetch announcements and events based on student_id or parent_id.
     If student_id is passed -> audience_type "Student" and "Both" + events for student.
     If parent_id is passed -> audience_type "Parent" and "Both" + events for parent (or linked students).
-    
-    Request body:
-        {
-            "student_id": "ST001",
-            "parent_id": "PR001"
-        }
     """
     try:
         data = frappe.local.form_dict
@@ -137,68 +154,109 @@ def get_announcements_by_student_or_parent():
             return
 
         # --------------------------
-        # Announcements
+        # Announcements (audience_type-aware)
         # --------------------------
-        filters = {}
+        ann_filters = {}
         if student_id:
-            filters["audience_type"] = ["in", ["Student", "Both"]]
-            filters["student_id"] = student_id
+            ann_filters["audience_type"] = ["in", ["Student", "Both"]]
+            ann_filters["student_id"] = student_id
         if parent_id:
-            filters["audience_type"] = ["in", ["Parent", "Both"]]
-            filters["parent_id"] = parent_id
+            ann_filters["audience_type"] = ["in", ["Parent", "Both"]]
+            ann_filters["parent_id"] = parent_id
 
         announcements = frappe.get_all(
             "Announcement",
-            filters=filters,
+            filters=ann_filters,
             fields=["title", "description", "creation"]
-        )
+        ) or []
 
         # --------------------------
-        # Events
+        # Events (audience_type-aware)
         # --------------------------
+        from datetime import datetime
+
+        def fmt_time(val):
+            """Return time as 'H:MM AM/PM' (e.g., '4:05 PM')."""
+            if not val:
+                return None
+            try:
+                if hasattr(val, "strftime"):
+                    return val.strftime("%I:%M %p").lstrip("0")
+                s = str(val).strip()
+                s = s.split(".")[0]  # drop microseconds if present
+                for fmt in ("%H:%M:%S", "%H:%M"):
+                    try:
+                        dt = datetime.strptime(s, fmt)
+                        return dt.strftime("%I:%M %p").lstrip("0")
+                    except ValueError:
+                        continue
+                return s
+            except Exception:
+                return str(val)
+
         events_data = []
         events = []
 
         if student_id:
+            # Events specifically for the student and audience Student/Both
             events = frappe.get_all(
                 "Events",
-                filters={"student_id": student_id},
-                fields=["title","description","event_date", "start_time", "end_time", "meeting_link", "expiry_date"]
-            )
+                filters={
+                    "audience_type": ["in", ["Student", "Both"]],
+                    "student_id": student_id
+                },
+                fields=[
+                    "title", "description", "event_date",
+                    "start_time", "end_time", "meeting_link", "expiry_date"
+                ]
+            ) or []
 
         elif parent_id:
-            # If events are directly linked to parent
+            # 1) Direct parent events with audience Parent/Both
             events = frappe.get_all(
                 "Events",
-                filters={"parent_id": parent_id},
-                fields=["title","description","event_date", "start_time", "end_time", "meeting_link", "expiry_date"]
-            )
+                filters={
+                    "audience_type": ["in", ["Parent", "Both"]],
+                    "parent_id": parent_id
+                },
+                fields=[
+                    "title", "description", "event_date",
+                    "start_time", "end_time", "meeting_link", "expiry_date"
+                ]
+            ) or []
 
-            # If events are linked via student, get student_ids for this parent
+            # 2) If none, fall back to events attached to the parent's students
             if not events:
+                # Use custom_parent_id (as used elsewhere in your project)
                 student_list = frappe.get_all(
                     "Student",
-                    filters={"parent_id": parent_id},
+                    filters={"custom_parent_id": parent_id},
                     fields=["name"]
-                )
+                ) or []
                 student_ids = [s.name for s in student_list]
 
                 if student_ids:
                     events = frappe.get_all(
                         "Events",
-                        filters={"student_id": ["in", student_ids]},
-                        fields=["title","description","event_date", "start_time", "end_time", "meeting_link", "expiry_date"]
-                    )
+                        filters={
+                            "audience_type": ["in", ["Parent", "Both"]],
+                            "student_id": ["in", student_ids]
+                        },
+                        fields=[
+                            "title", "description", "event_date",
+                            "start_time", "end_time", "meeting_link", "expiry_date"
+                        ]
+                    ) or []
 
-        for event in events:
+        for ev in events:
             events_data.append({
-                "title": event.title,
-                "description": event.description,
-                "event_date": event.event_date,
-                "start_time": event.start_time,
-                "end_time": event.end_time,
-                "meeting_link": event.meeting_link,
-                "expiry_date": event.expiry_date
+                "title": ev.title,
+                "description": ev.description,
+                "event_date": ev.event_date,   # keep date as-is
+                "start_time": fmt_time(ev.start_time),
+                "end_time": fmt_time(ev.end_time),
+                "meeting_link": ev.meeting_link,
+                "expiry_date": ev.expiry_date
             })
 
         # --------------------------
@@ -215,7 +273,9 @@ def get_announcements_by_student_or_parent():
         frappe.log_error(frappe.get_traceback(), "get_announcements_by_student_or_parent API Error")
         frappe.local.response.update({
             "success": False,
-            "message": str(e)
+            "message": str(e),
+            "announcements": [],
+            "events": []
         })
 
 

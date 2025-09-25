@@ -53,6 +53,28 @@ frappe.ui.form.on('HS Payment Link', {
     },
     refresh:function(frm){
         toggle_offer_fields(frm);
+        // Only add button if payment_link exists
+        if (frm.doc.payment_link) {
+            let $wrapper = frm.fields_dict['payment_link'].$wrapper;
+
+            // Prevent adding multiple buttons
+            if ($wrapper.find('.copy-btn').length === 0) {
+                let $btn = $(`
+                    <a class="btn btn-xs btn-default copy-btn" 
+                       style="margin-left:5px;" 
+                       title="Copy to clipboard">
+                       <i class="fa fa-clipboard"></i>
+                    </a>
+                `);
+
+                $btn.on('click', function() {
+                    copyToClipboard(frm.doc.payment_link);
+                });
+
+                $wrapper.append($btn);
+            }
+        }
+
     },
 
     discount_perc: function(frm) { frm.trigger('calculate_totals'); },
@@ -150,5 +172,24 @@ function toggle_offer_fields(frm) {
     if (!show) {
         frm.set_value('discount_perc', 0);
         frm.set_value('discount_amnt', 0);
+    }
+}
+function copyToClipboard(text) {
+    if (navigator.clipboard && window.isSecureContext) {
+        navigator.clipboard.writeText(text).then(() => {
+            frappe.show_alert({ message: 'Copied to clipboard!', indicator: 'green' });
+        }).catch(err => {
+            frappe.show_alert({ message: 'Failed to copy!', indicator: 'red' });
+            console.error("Clipboard error:", err);
+        });
+    } else {
+        // Fallback for older browsers
+        const tempInput = document.createElement('input');
+        tempInput.value = text;
+        document.body.appendChild(tempInput);
+        tempInput.select();
+        document.execCommand('copy');
+        document.body.removeChild(tempInput);
+        frappe.show_alert({ message: 'Copied to clipboard!', indicator: 'green' });
     }
 }
