@@ -31,7 +31,9 @@
   "sales_section",
   "custom_sales_person",
   "column_break_pd3j",
-  "custom_assigned_date"
+  "custom_assigned_date",
+  "comments_tab",
+  "lead_remarks"
  ],
  "fields": [
   {
@@ -173,12 +175,23 @@
   {
    "fieldname": "column_break_pd3j",
    "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "comments_tab",
+   "fieldtype": "Tab Break",
+   "label": "Comments"
+  },
+  {
+   "fieldname": "lead_remarks",
+   "fieldtype": "Table",
+   "label": "Lead Remarks",
+   "options": "HS Lead Remarks"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-09-23 15:43:05.991231",
+ "modified": "2025-09-25 11:55:06.265443",
  "modified_by": "Administrator",
  "module": "happyschool",
  "name": "HS Lead",
