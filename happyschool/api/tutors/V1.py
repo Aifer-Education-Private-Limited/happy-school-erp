@@ -365,10 +365,10 @@ def scheduled_session():
             "message": str(e)
         })
 
+import frappe
 
 @frappe.whitelist(allow_guest=True)
 def completed_live_sessions():
-   
     try:
         data = frappe.local.form_dict
         tutor_id = data.get("tutor_id")
@@ -381,7 +381,6 @@ def completed_live_sessions():
             })
             return
 
-        # Check tutor exists
         if not frappe.db.exists("Tutors", tutor_id):
             frappe.local.response.update({
                 "success": False,
@@ -389,6 +388,7 @@ def completed_live_sessions():
             })
             return
 
+        # Filters for completed sessions
         filters = {"tutor_id": tutor_id, "status": "Completed"}
         if student_id:
             filters["student_id"] = student_id
@@ -404,7 +404,6 @@ def completed_live_sessions():
                 "status", "scheduled_date", "thumbnail"
             ]
         )
-        student_attendance =frappe.get_all
 
         session_data = []
         for s in sessions:
@@ -419,21 +418,21 @@ def completed_live_sessions():
                     "grade": student_doc.get("custom_grade")
                 }
 
+            # ---- Attendance Check ----
+            attendance_record = frappe.db.get_value(
+                "Std Attendance",
+                {"student_id": s.student_id, "session_id": s.name},
+                "attendance"
+            )
+
+            # If no attendance or marked absent → skip this session
+            if not attendance_record or attendance_record == "Absent":
+                continue
+
             # ---- Check Material Upload ----
             material_status = "Material Pending"
             if frappe.db.exists("Materials", {"tutor_id": tutor_id, "session_id": s.name}):
                 material_status = "Material Uploaded"
-                
-            attendance_status = "Mark Attendance"        
-            attendance_record = frappe.db.get_value(
-             "Std Attendance",
-            {"student_id": s.student_id, "session_id": s.name},
-             "attendance"
-               )
-            if attendance_record:
-             attendance_status = attendance_record  # Present / Absent
-    
-
 
             # ---- Session Details ----
             session_data.append({
@@ -451,9 +450,8 @@ def completed_live_sessions():
                 "scheduled_date": s.scheduled_date,
                 "thumbnail": s.thumbnail,
                 "student": student_info,
-                "material_upload": material_status,      
-                "attendance": attendance_status 
-
+                "material_upload": material_status,
+                "attendance": attendance_record  # Will always be "Present"
             })
 
         frappe.local.response.update({

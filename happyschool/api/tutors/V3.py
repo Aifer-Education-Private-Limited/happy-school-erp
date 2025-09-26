@@ -4,30 +4,37 @@ import mimetypes
 import json
 from datetime import datetime
 from urllib.parse import quote
+from frappe.utils import now_datetime
+
 
 ORACLE_UPLOAD_URL = frappe.conf.get("ORACLE_UPLOAD_URL")
 ORACLE_AUTH_TOKEN = frappe.conf.get("ORACLE_AUTH_TOKEN")
 FOLDER_NAME = "Happyschool Student Assignments"  
 
+
 @frappe.whitelist(allow_guest=True)
-def submit_student_assignment():
+def submit_student_assignment_by_tutor():
     """
-    Upload student assignments and save entry in Student Assignments doctype.
-    Uses Oracle Object Storage REST API (no OCI SDK).
+    Tutor uploads assignments for a student.
+    Files are uploaded to Oracle Object Storage.
+    Entry is created in HS Student Assignments doctype.
     """
     try:
-        # Extract form data
         form = frappe.local.form_dict
         tutor_id = form.get("tutor_id")
         student_id = form.get("student_id")
         assignment_name = form.get("assignment_name")
-        subject = form.get("subject")
+        course_id = form.get("course_id")
+        topic = form.get("topic")
+        subtopic = form.get("subtopic")
+        type = form.get("type")
         description = form.get("description")
 
-        if not tutor_id or not student_id:
+        # ---------- Validations ----------
+        if not tutor_id or not student_id or not course_id:
             frappe.local.response.update({
                 "success": False,
-                "message": "Tutor ID and Student ID are required"
+                "message": "Tutor ID, Student ID and Course ID are required"
             })
             return
 
@@ -42,6 +49,18 @@ def submit_student_assignment():
             frappe.local.response.update({
                 "success": False,
                 "message": f"Student {student_id} not found"
+            })
+            return
+
+        # Validate student-course enrollment
+        enrolled = frappe.db.exists(
+            "User Courses",
+            {"student_id": student_id, "course_id": course_id, "is_active": "Active"}
+        )
+        if not enrolled:
+            frappe.local.response.update({
+                "success": False,
+                "message": f"Student {student_id} is not enrolled in course {course_id}"
             })
             return
 
@@ -85,18 +104,19 @@ def submit_student_assignment():
                 return
 
             assignment_files.append({
-                "file": filename,
-                "url": upload_url,
-                "type": mime_type
+                "url": upload_url
             })
 
-        # Save to Student Assignments doctype
+        # ---------- Save Assignment ----------
         doc = frappe.get_doc({
             "doctype": "HS Student Assignments",
             "tutor_id": tutor_id,
             "student_id": student_id,
             "assignment_name": assignment_name,
-            "subject": subject,
+            "course_id": course_id,
+            "topic": topic,
+            "subtopic": subtopic,
+            "type": type,
             "description": description,
             "files": json.dumps(assignment_files),
             "submitted_date": datetime.now()
@@ -107,15 +127,266 @@ def submit_student_assignment():
         frappe.local.response.update({
             "success": True,
             "message": "Student Assignment submitted successfully",
-            "data": {
-                "assignment_id": doc.name,
-                "files": assignment_files
-            }
+            "assignment_id": doc.name
         })
 
     except Exception as e:
-        frappe.log_error(frappe.get_traceback(), "submit_student_assignment error")
+        frappe.log_error(frappe.get_traceback(), "submit_student_assignment_by_tutor error")
         frappe.local.response.update({
             "success": False,
             "message": str(e)
+        })
+
+
+
+FOLDER_NAME = "Happyschool Student Submitted Assignments"  
+
+
+@frappe.whitelist(allow_guest=True)
+def submit_student_assignment_answer():
+    """
+    API for students to submit answers for tutor-assigned assignments.
+    Uploads files to Oracle and saves entry in HS Student Submitted Assignments.
+    """
+    try:
+        # Extract form data
+        form = frappe.local.form_dict
+        assignment_id = form.get("assignment_id")
+        student_id = form.get("student_id")
+        tutor_id = form.get("tutor_id")
+
+        if not assignment_id :
+            frappe.local.response.update({
+                "success": False,
+                "message": "Assignment ID and Student ID are required"
+            })
+            return
+
+        # Validate assignment & student
+        if not frappe.db.exists("HS Student Assignments", assignment_id):
+            frappe.local.response.update({
+                "success": False,
+                "message": f"Assignment {assignment_id} not found"
+            })
+            return
+
+        if not frappe.db.exists("Student", student_id):
+            frappe.local.response.update({
+                "success": False,
+                "message": f"Student {student_id} not found"
+            })
+            return
+
+        uploaded_files = frappe.request.files.getlist("files")
+        if not uploaded_files:
+            frappe.local.response.update({
+                "success": False,
+                "message": "No files uploaded"
+            })
+            return
+
+        file_array = []
+
+        for f in uploaded_files:
+            filename = f.filename
+            content = f.read()
+
+            # Detect file type
+            mime_type, _ = mimetypes.guess_type(filename)
+            if not mime_type:
+                mime_type = "application/octet-stream"
+
+            # Safe URL
+            folder_encoded = quote(FOLDER_NAME)
+            filename_encoded = quote(filename)
+            upload_url = f"{ORACLE_UPLOAD_URL.rstrip('/')}/{folder_encoded}/{filename_encoded}"
+
+            headers = {
+                "Authorization": ORACLE_AUTH_TOKEN,
+                "Content-Type": mime_type
+            }
+
+            response = requests.put(upload_url, headers=headers, data=content)
+
+            if response.status_code not in [200, 201]:
+                frappe.local.response.update({
+                    "success": False,
+                    "message": f"Upload failed for {filename}: {response.text}"
+                })
+                return
+
+            file_array.append({
+                "file": filename,
+                "url": upload_url,
+                "type": mime_type
+            })
+
+        doc = frappe.get_doc({
+            "doctype": "HS Student Submitted Assignments",
+            "assignment_id": assignment_id,
+            "student_id":student_id,
+            "tutor_id":tutor_id,
+            "files": json.dumps(file_array),
+            "submitted_date": datetime.now()
+        })
+        doc.insert(ignore_permissions=True)
+        frappe.db.commit()
+
+        frappe.local.response.update({
+            "success": True,
+            "message": "Assignment submitted successfully",
+            "submission_id": doc.name,
+
+        })
+
+    except Exception as e:
+        frappe.log_error(frappe.get_traceback(), "submit_student_assignment_answer error")
+        frappe.local.response.update({
+            "success": False,
+            "message": str(e)
+        })
+
+
+
+
+
+
+@frappe.whitelist(allow_guest=True)
+def list_assignments(role=None, tutor_id=None, student_id=None, course_id=None):
+    """
+    One API → 2 behaviors:
+      - role="student": fetch tutor assignments (HS Student Assignments) for this student (optionally filter by course_id)
+      - role="tutor": fetch student submitted assignments (HS Student Submitted Assignments) for this tutor+student,
+                      enriched with assignment details (from HS Student Assignments)
+    """
+
+    try:
+        if not role:
+            frappe.local.response.update({
+                "success": False,
+                "message": "Role is required (student/tutor)"
+            })
+            return
+
+        data = []
+
+        # ---------------- STUDENT SIDE ----------------
+        if role.lower() == "student":
+            if not student_id:
+                frappe.local.response.update({
+                    "success": False,
+                    "message": "student_id is required for role=student"
+                })
+                return
+
+            filters = {"student_id": student_id}
+            if course_id:
+                filters["course_id"] = course_id
+
+            assignments = frappe.get_all(
+                "HS Student Assignments",
+                filters=filters,
+                fields=[
+                    "name as assignment_id",
+                    "tutor_id",
+                    "course_id",
+                    "assignment_name",
+                    "topic",
+                    "subtopic",
+                    "files",
+                    "description",
+                    "creation"
+                ],
+                order_by="creation desc"
+            )
+
+            for a in assignments:
+                urls = []
+                if a.files:
+                    try:
+                        files_list = json.loads(a.files)
+                        urls = [f.get("url") for f in files_list if f.get("url")]
+                    except Exception:
+                        pass
+
+                data.append({
+                    "assignment_id": a.assignment_id,
+                    "tutor_id": a.tutor_id,
+                    "course_id": a.course_id,
+                    "assignment_name": a.assignment_name,
+                    "topic": a.topic,
+                    "subtopic": a.subtopic,
+                    "files": urls,
+                    "description": a.description,
+                    "given_date": a.creation
+                })
+
+        # ---------------- TUTOR SIDE ----------------
+        elif role.lower() == "tutor":
+            if not tutor_id or not student_id:
+                frappe.local.response.update({
+                    "success": False,
+                    "message": "tutor_id and student_id are required for role=tutor"
+                })
+                return
+
+            submissions = frappe.get_all(
+                "HS Student Submitted Assignments",
+                filters={"student_id": student_id},
+                fields=["name as submission_id", "assignment_id", "student_id", "files", "creation"],
+                order_by="creation desc"
+            )
+
+            for s in submissions:
+                urls = []
+                if s.files:
+                    try:
+                        files_list = json.loads(s.files)
+                        urls = [f.get("url") for f in files_list if f.get("url")]
+                    except Exception:
+                        pass
+
+                assignment_details = frappe.db.get_value(
+                    "HS Student Assignments",
+                    {"name": s.assignment_id, "tutor_id": tutor_id},
+                    ["assignment_name", "topic", "subtopic", "course_id"],
+                    as_dict=True
+                )
+
+                if not assignment_details:
+                    continue  
+
+                data.append({
+                    "submission_id": s.submission_id,
+                    "assignment_id": s.assignment_id,
+                    "student_id": s.student_id,
+                    "assignment_name": assignment_details.assignment_name,
+                    "topic": assignment_details.topic,
+                    "subtopic": assignment_details.subtopic,
+                    "course_id": assignment_details.course_id,
+                    "files": urls,
+                    "submitted_date": s.creation
+                })
+
+        else:
+            frappe.local.response.update({
+                "success": False,
+                "message": "Invalid role. Must be student or tutor"
+            })
+            return
+
+        frappe.local.response.update({
+            "success": True,
+            "role": role,
+            "data": data,
+            "count": len(data),
+            "server_time": now_datetime()
+        })
+
+    except Exception as e:
+        frappe.log_error(frappe.get_traceback(), "list_assignments API Error")
+        frappe.local.response.update({
+            "success": False,
+            "message": str(e),
+            "data": []
         })

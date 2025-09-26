@@ -7,3 +7,10 @@ from frappe.model.document import Document
 
 class HSStudentSubmittedAssignments(Document):
 	pass
+
+import frappe
+from frappe.model.naming import make_autoname
+
+class HSStudentSubmittedAssignments(frappe.model.document.Document):
+    def autoname(self):
+        self.name = make_autoname("SSA-.YYYY.-.###")
