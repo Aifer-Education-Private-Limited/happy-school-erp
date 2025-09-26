@@ -11,17 +11,17 @@ RAZORPAY_KEY_SECRET = frappe.conf.get("RAZORPAY_KEY_SECRET")
 
 # print("razorpay_client", razorpay_client)
 
-
+import frappe
 
 @frappe.whitelist(allow_guest=True)
 def get_parent_home_page_details(student_id: str, parent_id: str):
     """
-    Parent Home Page API with proper filtering:
+    Parent Home Page API:
     - Student & Parent names
     - Attendance counts
-    - Only active courses from User Courses
-    - Only active tests assigned via HS Student Tests
-    - Course-wise test counts (total & attended)
+    - All active courses from User Courses
+    - Course-wise test counts (total & attended) — even if 0
+    - Student-wide completed & scheduled sessions
     """
     try:
         if not student_id or not parent_id:
@@ -42,13 +42,14 @@ def get_parent_home_page_details(student_id: str, parent_id: str):
             "attendance": "Present"
         })
 
-        # -------- 3. Get only ACTIVE courses assigned to this student --------
+        # -------- 3. Active courses from User Courses --------
         user_courses = frappe.db.sql("""
             SELECT course_id 
             FROM `tabUser Courses`
             WHERE student_id = %s
               AND is_active = 'Active'
         """, (student_id,), as_dict=True)
+
         valid_course_ids = [row.course_id for row in user_courses]
 
         overall_course_data_count = 0
@@ -56,55 +57,49 @@ def get_parent_home_page_details(student_id: str, parent_id: str):
         subject_wise_data_count = []
 
         if valid_course_ids:
-            # -------- 4. Get all assigned tests for this student --------
-            assigned_tests = frappe.db.sql("""
-                SELECT test_id
-                FROM `tabHS Student Tests`
-                WHERE student_id = %s
-            """, (student_id,), as_dict=True)
-            assigned_test_ids = [row.test_id for row in assigned_tests]
+            # Loop through every active course from User Courses
+            for cid in valid_course_ids:
+                cname = frappe.db.get_value("Courses", cid, "title") or "Unknown Course"
 
-            if assigned_test_ids:
-                # -------- 5. Group by course, but only within ACTIVE courses & ACTIVE tests --------
-                course_tests = frappe.db.sql("""
-                    SELECT t.course_id, c.title AS course_name, COUNT(t.name) AS total_tests
-                    FROM `tabTests` t
-                    INNER JOIN `tabCourses` c ON c.name = t.course_id
-                    WHERE t.name IN %(test_ids)s
-                      AND t.course_id IN %(valid_courses)s
+                # Total tests assigned in this course (active only)
+                total_data_count = frappe.db.count("Tests", {
+                    "course_id": cid,
+                    "is_active": 1
+                })
+
+                # Attended tests for this course
+                attended = frappe.db.sql("""
+                    SELECT COUNT(DISTINCT tuh.test_id) AS attended_count
+                    FROM `tabTest User History` tuh
+                    INNER JOIN `tabTests` t ON t.name = tuh.test_id
+                    WHERE tuh.student_id = %s
+                      AND t.course_id = %s
                       AND t.is_active = 1
-                    GROUP BY t.course_id, c.title
-                """, {
-                    "test_ids": tuple(assigned_test_ids),
-                    "valid_courses": tuple(valid_course_ids)
-                }, as_dict=True)
+                """, (student_id, cid), as_dict=True)
 
-                for row in course_tests:
-                    cid = row.course_id
-                    cname = row.course_name
-                    total_data_count = row.total_tests
+                attended_data_count = attended[0].attended_count if attended else 0
 
-                    # Attended tests for this course
-                    attended = frappe.db.sql("""
-                        SELECT COUNT(DISTINCT tuh.test_id) AS attended_count
-                        FROM `tabTest User History` tuh
-                        INNER JOIN `tabTests` t ON t.name = tuh.test_id
-                        WHERE tuh.student_id = %s
-                          AND t.course_id = %s
-                          AND t.is_active = 1
-                    """, (student_id, cid), as_dict=True)
-                    attended_data_count = attended[0].attended_count if attended else 0
+                # Update overall totals
+                overall_course_data_count += total_data_count
+                overall_attended_data_count += attended_data_count
 
-                    # Update totals
-                    overall_course_data_count += total_data_count
-                    overall_attended_data_count += attended_data_count
+                subject_wise_data_count.append({
+                    "course_id": cid,
+                    "name": cname,
+                    "total_data_count": total_data_count,
+                    "attended_data_count": attended_data_count
+                })
 
-                    subject_wise_data_count.append({
-                        "course_id": cid,
-                        "name": cname,
-                        "total_data_count": total_data_count,
-                        "attended_data_count": attended_data_count
-                    })
+        # -------- 4. Student-wide session counts --------
+        completed_sessions_count = frappe.db.count("Live Classroom", {
+            "student_id": student_id,
+            "status": "Completed"
+        })
+
+        scheduled_sessions_count = frappe.db.count("Live Classroom", {
+            "student_id": student_id,
+            "status": ["in", ["Upcoming", "Ongoing"]]
+        })
 
         # -------- Final response --------
         datas = {
@@ -116,7 +111,10 @@ def get_parent_home_page_details(student_id: str, parent_id: str):
             "total_attendance_earned_count": total_attendance_earned_count,
             "overall_course_data_count": overall_course_data_count,
             "overall_attended_data_count": overall_attended_data_count,
+            "completed_sessions_count": completed_sessions_count,
+            "scheduled_sessions_count": scheduled_sessions_count,
             "subject_wise_data_count": subject_wise_data_count
+           
         }
 
         frappe.local.response.update({
@@ -131,6 +129,9 @@ def get_parent_home_page_details(student_id: str, parent_id: str):
             "error": str(e),
             "datas": []
         })
+
+
+
 
 @frappe.whitelist(allow_guest=True)
 def get_announcements_by_student_or_parent():

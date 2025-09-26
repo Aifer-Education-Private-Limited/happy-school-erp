@@ -250,15 +250,15 @@ def submit_student_assignment_answer():
         })
 
 
-
-
-
+import frappe, json
+from frappe.utils import now_datetime
 
 @frappe.whitelist(allow_guest=True)
 def list_assignments(role=None, tutor_id=None, student_id=None, course_id=None):
     """
     One API → 2 behaviors:
-      - role="student": fetch tutor assignments (HS Student Assignments) for this student (optionally filter by course_id)
+      - role="student": fetch tutor assignments (HS Student Assignments) for this student (optionally filter by course_id),
+                        also include submission status & feedback if student submitted
       - role="tutor": fetch student submitted assignments (HS Student Submitted Assignments) for this tutor+student,
                       enriched with assignment details (from HS Student Assignments)
     """
@@ -312,6 +312,23 @@ def list_assignments(role=None, tutor_id=None, student_id=None, course_id=None):
                     except Exception:
                         pass
 
+                # --- Check if student has submitted ---
+                submission = frappe.db.get_value(
+                    "HS Student Submitted Assignments",
+                    {"assignment_id": a.assignment_id, "student_id": student_id},
+                    ["status", "feedback", "creation as submitted_date"],
+                    as_dict=True
+                )
+
+                if submission:
+                    status = submission.status or "Pending"
+                    feedback = submission.feedback or ""
+                    submitted_date = submission.submitted_date
+                else:
+                    status = "Not Submitted"
+                    feedback = ""
+                    submitted_date = None
+
                 data.append({
                     "assignment_id": a.assignment_id,
                     "tutor_id": a.tutor_id,
@@ -321,7 +338,10 @@ def list_assignments(role=None, tutor_id=None, student_id=None, course_id=None):
                     "subtopic": a.subtopic,
                     "files": urls,
                     "description": a.description,
-                    "given_date": a.creation
+                    "given_date": a.creation,
+                    "status": status,
+                    "feedback": feedback,
+                    "submitted_date": submitted_date
                 })
 
         # ---------------- TUTOR SIDE ----------------
@@ -336,7 +356,7 @@ def list_assignments(role=None, tutor_id=None, student_id=None, course_id=None):
             submissions = frappe.get_all(
                 "HS Student Submitted Assignments",
                 filters={"student_id": student_id},
-                fields=["name as submission_id", "assignment_id", "student_id", "files", "creation"],
+                fields=["name as submission_id", "assignment_id", "student_id", "files", "status", "feedback", "creation"],
                 order_by="creation desc"
             )
 
@@ -357,11 +377,13 @@ def list_assignments(role=None, tutor_id=None, student_id=None, course_id=None):
                 )
 
                 if not assignment_details:
-                    continue  
+                    continue
 
                 data.append({
                     "submission_id": s.submission_id,
                     "assignment_id": s.assignment_id,
+                    "status": s.status,
+                    "feedback": s.feedback or "",
                     "student_id": s.student_id,
                     "assignment_name": assignment_details.assignment_name,
                     "topic": assignment_details.topic,
@@ -392,4 +414,69 @@ def list_assignments(role=None, tutor_id=None, student_id=None, course_id=None):
             "success": False,
             "message": str(e),
             "data": []
+        })
+
+
+
+@frappe.whitelist(allow_guest=True)
+def update_assignment_status(submission_id=None, tutor_id=None, status=None, feedback=None):
+    """
+    Tutor updates the status of a student's submitted assignment.
+    - submission_id: ID from HS Student Submitted Assignments
+    - tutor_id: must match the tutor of the assignment
+    - status: "Completed" / "Rework"
+    - feedback: optional text feedback for the student
+    """
+    try:
+        if not submission_id or not tutor_id or not status:
+            frappe.local.response.update({
+                "success": False,
+                "message": "submission_id, tutor_id and status are required"
+            })
+            return
+
+        if status not in ["Completed", "Rework"]:
+            frappe.local.response.update({
+                "success": False,
+                "message": "Invalid status. Must be 'Completed' or 'Rework'"
+            })
+            return
+
+        # Fetch submission
+        submission = frappe.get_doc("HS Student Submitted Assignments", submission_id)
+
+        # Ensure tutor matches assignment tutor
+        assignment_tutor = frappe.db.get_value("HS Student Assignments", submission.assignment_id, "tutor_id")
+        if assignment_tutor != tutor_id:
+            frappe.local.response.update({
+                "success": False,
+                "message": "Tutor mismatch. You are not allowed to update this submission."
+            })
+            return
+
+        # Update status + feedback
+        submission.status = status
+        if feedback:
+            submission.feedback = feedback
+        submission.reviewed_date = now_datetime()
+        submission.save(ignore_permissions=True)
+        frappe.db.commit()
+
+        frappe.local.response.update({
+            "success": True,
+            "message": f"Assignment status updated to {status}",
+            "data": {
+                "submission_id": submission_id,
+                "assignment_id": submission.assignment_id,
+                "status": submission.status,
+                "feedback": submission.feedback or "",
+                "reviewed_date": submission.reviewed_date
+            }
+        })
+
+    except Exception as e:
+        frappe.log_error(frappe.get_traceback(), "update_assignment_status API Error")
+        frappe.local.response.update({
+            "success": False,
+            "message": str(e)
         })
