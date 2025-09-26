@@ -126,7 +126,7 @@ def submit_student_assignment_by_tutor():
             "success": True,
             "message": "Student Assignment submitted successfully",
             "assignment_id": doc.name,
-             "file": assignment_files[0]["type"] if assignment_files else None
+             "file_type": assignment_files[0]["type"] if assignment_files else None
 
         })
 
@@ -236,7 +236,7 @@ def submit_student_assignment_answer():
             "success": True,
             "message": "Assignment submitted successfully",
             "submission_id": doc.name,
-            "file": file_array[0]["type"] if file_array else None
+            "file_type": file_array[0]["type"] if file_array else None
                 
             
 
