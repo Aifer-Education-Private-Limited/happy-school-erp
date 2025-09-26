@@ -315,7 +315,8 @@ def checkout(
     erpCode=None,
     payment_link=None,
     pincode=None,
-    mobile=None
+    mobile=None,
+    discountPerc=None
 ):
     try:
         # ✅ Ensure firebase_uid is provided
@@ -339,12 +340,12 @@ def checkout(
         frappe.db.sql("""
             INSERT INTO `tabHS Transactions`
             (name, txn_id, amount, payable, products, email, customer_name, parent_id, time, state,
-             item_code, refferal_code, discount, offer_type, erp_code, payment_link, mobile)
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+             item_code, refferal_code, discount, offer_type, erp_code, payment_link, mobile, discount_perc)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
         """, (
             unique_name, txn_id, amount, payable, course_id, email, name, firebase_uid,
             time, state, project, promoCode, discount, offerType,
-            erpCode, payment_link, mobile
+            erpCode, payment_link, mobile, discountPerc
         ))
 
         frappe.db.commit()

@@ -21,7 +21,8 @@
   "offer_type",
   "erp_code",
   "payment_link",
-  "mobile"
+  "mobile",
+  "discount_perc"
  ],
  "fields": [
   {
@@ -107,12 +108,17 @@
    "fieldname": "mobile",
    "fieldtype": "Phone",
    "label": "Mobile"
+  },
+  {
+   "fieldname": "discount_perc",
+   "fieldtype": "Int",
+   "label": "Discount Perc"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-09-23 18:32:52.887255",
+ "modified": "2025-09-26 17:15:45.364480",
  "modified_by": "Administrator",
  "module": "happyschool",
  "name": "HS Transactions",
