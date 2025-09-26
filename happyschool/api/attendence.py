@@ -157,7 +157,6 @@ def make_attendance(student_id, confirm, session_id, course_id=None, tutor_id=No
 @frappe.whitelist(allow_guest=True)
 def get_student_attendance(student_id, course_id):
     try:
-        # Fetch all records for the student and course
         records = frappe.db.sql(
             """
             SELECT name, date, time, session_id, material_confirm, attendance
@@ -210,10 +209,8 @@ def check_attendance(student_id=None):
             })
             return
 
-        # Tutor assigned to this student (from Students List)
         tutor_id = frappe.db.get_value("Students List", {"student_id": student_id}, "tutor_id") or ""
 
-        # Pending confirmations (tutor confirmed, student/material not confirmed)
         records = frappe.db.sql(
             """
             SELECT name, student_id, date, tutor_confirm, session_id
@@ -230,7 +227,7 @@ def check_attendance(student_id=None):
 
         formatted_records = []
         for r in records:
-            # Pull course_id and caption from Live Classroom using session_id
+            
             session_info = {}
             if r.session_id:
                 session_info = frappe.db.get_value(
@@ -240,7 +237,7 @@ def check_attendance(student_id=None):
             course_id = session_info.get("course_id") or ""
             session_title = session_info.get("caption") or ""
 
-            # Resolve course title from Courses
+           
             course_title = frappe.db.get_value("Courses", course_id, "title") or ""
 
             formatted_records.append({
@@ -258,7 +255,7 @@ def check_attendance(student_id=None):
             "success": True,
             "data": formatted_records
         })
-
+        
     except Exception as e:
         frappe.log_error(frappe.get_traceback(), "check_attendance API Error")
         frappe.local.response.update({
