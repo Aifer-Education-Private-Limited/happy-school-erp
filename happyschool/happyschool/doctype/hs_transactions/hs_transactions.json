@@ -22,7 +22,8 @@
   "erp_code",
   "payment_link",
   "mobile",
-  "discount_perc"
+  "discount_perc",
+  "program_datas"
  ],
  "fields": [
   {
@@ -113,12 +114,17 @@
    "fieldname": "discount_perc",
    "fieldtype": "Int",
    "label": "Discount Perc"
+  },
+  {
+   "fieldname": "program_datas",
+   "fieldtype": "JSON",
+   "label": "Program Datas"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-09-26 17:15:45.364480",
+ "modified": "2025-09-26 17:46:19.935025",
  "modified_by": "Administrator",
  "module": "happyschool",
  "name": "HS Transactions",
