@@ -1,39 +1,37 @@
 {
  "actions": [],
  "allow_rename": 1,
- "autoname": "field:availability_slots",
+ "autoname": "field:sloat_name",
  "creation": "2025-09-15 12:04:43.862607",
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
-  "availability_slots",
-  "from_time",
-  "to_time"
+  "sloat_name",
+  "time"
  ],
  "fields": [
   {
-   "fieldname": "availability_slots",
+   "allow_in_quick_entry": 1,
+   "fieldname": "time",
+   "fieldtype": "Time",
+   "in_list_view": 1,
+   "label": "Time Slots",
+   "reqd": 1
+  },
+  {
+   "allow_in_quick_entry": 1,
+   "fieldname": "sloat_name",
    "fieldtype": "Data",
    "in_list_view": 1,
-   "label": "Availability Slots",
+   "label": "Sloat Name",
    "reqd": 1,
    "unique": 1
-  },
-  {
-   "fieldname": "from_time",
-   "fieldtype": "Time",
-   "label": "From Time"
-  },
-  {
-   "fieldname": "to_time",
-   "fieldtype": "Time",
-   "label": "To Time"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-09-15 12:37:54.162624",
+ "modified": "2025-09-26 05:43:00.968473",
  "modified_by": "Administrator",
  "module": "happyschool",
  "name": "Availability Slots",

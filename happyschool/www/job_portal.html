@@ -200,6 +200,9 @@
                         style="max-width: 320px;">
                     <button type="button" class="btn btn-primary" onclick="uploadDemoUrl()">Upload Demo URL</button>
                 </div>
+                <div id="existing_demo_url_message" class="text-end mb-2" style="font-size: 0.95em; color: #157347;">
+                    <!-- Existing URL will be shown here -->
+                </div>
                 <div class="d-flex gap-3 justify-content-center">
                     <button type="button" class="btn btn-secondary" onclick="navigateToTab('tab2')">Previous</button>
                     <button type="button" class="btn btn-success" onclick="navigateToTab('tab4')">Next Step</button>
@@ -249,8 +252,27 @@
 
         document.getElementById(tabID).classList.add('active');
         event.currentTarget.classList.add('active');
+        if (tabID === 'tab3') {
+            showExistingDemoUrl();
+        }
     }
+    function showExistingDemoUrl() {
+        frappe.call({
+            method: "happyschool.www.job_portal.get_existing_demo_url",
+            callback: function (response) {
+                if (!response.exc) {
+                    const existing_demo_url = response.message;
+                    const msgDiv = document.getElementById('existing_demo_url_message');
+                    if (existing_demo_url) {
+                        msgDiv.innerHTML = `Uploaded URL: <a href="${existing_demo_url}" target="_blank">${existing_demo_url}</a>`;
+                    } else {
+                        msgDiv.innerHTML = '';
+                    }
+                }
+            }
+        });
 
+    }
     function navigateToTab(tabID) {
         const targetButton = Array.from(document.querySelectorAll('.tab-btn'))
             .find(btn => btn.getAttribute('onclick').includes(`'${tabID}'`));
@@ -271,14 +293,15 @@
         frappe.call({
             method: "happyschool.www.job_portal.add_demo_url",
             args: { url: url },
-            callback: function(response) {
+            callback: function (response) {
                 if (!response.exc) {
-                    frappe.msgprint('Demo URL uploaded successfully!');
+                    showExistingDemoUrl();
                 } else {
                     frappe.msgprint('Failed to upload Demo URL. Please try again.');
                 }
             }
         });
+        
     }
 
     // Button handlers for each tab

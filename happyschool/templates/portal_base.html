@@ -93,11 +93,13 @@
     <!-- Navbar Start -->
     <nav
         style="width:100%;background:#fff;border-bottom:1px solid #e6eef6;padding:12px 32px;display:flex;align-items:center;justify-content:space-between;position:fixed;top:0;left:0;z-index:100;">
-        <div style="display:flex;align-items:center;gap:10px;">
-            <img src="{{ favicon or '/assets/frappe/images/frappe-favicon.svg' }}" alt="Logo"
-                style="height:32px;width:32px;border-radius:8px;">
-            <span style="font-weight:700;font-size:18px;color:#0ea5e9;">HappySchool</span>
-        </div>
+        <a href="/job_portal" style="text-decoration:none;">
+            <div style="display:flex;align-items:center;gap:10px;cursor:pointer;">
+                <img src="{{ favicon or '/assets/frappe/images/frappe-favicon.svg' }}" alt="Logo"
+                    style="height:32px;width:32px;border-radius:8px;">
+                <span style="font-weight:700;font-size:18px;color:#0ea5e9;">HappySchool</span>
+            </div>
+        </a>
         <div>
             {% if frappe.session.user == "Guest" %}
             <a href="/login" class="btn" style="background:var(--accent);color:#fff;text-decoration:none;">Login</a>

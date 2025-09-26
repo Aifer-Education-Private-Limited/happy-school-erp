@@ -12,6 +12,8 @@
   {
    "fieldname": "engagement_style",
    "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_preview": 1,
    "label": "Engagement Style",
    "options": "Engagement Style"
   }
@@ -20,7 +22,7 @@
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2025-09-15 12:13:11.816406",
+ "modified": "2025-09-26 09:50:37.750340",
  "modified_by": "Administrator",
  "module": "happyschool",
  "name": "Engagement Style Table",

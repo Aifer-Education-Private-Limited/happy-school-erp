@@ -39,12 +39,12 @@ def create_tutor_exam(subject):
             "d": qt.d
         })
     tutor_exam.insert(ignore_permissions=True)
-
+    tutor_exam.submit()
     return { "tutor_exam": tutor_exam.tutor_exam_table,
              "name": tutor_exam.name }
 
 @frappe.whitelist()
-def submit_tutor_exam(exam_name, answers):
+def submit_tutor_exam(exam_name, answers, time):
     tutor_exam = frappe.get_doc("Tutor Exam Result", exam_name)
     answers = frappe.parse_json(answers)
     score = 0
@@ -52,6 +52,37 @@ def submit_tutor_exam(exam_name, answers):
         entry.tutor_answer = answers.get(str(i))
         if entry.tutor_answer == entry.answer:
             score += 1
-    tutor_exam.score = score
+    # get 90% of score
+    total_questions = len(tutor_exam.tutor_exam_table)
+    passing_score = int(0.9 * total_questions)
+    tu_pro = frappe.get_doc("Tutor Profile", {"user": frappe.session.user})
+    
+    if score >= passing_score:
+        is_pass = "Pass"
+        tu_pro.status = "Exam Passed"
+    else:
+        is_pass = "Failed"
+        tu_pro.status = "Exam Failed"
+    tu_pro.save(ignore_permissions=True)
+    settings = frappe.get_single("Happy School Setting")
+    time = round(settings.exam_time - float(time)/60,2)   
+    tutor_exam.time_taken = time
+    tutor_exam.total_score = score
     tutor_exam.save(ignore_permissions=True)
-    return {"score": score, "total": len(tutor_exam.tutor_exam_table)}
+    return {
+        "score": score,
+        "total": total_questions,
+        "passing_score": passing_score,
+        "is_pass": is_pass
+    }
+
+
+@frappe.whitelist()
+def get_tutor_settings():
+    settings = frappe.get_single("Happy School Setting")
+    if settings.exam_time <= 0:
+        frappe.throw("Exam Time is Not Set in Happy School Setting.")
+    exam_time = settings.exam_time * 60
+    return {
+        "exam_time": exam_time
+    }
