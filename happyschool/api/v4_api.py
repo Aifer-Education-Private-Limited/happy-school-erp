@@ -702,8 +702,7 @@ def get_analytics():
 
 
 
-import frappe
-from frappe.utils import now_datetime
+
 
 @frappe.whitelist(allow_guest=True)
 def get_progress_report(student_id=None, course_id=None):
@@ -846,4 +845,87 @@ def get_progress_report(student_id=None, course_id=None):
             "success": False,
             "error": str(e),
             "data": {}
+        })
+
+
+
+
+@frappe.whitelist(allow_guest=True)
+def get_student_courses(student_id=None, tutor_id=None):
+  
+    try:
+        if not student_id or not tutor_id:
+            frappe.local.response.update({
+                "success": False,
+                "message": "student_id and tutor_id are required",
+                "courses": []
+            })
+            return
+
+        # Step 1: Get active courses from User Courses
+        user_courses = frappe.get_all(
+            "User Courses",
+            filters={
+                "student_id": student_id,
+                "tutor_id": tutor_id,
+                "is_active": "Active"
+            },
+            fields=[
+                "name as user_course_id",
+                "student_id", "tutor_id", "course_id",
+                "admission_date", "expiry_date", "is_active"
+            ]
+        )
+
+        if not user_courses:
+            frappe.local.response.update({
+                "success": True,
+                "message": "No active courses found for this student and tutor",
+                "courses": []
+            })
+            return
+
+        course_ids = [uc.course_id for uc in user_courses if uc.course_id]
+
+        # Step 2: Get course details from Courses
+        course_details = {}
+        if course_ids:
+            courses = frappe.get_all(
+                "Courses",
+                filters={"name": ["in", course_ids]},
+                fields=[
+                    "name as course_id",
+                    "title", "details", "subject", "language_of_instruction",
+                    "description", "expiry_date", "label", "image", "status"
+                ]
+            )
+            course_details = {c.course_id: c for c in courses}
+
+        # Step 3: Merge user_course info + course details
+        merged_courses = []
+        for uc in user_courses:
+            details = course_details.get(uc.course_id, {})
+            merged_courses.append({
+                "course_id": uc.user_course_id,
+                "student_id": uc.student_id,
+                "tutor_id": uc.tutor_id,
+                "course_id": uc.course_id,
+                "admission_date": uc.admission_date,
+                "expiry_date": uc.expiry_date,
+                "is_active": uc.is_active,
+                "course_details": details
+            })
+
+        frappe.local.response.update({
+            "success": True,
+            "message": "Student active courses fetched successfully",
+            "courses": merged_courses
+        })
+
+    except Exception as e:
+        frappe.log_error(frappe.get_traceback(), "get_student_courses API Error")
+        frappe.local.response.update({
+            "success": False,
+            "error": str(e),
+            "courses": []
         })
