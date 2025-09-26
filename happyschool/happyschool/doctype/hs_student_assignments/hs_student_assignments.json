@@ -7,11 +7,13 @@
  "field_order": [
   "student_id",
   "tutor_id",
-  "subject",
+  "course_id",
   "assignment_name",
   "topic",
   "subtopic",
-  "files"
+  "type",
+  "files",
+  "description"
  ],
  "fields": [
   {
@@ -25,11 +27,6 @@
    "fieldtype": "Link",
    "label": "Tutor ID",
    "options": "Tutors"
-  },
-  {
-   "fieldname": "subject",
-   "fieldtype": "Data",
-   "label": "Subject "
   },
   {
    "fieldname": "assignment_name",
@@ -50,12 +47,29 @@
    "fieldname": "files",
    "fieldtype": "Long Text",
    "label": "files"
+  },
+  {
+   "fieldname": "type",
+   "fieldtype": "Select",
+   "label": "Type",
+   "options": "Material\nHomework\nAssignment\nQuestion Paper"
+  },
+  {
+   "fieldname": "description",
+   "fieldtype": "Data",
+   "label": "Description"
+  },
+  {
+   "fieldname": "course_id",
+   "fieldtype": "Link",
+   "label": "Course ID",
+   "options": "Courses"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-09-25 12:47:26.401686",
+ "modified": "2025-09-25 18:47:11.623472",
  "modified_by": "Administrator",
  "module": "happyschool",
  "name": "HS Student Assignments",

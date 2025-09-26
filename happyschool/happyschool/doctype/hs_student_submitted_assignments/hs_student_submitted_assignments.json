@@ -6,8 +6,9 @@
  "engine": "InnoDB",
  "field_order": [
   "assignment_id",
+  "files",
   "student_id",
-  "file"
+  "tutor_id"
  ],
  "fields": [
   {
@@ -17,21 +18,27 @@
    "options": "HS Student Assignments"
   },
   {
+   "fieldname": "files",
+   "fieldtype": "Long Text",
+   "label": "File"
+  },
+  {
    "fieldname": "student_id",
    "fieldtype": "Link",
    "label": "Student ID",
    "options": "Student"
   },
   {
-   "fieldname": "file",
-   "fieldtype": "Long Text",
-   "label": "File"
+   "fieldname": "tutor_id",
+   "fieldtype": "Link",
+   "label": "Tutor Id",
+   "options": "Tutors"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-09-25 11:56:27.351144",
+ "modified": "2025-09-25 19:45:29.225251",
  "modified_by": "Administrator",
  "module": "happyschool",
  "name": "HS Student Submitted Assignments",
