@@ -52,7 +52,6 @@ def submit_student_assignment_by_tutor():
             })
             return
 
-        # Validate student-course enrollment
         enrolled = frappe.db.exists(
             "User Courses",
             {"student_id": student_id, "course_id": course_id, "is_active": "Active"}
@@ -78,12 +77,10 @@ def submit_student_assignment_by_tutor():
             filename = f.filename
             content = f.read()
 
-            # Detect file type
             mime_type, _ = mimetypes.guess_type(filename)
             if not mime_type:
                 mime_type = "application/octet-stream"
 
-            # Encode folder + filename safely
             folder_encoded = quote(FOLDER_NAME)
             filename_encoded = quote(filename)
 
@@ -104,7 +101,8 @@ def submit_student_assignment_by_tutor():
                 return
 
             assignment_files.append({
-                "url": upload_url
+                "url": upload_url,
+                "type":mime_type
             })
 
         # ---------- Save Assignment ----------
@@ -127,7 +125,9 @@ def submit_student_assignment_by_tutor():
         frappe.local.response.update({
             "success": True,
             "message": "Student Assignment submitted successfully",
-            "assignment_id": doc.name
+            "assignment_id": doc.name,
+             "file_type": assignment_files[0]["type"] if assignment_files else None
+
         })
 
     except Exception as e:
@@ -236,6 +236,9 @@ def submit_student_assignment_answer():
             "success": True,
             "message": "Assignment submitted successfully",
             "submission_id": doc.name,
+            "file_type": file_array[0]["type"] if file_array else None
+                
+            
 
         })
 
