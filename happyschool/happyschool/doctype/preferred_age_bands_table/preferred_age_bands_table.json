@@ -12,7 +12,9 @@
   {
    "fieldname": "preferred_age_bands_table",
    "fieldtype": "Link",
-   "label": "Preferred Age Bands Table",
+   "in_list_view": 1,
+   "in_preview": 1,
+   "label": "Preferred Age Bands",
    "options": "Preferred Age Bands"
   }
  ],
@@ -20,7 +22,7 @@
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2025-09-15 12:15:15.177198",
+ "modified": "2025-09-26 09:52:05.209926",
  "modified_by": "Administrator",
  "module": "happyschool",
  "name": "Preferred Age bands Table",

@@ -19,4 +19,17 @@ def add_demo_url(url):
         frappe.throw("Please complete your Tutor Profile before adding a demo URL.")
     tutor_profile = frappe.get_doc("Tutor Profile", check_user)
     tutor_profile.demo_url = url
+    tutor_profile.status = "Interview Pending"
     tutor_profile.save(ignore_permissions=True)
+
+@frappe.whitelist()
+def get_existing_demo_url():
+    tu_pro = frappe.get_doc("Tutor Profile", {"user": frappe.session.user})
+    if not tu_pro.demo_url:
+        return None
+    return tu_pro.demo_url
+
+@frappe.whitelist()
+def get_tutor_status():
+    tutor_profile = frappe.get_doc("Tutor Profile", {"user": frappe.session.user})
+    return tutor_profile.status

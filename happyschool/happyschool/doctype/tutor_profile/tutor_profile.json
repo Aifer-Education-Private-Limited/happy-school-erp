@@ -1,43 +1,50 @@
 {
  "actions": [],
  "allow_rename": 1,
- "autoname": "field:tutor_id",
+ "autoname": "format:AI-HS-TUT-{YYYY}-{#####}",
  "creation": "2025-09-12 15:08:56.276462",
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
-  "tutor_id",
   "full_name",
   "dob",
   "gender",
+  "aadhar_number",
   "column_break_gjdv",
   "contact_number",
   "contact_email",
   "user",
+  "status",
   "column_break_ohjg",
   "time_zone",
   "highest_qualification",
   "demo_url",
+  "image",
+  "cv",
   "section_break_dtxr",
   "certifications",
   "subject_expertise",
   "section_break_dkqm",
   "column_break_reor",
-  "curriculum_expertise",
   "years_of_experience",
-  "sen_experience",
+  "bridge_course_y_n",
+  "bridge_course",
   "column_break_ksmh",
-  "teaching_style_table",
   "pace_adaptability",
   "weekly_capacity_hours",
   "reschedule_flex",
+  "section_break_dpeg",
+  "curriculum_expertise",
+  "engagement_style",
+  "sen_experience",
+  "column_break_lhuf",
+  "teaching_style_table",
+  "preferred_age_bands_table",
+  "platform_familiarity",
   "section_break_znmd",
   "device_type",
+  "column_break_bjqe",
   "internet_bandwidth",
-  "platform_familiarity",
-  "column_break_ldqh",
-  "engagement_style",
-  "preferred_age_bands_table",
   "section_break_czrb",
   "availability_slots_table",
   "section_break_dbxn",
@@ -52,12 +59,6 @@
   "performance_metrics"
  ],
  "fields": [
-  {
-   "fieldname": "tutor_id",
-   "fieldtype": "Data",
-   "label": "Tutor ID",
-   "unique": 1
-  },
   {
    "fieldname": "full_name",
    "fieldtype": "Data",
@@ -94,18 +95,19 @@
   {
    "fieldname": "years_of_experience",
    "fieldtype": "Float",
-   "label": "Years of Experience"
+   "label": "Years of Experience In Online Teaching"
   },
   {
    "fieldname": "weekly_capacity_hours",
    "fieldtype": "Float",
+   "hidden": 1,
    "label": "Weekly Capacity Hours"
   },
   {
    "fieldname": "reschedule_flex",
    "fieldtype": "Select",
-   "label": "Reschedule Flex",
-   "options": "\nLow\nMedium\nHigh"
+   "label": "Are You OK Rescheduling the Sessions if Situation Demands",
+   "options": "\nYes\nNo"
   },
   {
    "fieldname": "device_type",
@@ -121,7 +123,7 @@
   },
   {
    "fieldname": "platform_familiarity",
-   "fieldtype": "Table MultiSelect",
+   "fieldtype": "Table",
    "label": "Platform Familiarity",
    "options": "Platform Familiarity Table"
   },
@@ -161,7 +163,7 @@
   },
   {
    "fieldname": "curriculum_expertise",
-   "fieldtype": "Table MultiSelect",
+   "fieldtype": "Table",
    "label": "Curriculum Expertise",
    "options": "Curriculum Expertise Table"
   },
@@ -173,13 +175,13 @@
   },
   {
    "fieldname": "sen_experience",
-   "fieldtype": "Table MultiSelect",
+   "fieldtype": "Table",
    "label": "Sen Experience",
    "options": "Sen Experience Table"
   },
   {
    "fieldname": "teaching_style_table",
-   "fieldtype": "Table MultiSelect",
+   "fieldtype": "Table",
    "label": "Teaching Style",
    "options": "Teaching Style Table"
   },
@@ -197,14 +199,14 @@
   },
   {
    "fieldname": "engagement_style",
-   "fieldtype": "Table MultiSelect",
+   "fieldtype": "Table",
    "label": "Engagement Style",
    "options": "Engagement Style Table"
   },
   {
    "fieldname": "preferred_age_bands_table",
-   "fieldtype": "Table MultiSelect",
-   "label": "Preferred Age bands Table",
+   "fieldtype": "Table",
+   "label": "Preferred Age bands",
    "options": "Preferred Age bands Table"
   },
   {
@@ -245,10 +247,6 @@
    "fieldtype": "Section Break"
   },
   {
-   "fieldname": "column_break_ldqh",
-   "fieldtype": "Column Break"
-  },
-  {
    "fieldname": "column_break_nmvn",
    "fieldtype": "Column Break"
   },
@@ -282,16 +280,63 @@
    "fieldname": "demo_url",
    "fieldtype": "Data",
    "label": "Demo URL"
+  },
+  {
+   "fieldname": "aadhar_number",
+   "fieldtype": "Data",
+   "label": "Aadhar Number",
+   "unique": 1
+  },
+  {
+   "fieldname": "image",
+   "fieldtype": "Attach Image",
+   "label": "Image"
+  },
+  {
+   "fieldname": "cv",
+   "fieldtype": "Attach",
+   "label": "CV"
+  },
+  {
+   "default": "Profile Uploaded",
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "label": "Status",
+   "options": "\nProfile Uploaded\nDemo Uploaded\nExam Failed\nExam Passed\nRejected\nInterview Pending\nSelected"
+  },
+  {
+   "fieldname": "bridge_course",
+   "fieldtype": "Data",
+   "label": "Bridge Course"
+  },
+  {
+   "fieldname": "bridge_course_y_n",
+   "fieldtype": "Select",
+   "label": "Are You Completed Bridge Course?",
+   "options": "\nYes\nNo"
+  },
+  {
+   "fieldname": "section_break_dpeg",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "column_break_lhuf",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "column_break_bjqe",
+   "fieldtype": "Column Break"
   }
  ],
  "grid_page_length": 50,
+ "image_field": "image",
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-09-22 16:24:14.104840",
+ "modified": "2025-09-26 11:07:26.166847",
  "modified_by": "Administrator",
  "module": "happyschool",
  "name": "Tutor Profile",
- "naming_rule": "By fieldname",
+ "naming_rule": "Expression",
  "owner": "Administrator",
  "permissions": [
   {
