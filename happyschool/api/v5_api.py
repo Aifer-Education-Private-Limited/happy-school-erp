@@ -19,7 +19,7 @@ def get_students_parents_tutors(tutor_id=None, student_id=None, parent_id=None, 
                     student = frappe.get_value(
                         "Student",
                         s.student_id,
-                        ["name", "first_name", "student_name", "custom_parent_id", "custom_profile"],
+                        ["name as id", "first_name", "student_name", "custom_parent_id", "custom_profile"],
                         as_dict=True
                     )
                     student["chat_subject"] = f"{tutor_id}_{s.student_id}"
@@ -31,7 +31,7 @@ def get_students_parents_tutors(tutor_id=None, student_id=None, parent_id=None, 
                             parent = frappe.get_value(
                                 "Parents",
                                 student["custom_parent_id"],
-                                ["name", "first_name", "last_name", "profile"],
+                                ["name as id", "first_name", "last_name", "profile"],
                                 as_dict=True
                             )
                             if parent:
@@ -67,7 +67,7 @@ def get_students_parents_tutors(tutor_id=None, student_id=None, parent_id=None, 
                     tutor = frappe.get_value(
                         "Tutors",
                         t.tutor_id,
-                        ["name", "tutor_name", "subject"],
+                        ["name as id", "tutor_name", "subject"],
                         as_dict=True
                     )
                     tutor["chat_subject"] = f"{t.tutor_id}_{student_id or ''}"
