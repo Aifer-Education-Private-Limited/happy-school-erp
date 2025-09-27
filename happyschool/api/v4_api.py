@@ -842,6 +842,29 @@ def get_progress_report(student_id=None, course_id=None):
 
                 # assignment_percentage = (submitted_assignments / total_assignments * 100) if total_assignments > 0 else 0
         assignment_percentage = int(round((submitted_assignments / total_assignments * 100))) if total_assignments > 0 else 0
+        
+         # --- Course Completion % (based on Live Classroom) ---
+        total_live_sessions = frappe.db.count("Live Classroom", {
+                    "student_id": student_id,
+                    "course_id": course_id
+                })
+        
+
+        completed_live_sessions = frappe.db.count("Live Classroom", {
+                    "student_id": student_id,
+                    "course_id": course_id,
+                    "status": "Completed"
+                })
+        scheduled_live_sessions = frappe.db.count("Live Classroom", {
+        "student_id": student_id,
+        "course_id": course_id,
+        "status": ["!=", "Completed"]
+                })
+         
+       
+
+                # completion_percentage = (completed_live_sessions / total_live_sessions * 100) if total_live_sessions > 0 else 0
+        complete_session_percentage = int(round((completed_live_sessions / total_live_sessions * 100))) if total_live_sessions > 0 else 0
 
         # -------- Final Response --------
         frappe.local.response.update({
@@ -859,6 +882,9 @@ def get_progress_report(student_id=None, course_id=None):
                 "attendance_percentage": round(attendance_percentage, 2),
                 "total_assignments": total_assignments,
                 "submitted_assignments": submitted_assignments,
+                "completed_live_sessions": completed_live_sessions,
+                "total_live_sessions":total_live_sessions,
+                "scheduled_live_sessions":scheduled_live_sessions,
                 "strong_areas": strong_areas,
                 "weak_areas": weak_areas,
                 "server_time": now_datetime()

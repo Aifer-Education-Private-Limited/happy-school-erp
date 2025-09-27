@@ -71,7 +71,7 @@ def submit_materials():
                     "message": f"Upload failed for {filename}: {response.text}"
                 } )
 
-            file_url = upload_url  # public/pre-authenticated URL
+            file_url = upload_url 
 
             assignment_array.append({
                 "file": filename,
@@ -365,7 +365,6 @@ def scheduled_session():
             "message": str(e)
         })
 
-import frappe
 
 @frappe.whitelist(allow_guest=True)
 def completed_live_sessions():
