@@ -7,15 +7,11 @@ from dateutil.relativedelta import relativedelta
 
 
 
-
-
-
-
 @frappe.whitelist(allow_guest=True)
 def get_home_page_details(student_id: str):
     """
     Home page details:
-      - Active courses (with test counts, attendance, weeks since joining per course)
+      - Active courses (with test counts, attendance, weeks since joining per course, assignment percentage)
       - Upcoming live classes
     """
     try:
@@ -96,6 +92,23 @@ def get_home_page_details(student_id: str):
                     delta = relativedelta(today_date, join_date)
                     weeks_completed = (delta.years * 52) + (delta.months * 4) + (delta.days // 7)
 
+                # --- Assignments (course-based) ---
+                total_assignments = frappe.db.count("HS Student Assignments", {
+                    "student_id": student_id,
+                    "course_id": course_id
+                })
+
+                submitted_assignments = frappe.db.sql("""
+                    SELECT COUNT(sub.name) AS cnt
+                    FROM `tabHS Student Submitted Assignments` sub
+                    INNER JOIN `tabHS Student Assignments` assign
+                        ON assign.name = sub.assignment_id
+                    WHERE sub.student_id = %s
+                      AND assign.course_id = %s
+                """, (student_id, course_id), as_dict=True)[0].cnt or 0
+
+                assignment_percentage = (submitted_assignments / total_assignments * 100) if total_assignments > 0 else 0
+
                 Course.append({
                     "course_id": course_id,
                     "title": course["title"],
@@ -108,7 +121,10 @@ def get_home_page_details(student_id: str):
                     "total_item_count": total_item_count,
                     "total_attended_count": total_attended_count,
                     "attendance_percentage": round(attendance_percentage, 2),
-                    "total_weeks_completed": weeks_completed
+                    "total_weeks_completed": weeks_completed,
+                    # "total_assignments": total_assignments,
+                    # "submitted_assignments": submitted_assignments,
+                    "assignment_percentage": round(assignment_percentage, 2)
                 })
 
             # 3. Upcoming live classes
@@ -148,6 +164,7 @@ def get_home_page_details(student_id: str):
             "success": False,
             "error": str(e)
         })
+
 
 
 

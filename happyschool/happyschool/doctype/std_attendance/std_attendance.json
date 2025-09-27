@@ -63,13 +63,13 @@
    "fieldname": "attendance",
    "fieldtype": "Select",
    "label": "Attendance",
-   "options": "Present\nAbsent"
+   "options": "Present\nAbsent\nScheduled"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-09-19 09:59:11.579493",
+ "modified": "2025-09-26 17:42:46.030329",
  "modified_by": "Administrator",
  "module": "happyschool",
  "name": "Std Attendance",
