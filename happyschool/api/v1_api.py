@@ -7,11 +7,12 @@ from dateutil.relativedelta import relativedelta
 
 
 
+
 @frappe.whitelist(allow_guest=True)
 def get_home_page_details(student_id: str):
     """
     Home page details:
-      - Active courses (with test counts, attendance, weeks since joining per course, assignment percentage)
+      - Active courses (with test counts, attendance, weeks since joining, assignment %, completion %)
       - Upcoming live classes
     """
     try:
@@ -81,9 +82,11 @@ def get_home_page_details(student_id: str):
                     "attendance": "Absent"
                 })
                 total_sessions = present_count + absent_count
-                attendance_percentage = (present_count / total_sessions * 100) if total_sessions > 0 else 0
+                # attendance_percentage = (present_count / total_sessions * 100) if total_sessions > 0 else 0
+                attendance_percentage = int(round((present_count / total_sessions * 100))) if total_sessions > 0 else 0
 
-                # --- Weeks since joining this course (admission_date from User Courses) ---
+
+                # --- Weeks since joining this course ---
                 weeks_completed = 0
                 admission_date = admission_map.get(course_id)
                 if admission_date:
@@ -107,7 +110,25 @@ def get_home_page_details(student_id: str):
                       AND assign.course_id = %s
                 """, (student_id, course_id), as_dict=True)[0].cnt or 0
 
-                assignment_percentage = (submitted_assignments / total_assignments * 100) if total_assignments > 0 else 0
+                # assignment_percentage = (submitted_assignments / total_assignments * 100) if total_assignments > 0 else 0
+                assignment_percentage = int(round((submitted_assignments / total_assignments * 100))) if total_assignments > 0 else 0
+
+
+                # --- Course Completion % (based on Live Classroom) ---
+                total_live_sessions = frappe.db.count("Live Classroom", {
+                    "student_id": student_id,
+                    "course_id": course_id
+                })
+
+                completed_live_sessions = frappe.db.count("Live Classroom", {
+                    "student_id": student_id,
+                    "course_id": course_id,
+                    "status": "Completed"
+                })
+
+                # completion_percentage = (completed_live_sessions / total_live_sessions * 100) if total_live_sessions > 0 else 0
+                completion_percentage = int(round((completed_live_sessions / total_live_sessions * 100))) if total_live_sessions > 0 else 0
+
 
                 Course.append({
                     "course_id": course_id,
@@ -122,9 +143,11 @@ def get_home_page_details(student_id: str):
                     "total_attended_count": total_attended_count,
                     "attendance_percentage": round(attendance_percentage, 2),
                     "total_weeks_completed": weeks_completed,
-                    # "total_assignments": total_assignments,
-                    # "submitted_assignments": submitted_assignments,
-                    "assignment_percentage": round(assignment_percentage, 2)
+                    "assignment_percentage": round(assignment_percentage, 2),
+                    "completed_live_sessions":completed_live_sessions,
+                    "total_live_sessions":total_live_sessions,    
+                    # "session_completion_percentage": round(completion_percentage, 2),
+
                 })
 
             # 3. Upcoming live classes

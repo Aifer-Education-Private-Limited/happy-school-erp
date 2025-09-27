@@ -250,8 +250,8 @@ def submit_student_assignment_answer():
         })
 
 
-import frappe, json
-from frappe.utils import now_datetime
+
+
 
 @frappe.whitelist(allow_guest=True)
 def list_assignments(role=None, tutor_id=None, student_id=None, course_id=None):
@@ -304,11 +304,14 @@ def list_assignments(role=None, tutor_id=None, student_id=None, course_id=None):
             )
 
             for a in assignments:
-                urls = []
+                files = []
                 if a.files:
                     try:
                         files_list = json.loads(a.files)
-                        urls = [f.get("url") for f in files_list if f.get("url")]
+                        files = [
+                            {"url": f.get("url"), "type": f.get("type")}
+                            for f in files_list if f.get("url")
+                        ]
                     except Exception:
                         pass
 
@@ -336,7 +339,7 @@ def list_assignments(role=None, tutor_id=None, student_id=None, course_id=None):
                     "assignment_name": a.assignment_name,
                     "topic": a.topic,
                     "subtopic": a.subtopic,
-                    "files": urls,
+                    "files": files,
                     "description": a.description,
                     "given_date": a.creation,
                     "status": status,
@@ -361,11 +364,14 @@ def list_assignments(role=None, tutor_id=None, student_id=None, course_id=None):
             )
 
             for s in submissions:
-                urls = []
+                files = []
                 if s.files:
                     try:
                         files_list = json.loads(s.files)
-                        urls = [f.get("url") for f in files_list if f.get("url")]
+                        files = [
+                            {"url": f.get("url"), "type": f.get("type")}
+                            for f in files_list if f.get("url")
+                        ]
                     except Exception:
                         pass
 
@@ -389,7 +395,7 @@ def list_assignments(role=None, tutor_id=None, student_id=None, course_id=None):
                     "topic": assignment_details.topic,
                     "subtopic": assignment_details.subtopic,
                     "course_id": assignment_details.course_id,
-                    "files": urls,
+                    "files": files,
                     "submitted_date": s.creation
                 })
 
@@ -415,6 +421,7 @@ def list_assignments(role=None, tutor_id=None, student_id=None, course_id=None):
             "message": str(e),
             "data": []
         })
+
 
 
 

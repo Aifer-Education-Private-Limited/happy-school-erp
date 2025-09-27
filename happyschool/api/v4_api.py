@@ -703,7 +703,6 @@ def get_analytics():
 
 
 
-
 @frappe.whitelist(allow_guest=True)
 def get_progress_report(student_id=None, course_id=None):
     try:
@@ -714,6 +713,15 @@ def get_progress_report(student_id=None, course_id=None):
                 "data": {}
             })
             return
+         # ✅ Validate Student exists
+        if not frappe.db.exists("Student", student_id):
+            frappe.local.response.update({
+                "success": False,
+                "message": f"Student {student_id} not found",
+                "data": {}
+            })
+            return
+        
 
         # -------- 1. Fetch all tests assigned to student (HS Student Tests) --------
         assigned_tests = frappe.get_all(
@@ -801,7 +809,6 @@ def get_progress_report(student_id=None, course_id=None):
                 else:
                     weak_areas.append(topic_info)
 
-        # -------- 7. Attendance calculation --------
         present_count = frappe.db.count("Std Attendance", {
             "student_id": student_id,
             # "course_id": course_id,
@@ -818,6 +825,23 @@ def get_progress_report(student_id=None, course_id=None):
 
         # -------- 8. Test Completion percentage --------
         completion_percentage = (attended_count / total_tests * 100) if total_tests > 0 else 0
+        # --- Assignments (course-based) ---
+        total_assignments = frappe.db.count("HS Student Assignments", {
+                    "student_id": student_id,
+                    "course_id": course_id
+                })
+
+        submitted_assignments = frappe.db.sql("""
+                    SELECT COUNT(sub.name) AS cnt
+                    FROM `tabHS Student Submitted Assignments` sub
+                    INNER JOIN `tabHS Student Assignments` assign
+                        ON assign.name = sub.assignment_id
+                    WHERE sub.student_id = %s
+                      AND assign.course_id = %s
+                """, (student_id, course_id), as_dict=True)[0].cnt or 0
+
+                # assignment_percentage = (submitted_assignments / total_assignments * 100) if total_assignments > 0 else 0
+        assignment_percentage = int(round((submitted_assignments / total_assignments * 100))) if total_assignments > 0 else 0
 
         # -------- Final Response --------
         frappe.local.response.update({
@@ -833,6 +857,8 @@ def get_progress_report(student_id=None, course_id=None):
                 "wrong_answers": wrong_count,
                 "completion_percentage": round(completion_percentage, 2),
                 "attendance_percentage": round(attendance_percentage, 2),
+                "total_assignments": total_assignments,
+                "submitted_assignments": submitted_assignments,
                 "strong_areas": strong_areas,
                 "weak_areas": weak_areas,
                 "server_time": now_datetime()

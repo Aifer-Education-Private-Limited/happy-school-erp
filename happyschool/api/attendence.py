@@ -7,9 +7,6 @@ from frappe import _
 
 
 
-import frappe
-from frappe import _
-from frappe.utils import nowdate, now_datetime
 
 @frappe.whitelist(allow_guest=True)
 def make_attendance(student_id, confirm, session_id, course_id=None, tutor_id=None, rating=None, review=None, attendance=None):
