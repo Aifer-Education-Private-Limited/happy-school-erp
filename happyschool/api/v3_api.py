@@ -158,6 +158,7 @@ def create_program_enrollment():
 
 
         enroll = {
+            "name":program_enrollment.name,
             "program": program_enrollment.program,
             "student_id": program_enrollment.student,
             "student_name": student_name,
@@ -403,12 +404,9 @@ def student_course_enrollment():
     try:
         data = json.loads(frappe.request.data)
 
-
+        grade=data.get("grade")
+        board=data.get("board")
         student_id = data.get("student_id")
-        tutor_id = data.get("tutor_id")
-        admission_date = data.get("admission_date")
-        is_active = data.get("is_active")
-        session_count = data.get("session_count")
         programs = data.get("programs", [])
 
         if not student_id:
@@ -420,15 +418,6 @@ def student_course_enrollment():
         if enrollment_name:
             # ✅ Update existing enrollment
             enrollment_doc = frappe.get_doc("HS Student Course Enrollment", enrollment_name)
-
-            if tutor_id: 
-                enrollment_doc.tutor = tutor_id
-            if admission_date: 
-                enrollment_doc.admission_date = admission_date
-            if is_active is not None: 
-                enrollment_doc.is_active = is_active
-            if session_count: 
-                enrollment_doc.session_count = session_count
 
             # Handle program updates
             for prog in programs:
@@ -449,13 +438,19 @@ def student_course_enrollment():
                 # Get course & session count
                 course_id = frappe.db.get_value("Courses", {"title": program_title}, "course_id")
                 session_count = frappe.db.get_value("User Courses", {"course_id": course_id}, "session_count")
+                program_enroll_date = frappe.db.get_value(
+                    "HS Program Enrollment",
+                    {"name":program_enrollment_id},
+                    "enrollment_date"
+                )
+
 
                 # Append child row
                 enrollment_doc.append("enrolled_programs", {
                     "program_enrollment": program_enrollment_id,
                     "program": program_title,
                     "project": prog.get("project"),
-                    "date": prog.get("program_enroll_date"),
+                    "date": program_enroll_date,
                     "session_count": session_count
                 })
 
@@ -465,14 +460,16 @@ def student_course_enrollment():
             # ✅ Create new enrollment
             enrollment_doc = frappe.new_doc("HS Student Course Enrollment")
             enrollment_doc.student = student_id
-            enrollment_doc.tutor = tutor_id
+            enrollment_doc.grade = grade
+            enrollment_doc.board=board
+            enrollment_doc.posting_date=today()
             enrollment_doc.admission_date = admission_date
-            enrollment_doc.is_active = is_active
             enrollment_doc.session_count = session_count
 
             for prog in programs:
                 program_enrollment_id = prog.get("program_enrollment_id")
                 program_title = prog.get("program")
+                
 
                 # 🔎 Validate program enrollment against student
                 exists = frappe.db.exists(
@@ -487,12 +484,18 @@ def student_course_enrollment():
 
                 course_id = frappe.db.get_value("Courses", {"title": program_title}, "course_id")
                 session_count = frappe.db.get_value("User Courses", {"course_id": course_id}, "session_count")
+                program_enroll_date = frappe.db.get_value(
+                    "HS Program Enrollment",
+                    {"name":program_enrollment_id},
+                    "enrollment_date"
+                )
+
 
                 enrollment_doc.append("enrolled_programs", {
                     "program_enrollment": program_enrollment_id,
                     "program": program_title,
                     "project": prog.get("project"),
-                    "date": prog.get("program_enroll_date"),
+                    "date": program_enroll_date,
                     "session_count": session_count
                 })
 

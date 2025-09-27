@@ -280,6 +280,7 @@ def create_student():
             return
 
         existing_student = frappe.db.exists("Student", {
+            "first_name":student_name,
             "custom_parent_id": parent_id
         },"name")
         if existing_student:
