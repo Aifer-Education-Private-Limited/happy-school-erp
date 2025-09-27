@@ -274,15 +274,22 @@ def create_student():
         dob = data.get("dob")
         profile = data.get("profile")
 
-        # Check duplicate student
-        if frappe.db.exists("Student", {"student_name": student_name, "custom_parent_id": parent_id}):
-            frappe.local.response.update ( {"success": False, "message": "Already registered"} )
-            return
-
         # Check parent exists
         if not frappe.db.exists("Parents", {"name": parent_id}):
             frappe.local.response.update ( {"success": False, "message": f"Parent {parent_id} not found"} )
             return
+
+        existing_student = frappe.db.exists("Student", {
+            "custom_parent_id": parent_id
+        },"name")
+        if existing_student:
+            frappe.local.response.update({
+                "success": False,
+                "message": "Already registered",
+                "student_id": existing_student        
+            })
+            return
+        
 
 
         # Create student
@@ -305,6 +312,7 @@ def create_student():
         # Save
         student.insert(ignore_permissions=True)
         frappe.db.commit()
+        
 
         student_details = {
             "parent_id":student.custom_parent_id,
