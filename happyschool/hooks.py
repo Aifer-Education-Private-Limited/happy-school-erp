@@ -76,7 +76,7 @@ doctype_js={
 
 doc_events={
     "HS Lead": {
-        "validate": "happyschool.happyschool.doctype.hs_lead.hs_lead.validate_salesperson_limit",
+        # "validate": "happyschool.happyschool.doctype.hs_lead.hs_lead.validate_salesperson_limit",
         "after_insert":["happyschool.happyschool.doctype.hs_lead.hs_lead.create_or_update_opportunity_for_lead"],
         "on_update":"happyschool.happyschool.doctype.hs_lead.hs_lead.create_or_update_opportunity_for_lead"
     },

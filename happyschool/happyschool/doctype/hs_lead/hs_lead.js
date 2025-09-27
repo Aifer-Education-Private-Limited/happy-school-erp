@@ -6,6 +6,59 @@
 
 // 	},
 // });
+
+frappe.ui.form.on("Slot Booking", {
+    sales_person: function(frm, cdt, cdn) {
+        let row = locals[cdt][cdn];
+        if (!row.sales_person || !row.slot_date || !row.from_time) return;
+
+        frappe.call({
+            method: "happyschool.happyschool.doctype.hs_lead.hs_lead.check_salesperson_conflict",
+            args: {
+                sales_person: row.sales_person,
+                slot_date: row.slot_date,
+                from_time: row.from_time,
+                parent: frm.doc.name,
+                rowname: row.name
+            },
+            callback: function(r) {
+                if (r.message && r.message.conflict) {
+                    frappe.msgprint({
+                        title: "Assessment Booking Error",
+                        indicator: "red",
+                        message: __("This Sales Person is already booked for this date and time.")
+                    });
+
+                    frappe.model.set_value(cdt, cdn, "sales_person", "");
+                }
+            }
+        }); 
+        let booking = locals[cdt][cdn];   // renamed from row → booking
+        if (!booking.sales_person) return;
+
+        frappe.call({
+            method: "happyschool.happyschool.doctype.hs_lead.hs_lead.check_salesperson_daily_limit",
+            args: {
+                sales_person: booking.sales_person,
+                parent: frm.doc.name
+            },
+            callback: function(r) {
+                if (r.message && r.message.limit_exceeded) {
+                    frappe.msgprint({
+                        title: "Daily Limit Reached",
+                        indicator: "red",
+                        message: __(
+                            `Sales Person ${booking.sales_person} already has ${r.message.count} bookings today. Limit is 5.`
+                        )
+                    });
+
+                    frappe.model.set_value(cdt, cdn, "sales_person", "");
+                }
+            }
+        });
+    }
+});
+
 frappe.ui.form.on("HS Lead", {
    
     refresh: function(frm) {
@@ -90,28 +143,54 @@ frappe.ui.form.on("HS Lead", {
         updateActiveState();
 
         // Prospect click -> dialog
-        $("#prospect-step").on("click", function() {
+        $("#prospect-step").on("click", function () {
             const current = frm.doc.custom_pipeline_sub_status || "Open";
-            let d = new frappe.ui.Dialog({
+
+            const prospectDialog = new frappe.ui.Dialog({
                 title: "Select Prospect Status",
-                fields: [{
-                    label: "Sub Status",
-                    fieldname: "sub_status",
-                    fieldtype: "Select",
-                    options: ["Open", "Connected", "Not Connected"],
-                    reqd: 1,
-                    default: current
-                }],
+                fields: [
+                    {
+                        label: "Sub Status",
+                        fieldname: "sub_status",
+                        fieldtype: "Select",
+                        options: ["Open", "Connected", "Not Connected"],
+                        reqd: 1,
+                        default: current,
+                    },
+                    {
+                        label: "Remarks",
+                        fieldname: "remarks",
+                        fieldtype: "Small Text",
+                    },
+                ],
                 primary_action(values) {
-                    frm.set_value("custom_pipeline_status", "Prospect");
-                    frm.set_value("custom_pipeline_sub_status", values.sub_status);
-                    updateActiveState();
-                    frm.save();
-                    d.hide();
-                }
+                    if (values) {
+                        // update parent doc fields
+                        frm.set_value("custom_pipeline_status", "Prospect");
+                        frm.set_value("custom_pipeline_sub_status", values.sub_status);
+                        frm.set_value("custom_remarks", values.remarks);
+
+                        // add row to child table lead_remarks
+                        frm.add_child("lead_remarks", {
+                            status: "Prospect",
+                            sub_status: values.sub_status,
+                            remarks: values.remarks,
+                            user: frappe.session.user,
+                            date: frappe.datetime.now_datetime(),
+                        });
+
+                        frm.refresh_field("lead_remarks");
+
+                        updateActiveState();
+                        frm.save();
+                        prospectDialog.hide();
+                    }
+                },
             });
-            d.show();
+
+            prospectDialog.show();
         });
+
 
         $("#follow-up-step").on("click", function () {
             let is_clearing_date = false;
@@ -183,6 +262,7 @@ frappe.ui.form.on("HS Lead", {
                         frm.set_value("custom_pipeline_status", "Follow Up");
                         frm.set_value("custom_pipeline_sub_status", values.follow_up_status);
                         frm.set_value("custom_followup_date",values.followup_date)
+                        frm.set_value("custom_remarks",values.remarks)
                         // add row to child table lead_remarks
                         frm.add_child("lead_remarks", {
                             status: "Follow Up",
@@ -230,7 +310,8 @@ frappe.ui.form.on("HS Lead", {
             updateActiveState();
             frm.save();
         });
-       
+
+        
     },
     before_save:function(frm){
         console.log("✅ Lead refresh event triggered");
@@ -257,3 +338,4 @@ frappe.ui.form.on("HS Lead", {
     }
     
 });
+
