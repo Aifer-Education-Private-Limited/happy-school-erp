@@ -13,6 +13,8 @@
   "email",
   "parent_id",
   "time",
+  "student_name",
+  "grade",
   "column_break_lj8u",
   "state",
   "item_code",
@@ -119,12 +121,22 @@
    "fieldname": "program_datas",
    "fieldtype": "JSON",
    "label": "Program Datas"
+  },
+  {
+   "fieldname": "student_name",
+   "fieldtype": "Data",
+   "label": "Student Name"
+  },
+  {
+   "fieldname": "grade",
+   "fieldtype": "Int",
+   "label": "Grade"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-09-26 17:46:19.935025",
+ "modified": "2025-09-27 09:30:53.349358",
  "modified_by": "Administrator",
  "module": "happyschool",
  "name": "HS Transactions",
