@@ -111,7 +111,8 @@ def submit_materials():
 def student_list():
     """
     Get all student details under a given tutor,
-    including assigned, completed, and pending test counts.
+    including assigned, completed, pending test counts,
+    assignment completion percentage, and subject.
     """
     try:
         data = frappe.local.form_dict
@@ -135,7 +136,7 @@ def student_list():
         student_links = frappe.get_all(
             "Students List",
             filters={"tutor_id": tutor_id},
-            fields=["student_id", "subject"]
+            fields=["student_id", "course_id"]
         )
 
         if not student_links:
@@ -148,44 +149,77 @@ def student_list():
 
         students_data = []
         for link in student_links:
-            if frappe.db.exists("Student", link.student_id):
-                student_doc = frappe.get_doc("Student", link.student_id)
+            student_id = link.student_id
+            course_id = link.course_id
 
-                # -------- Tests data --------
-                # Assigned tests from HS Student Tests
-                assigned_tests = frappe.get_all(
-                    "HS Student Tests",
-                    filters={"student_id": link.student_id, "tutor_id": tutor_id},
+            if not frappe.db.exists("Student", student_id):
+                continue
+
+            student_doc = frappe.get_doc("Student", student_id)
+
+            # ✅ Fetch subject from Courses
+            subject = frappe.db.get_value("Courses", course_id, "subject") or ""
+
+            # -------- Tests data --------
+            assigned_tests = frappe.db.sql("""
+                SELECT st.test_id
+                FROM `tabHS Student Tests` st
+                INNER JOIN `tabTests` t ON st.test_id = t.name
+                WHERE st.student_id = %s
+                  AND st.tutor_id = %s
+                  AND t.course_id = %s
+            """, (student_id, tutor_id, course_id), as_dict=True)
+
+            assigned_test_ids = [t.test_id for t in assigned_tests]
+
+            completed_tests = []
+            if assigned_test_ids:
+                completed_tests = frappe.get_all(
+                    "Test User History",
+                    filters={"student_id": student_id, "test_id": ["in", assigned_test_ids]},
                     fields=["test_id"]
                 )
-                assigned_test_ids = [t.test_id for t in assigned_tests]
+            completed_test_ids = [t.test_id for t in completed_tests]
 
-                # Completed tests from Test User History
-                completed_tests = []
-                if assigned_test_ids:
-                    completed_tests = frappe.get_all(
-                        "Test User History",
-                        filters={"student_id": link.student_id, "test_id": ["in", assigned_test_ids]},
-                        fields=["test_id"]
-                    )
-                completed_test_ids = [t.test_id for t in completed_tests]
+            pending_count = len(assigned_test_ids) - len(completed_test_ids)
 
-                # Pending tests = assigned - completed
-                pending_count = len(assigned_test_ids) - len(completed_test_ids)
+            # -------- Assignments data --------
+            total_assignments = frappe.db.count("HS Student Assignments", {
+                "student_id": student_id,
+                "course_id": course_id
+            })
 
-                # -------- Student info --------
-                students_data.append({
-                    "student_id": student_doc.name,
-                    "student_name": student_doc.get("first_name"),
-                    "grade": student_doc.get("custom_grade"),
-                    "mobile": student_doc.get("student_mobile_number"),
-                    "profile": student_doc.get("custom_profile"),
-                    "join_date": student_doc.get("joining_date"),
-                    "subject": link.subject,
-                    "assigned_count": len(assigned_test_ids),
-                    "completed_count": len(completed_test_ids),
-                    "pending_count": pending_count
-                })
+            submitted_assignments = frappe.db.sql("""
+                SELECT COUNT(sub.name) AS cnt
+                FROM `tabHS Student Submitted Assignments` sub
+                INNER JOIN `tabHS Student Assignments` assign
+                    ON assign.name = sub.assignment_id
+                WHERE sub.student_id = %s
+                  AND assign.course_id = %s
+            """, (student_id, course_id), as_dict=True)[0].cnt or 0
+
+            assignment_percentage = (
+                int(round((submitted_assignments / total_assignments * 100)))
+                if total_assignments > 0 else 0
+            )
+
+            # -------- Student info --------
+            students_data.append({
+                "student_id": student_doc.name,
+                "student_name": student_doc.get("first_name"),
+                "grade": student_doc.get("custom_grade"),
+                "mobile": student_doc.get("student_mobile_number"),
+                "profile": student_doc.get("custom_profile"),
+                "join_date": student_doc.get("joining_date"),
+                "course_id": course_id,
+                "subject": subject,
+                "assigned_count": len(assigned_test_ids),
+                "completed_count": len(completed_test_ids),
+                "pending_count": pending_count,
+                "total_assignments": total_assignments,
+                "submitted_assignments": submitted_assignments,
+                "assignment_percentage": assignment_percentage
+            })
 
         frappe.local.response.update({
             "success": True,
@@ -200,17 +234,13 @@ def student_list():
             "message": str(e)
         })
 
-
-
+import frappe
+from frappe.utils import nowdate, get_first_day, get_last_day
 
 @frappe.whitelist(allow_guest=True)
 def tutor_profile():
     """
-    Get tutor profile details with sessions completed & active students.
-    Request body:
-        {
-            "tutor_id": ""
-        }
+    Get tutor profile details with sessions completed, pending, and monthly stats.
     """
     try:
         data = frappe.local.form_dict
@@ -235,32 +265,46 @@ def tutor_profile():
         tutor_data = {
             "tutor_id": tutor_doc.name,
             "tutor_name": tutor_doc.get("tutor_name"),
-            "profile": tutor_doc.get("profile"),   
+            "profile": tutor_doc.get("profile"),
             "email": tutor_doc.get("email"),
             "location": tutor_doc.get("location"),
             "phone": tutor_doc.get("phone"),
-            "rating":""
+            "rating": ""
         }
 
-        completed_sessions = 0
-        live_classes = frappe.get_all("Live Classroom", fields=["student_id"])
-
-        for lc in live_classes:
-            student_id = lc.student_id
-            if not student_id:
-                continue
-
-            if frappe.db.exists("Students List", {"tutor_id": tutor_id, "student_id": student_id}):
-                completed_sessions += 1
-
+        # ✅ Total Completed Sessions
+        completed_sessions = frappe.db.count(
+            "Live Classroom",
+            {"tutor_id": tutor_id, "status": "Completed"}
+        )
         tutor_data["sessions_completed"] = completed_sessions
 
-       
-        # Count total students assigned to this tutor from Students List
+        # ✅ Pending Sessions
+        pending_sessions = frappe.db.count(
+            "Live Classroom",
+            {"tutor_id": tutor_id, "status": "Scheduled"}
+        )
+        tutor_data["sessions_pending"] = pending_sessions
+
+        # ✅ Monthly Completed Sessions (only current month)
+        today = nowdate()
+        start_date = get_first_day(today)
+        end_date = get_last_day(today)
+
+        monthly_completed = frappe.db.count(
+            "Live Classroom",
+            {
+                "tutor_id": tutor_id,
+                "status": "Completed",
+                "scheduled_date": ["between", [start_date, end_date]]
+            }
+        )
+        tutor_data["monthly_sessions_completed"] = monthly_completed
+
+        # ✅ Students Count
         students_count = frappe.db.count("Students List", {"tutor_id": tutor_id})
         tutor_data["students_count"] = students_count
 
-        # ---- Final Response ----
         frappe.local.response.update({
             "success": True,
             "tutor_profile": tutor_data
