@@ -463,9 +463,6 @@ def student_course_enrollment():
             enrollment_doc.grade = grade
             enrollment_doc.board=board
             enrollment_doc.posting_date=today()
-            enrollment_doc.admission_date = admission_date
-            enrollment_doc.session_count = session_count
-
             for prog in programs:
                 program_enrollment_id = prog.get("program_enrollment_id")
                 program_title = prog.get("program")
