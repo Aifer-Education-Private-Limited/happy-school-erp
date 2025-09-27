@@ -396,96 +396,114 @@ def make_transactions():
 			"error": str(e),
 		}
 
+
+
 @frappe.whitelist(allow_guest=True)
 def student_course_enrollment():
     try:
         data = json.loads(frappe.request.data)
 
-        parent_id = data.get("parent_id")
+
         student_id = data.get("student_id")
-        program = data.get("program")
-        project = data.get("project")
-        grade=data.get("grade")
-        board=data.get("board")
-        program_enrollment_id = data.get("program_enrollment_id")
-        date=data.get("program_enroll_date")
+        tutor_id = data.get("tutor_id")
+        admission_date = data.get("admission_date")
+        is_active = data.get("is_active")
+        session_count = data.get("session_count")
+        programs = data.get("programs", [])
 
-        if not student_id or not program:
-            return {
-                "status": "error",
-                "message": "Student and Program are required."
-            }
+        if not student_id:
+            return {"status": "error", "message": "student_id is required"}
 
-        # Fetch details
-        parent_first_name = frappe.db.get_value("Parents", {"name": parent_id}, "first_name") or ""
-        parent_last_name = frappe.db.get_value("Parents", {"name": parent_id}, "last_name") or ""
-        parent_name = f"{parent_first_name} {parent_last_name}".strip()
-        student_name = frappe.db.get_value("Student", {"name": student_id}, "first_name")
-        mobile=frappe.db.get_value("Parents",{"name":parent_id},"mobile_number")
-        email=frappe.db.get_value("Parents",{"name":parent_id},"email")
+        # 🔎 Check if enrollment exists
+        enrollment_name = frappe.db.get_value("HS Student Course Enrollment", {"student": student_id})
 
-        # 🔹 Step 1: Check if a Student Course Enrollment already exists
-        existing_enrollment = frappe.db.get_value(
-            "HS Student Course Enrollment", {"student": student_id}, "name"
-        )
+        if enrollment_name:
+            # ✅ Update existing enrollment
+            enrollment_doc = frappe.get_doc("HS Student Course Enrollment", enrollment_name)
 
-        if existing_enrollment:
-            # 🔹 Step 2: Load existing document and append child row
-            enrollment_doc = frappe.get_doc("HS Student Course Enrollment", existing_enrollment)
-            enrollment_doc.append("enrolled_programs", {
-                "program_enrollment": program_enrollment_id,
-                "program": program,
-                "project": project,
-                "date":date
-            })
+            if tutor_id: 
+                enrollment_doc.tutor = tutor_id
+            if admission_date: 
+                enrollment_doc.admission_date = admission_date
+            if is_active is not None: 
+                enrollment_doc.is_active = is_active
+            if session_count: 
+                enrollment_doc.session_count = session_count
+
+            # Handle program updates
+            for prog in programs:
+                program_enrollment_id = prog.get("program_enrollment_id")
+                program_title = prog.get("program")
+
+                # 🔎 Validate program enrollment against student
+                exists = frappe.db.exists(
+                    "HS Program Enrollment",
+                    {"name": program_enrollment_id, "student": student_id}
+                )
+                if not exists:
+                    return {
+                        "status": "error",
+                        "message": f"Program Enrollment {program_enrollment_id} not found for Student {student_id}"
+                    }
+
+                # Get course & session count
+                course_id = frappe.db.get_value("Courses", {"title": program_title}, "course_id")
+                session_count = frappe.db.get_value("User Courses", {"course_id": course_id}, "session_count")
+
+                # Append child row
+                enrollment_doc.append("enrolled_programs", {
+                    "program_enrollment": program_enrollment_id,
+                    "program": program_title,
+                    "project": prog.get("project"),
+                    "date": prog.get("program_enroll_date"),
+                    "session_count": session_count
+                })
+
             enrollment_doc.save(ignore_permissions=True)
-            frappe.db.commit()
-
-            return {
-                "status": "success",
-                "message": "Program added to existing student enrollment.",
-                "enrollment_id": enrollment_doc.name,
-                "program_enrollment_id": program_enrollment_id
-            }
 
         else:
-            # 🔹 Step 3: Create new Student Course Enrollment
-            new_doc = frappe.new_doc("HS Student Course Enrollment")
-            new_doc.parent1=parent_id
-            new_doc.student = student_id
-            new_doc.mobile=mobile
-            new_doc.email=email
-            new_doc.grade=grade
-            new_doc.board=board
-            new_doc.posting_date=today()
-            new_doc.student_name = student_name
-            new_doc.parent = parent_id
-            new_doc.parent_name = parent_name
-            new_doc.status = "Active"
+            # ✅ Create new enrollment
+            enrollment_doc = frappe.new_doc("HS Student Course Enrollment")
+            enrollment_doc.student = student_id
+            enrollment_doc.tutor = tutor_id
+            enrollment_doc.admission_date = admission_date
+            enrollment_doc.is_active = is_active
+            enrollment_doc.session_count = session_count
 
-            new_doc.append("enrolled_programs", {
-                "program_enrollment": program_enrollment_id,
-                "program": program,
-                "project": project,
-                "date":date
-            })
+            for prog in programs:
+                program_enrollment_id = prog.get("program_enrollment_id")
+                program_title = prog.get("program")
 
-            new_doc.insert(ignore_permissions=True)
-            frappe.db.commit()
+                # 🔎 Validate program enrollment against student
+                exists = frappe.db.exists(
+                    "HS Program Enrollment",
+                    {"name": program_enrollment_id, "student": student_id}
+                )
+                if not exists:
+                    return {
+                        "status": "error",
+                        "message": f"Program Enrollment {program_enrollment_id} not found for Student {student_id}"
+                    }
 
-            return {
-                "status": "success",
-                "message": "New student course enrollment created.",
-                "enrollment_id": new_doc.name,
-                "program_enrollment_id": program_enrollment_id
-            }
+                course_id = frappe.db.get_value("Courses", {"title": program_title}, "course_id")
+                session_count = frappe.db.get_value("User Courses", {"course_id": course_id}, "session_count")
+
+                enrollment_doc.append("enrolled_programs", {
+                    "program_enrollment": program_enrollment_id,
+                    "program": program_title,
+                    "project": prog.get("project"),
+                    "date": prog.get("program_enroll_date"),
+                    "session_count": session_count
+                })
+
+            enrollment_doc.insert(ignore_permissions=True)
+
+        frappe.db.commit()
+        return {"status": "success", "message": "Enrollment saved successfully", "enrollment_id": enrollment_doc.name}
 
     except Exception as e:
-        frappe.log_error(frappe.get_traceback(), "student_course_enrollment API Error")
-        return {
-            "status": "error",
-            "message": str(e)
-        }
+        frappe.log_error(frappe.get_traceback(), "Enrollment API Error")
+        return {"status": "error", "message": str(e)}
 
 @frappe.whitelist(allow_guest=True)
 def create_user_courses(program):
