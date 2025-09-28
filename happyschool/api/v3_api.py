@@ -573,3 +573,54 @@ def create_user_courses(program):
         }
 
 
+@frappe.whitelist(allow_guest=True)
+def get_details_using_txn_id(txn_id):
+    try:
+        # Find the sales invoice using custom_txn_id
+        sales_invoice = frappe.get_value("Sales Invoice", {"custom_txn_id": txn_id}, "name")
+
+        if not sales_invoice:
+            frappe.local.response.update({
+                "success": False,
+                "message": f"No Sales Invoice found for transaction ID {txn_id}"
+            })
+            return
+
+        # Load the full Sales Invoice document
+        doc = frappe.get_doc("Sales Invoice", sales_invoice)
+
+        # Basic fields
+        customer = doc.customer
+        parent = doc.custom_parent
+        customer_paid=doc.items[0].rate if doc.items else None
+
+        # Collect all program & rate from custom_hs_items
+        programs = []
+        for row in doc.custom_hs_items:
+            programs.append({
+                "program": row.program,
+                "rate": row.rate,
+                "session_count":row.qty
+            })
+
+        frappe.local.response.update({
+            "success": True,
+            "sales_invoice": sales_invoice,
+            "customer": customer,
+            "customer_paid":customer_paid,
+            "parent": parent,
+            "programs": programs,
+        })
+
+    except Exception as e:
+        frappe.local.response.update({
+            "success": False,
+            "message": f"An error occurred: {str(e)}"
+        })
+
+
+            
+
+    
+
+
