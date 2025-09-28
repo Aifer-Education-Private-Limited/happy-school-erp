@@ -25,8 +25,9 @@
   },
   {
    "fieldname": "user_id",
-   "fieldtype": "Data",
-   "label": "User Id"
+   "fieldtype": "Link",
+   "label": "User Id",
+   "options": "User"
   },
   {
    "fieldname": "mobile_no",
@@ -41,7 +42,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-09-07 18:17:01.463653",
+ "modified": "2025-09-27 18:13:47.824001",
  "modified_by": "Administrator",
  "module": "happyschool",
  "name": "Pre-sales Person",
