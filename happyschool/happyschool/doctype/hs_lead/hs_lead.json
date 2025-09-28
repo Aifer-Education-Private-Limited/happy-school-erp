@@ -67,8 +67,9 @@
   },
   {
    "fieldname": "custom_pipeline_sub_status",
-   "fieldtype": "Data",
-   "label": "Sub Status"
+   "fieldtype": "Select",
+   "label": "Sub Status",
+   "options": "Open\nConnected\nNot Connected\nInterested\nNot Interested\nMaybe Later\nDisqualified"
   },
   {
    "fieldname": "custom_student_name",
@@ -191,7 +192,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-09-25 17:01:50.426884",
+ "modified": "2025-09-27 17:49:52.857940",
  "modified_by": "Administrator",
  "module": "happyschool",
  "name": "HS Lead",
