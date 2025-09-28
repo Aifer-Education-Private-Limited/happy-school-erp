@@ -19,7 +19,10 @@
   "column_break_szqv",
   "custom_assessment_status",
   "pipeline_status",
-  "custom_sub_status"
+  "custom_sub_status",
+  "opportunity_remarks",
+  "comments_tab",
+  "opp_remarks"
  ],
  "fields": [
   {
@@ -96,13 +99,29 @@
    "fieldname": "custom_sub_status",
    "fieldtype": "Select",
    "label": "Sub Status",
-   "options": "Open\nProspect\nAssessment\nConnected\nNot Connected\nDS\nLP\nScheduled\nCompleted\nReport Shared\nMaybe Later\nLost"
+   "options": "Open\nProspect\nAssessment\nConnected\nNot Connected\nDS\nLP\nFollowUp\nScheduled\nCompleted\nReport Shared\nMaybe Later\nLost"
+  },
+  {
+   "fieldname": "comments_tab",
+   "fieldtype": "Tab Break",
+   "label": "Comments"
+  },
+  {
+   "fieldname": "opportunity_remarks",
+   "fieldtype": "Small Text",
+   "label": "Opportunity Remarks"
+  },
+  {
+   "fieldname": "opp_remarks",
+   "fieldtype": "Table",
+   "label": "Opportunity Remarks",
+   "options": "HS Lead Remarks"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-09-25 14:32:21.057728",
+ "modified": "2025-09-27 17:44:50.785594",
  "modified_by": "Administrator",
  "module": "happyschool",
  "name": "HS Opportunity",

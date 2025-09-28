@@ -36,6 +36,7 @@ frappe.ui.form.on("HS Opportunity", {
                     <span class="icon">F</span>
                     <div class="text">Assessment</div>
                     <div class="sub-steps" id="followup-sub-steps">
+                        <div class="sub-step" data-value="FollowUp"><span class="icon">F</span><div class="text">FollowUp</div></div>
                         <div class="sub-step" data-value="Scheduled"><span class="icon">S</span><div class="text">Scheduled</div></div>
                         <div class="sub-step" data-value="Completed"><span class="icon">C</span><div class="text">Completed</div></div>
                         <div class="sub-step" data-value="Report Shared"><span class="icon">RS</span><div class="text">Report Shared</div></div>
@@ -94,10 +95,25 @@ frappe.ui.form.on("HS Opportunity", {
                     options: ["Open", "Connected", "Not Connected"],
                     reqd: 1,
                     default: current
-                }],
+                },
+                {
+                    label: "Remarks",
+                    fieldname: "remarks",
+                    fieldtype: "Small Text",
+                },
+            ],
                 primary_action(values) {
                     frm.set_value("pipeline_status", "Prospect");
                     frm.set_value("custom_sub_status", values.sub_status);
+                    frm.set_value("opportunity_remarks",values.remarks)
+                    frm.add_child("opp_remarks", {
+                        status: "Prospect",
+                        sub_status: values.sub_status,
+                        remarks: values.remarks,
+                        user: frappe.session.user,
+                        date: frappe.datetime.now_datetime(),
+                    });
+                    frm.refresh_field("opp_remarks");
                     updateActiveState();
                     frm.save();
                     d.hide();
@@ -115,13 +131,29 @@ frappe.ui.form.on("HS Opportunity", {
                     label: "Sub Status",
                     fieldname: "sub_status",
                     fieldtype: "Select",
-                    options: ["Assessment","Scheduled","Completed","Report Shared","Maybe Later","Lost","DS","LP"],
+                    options: ["Assessment","Scheduled","Completed","Report Shared","Maybe Later","Lost","DS","LP","FollowUp"],
                     reqd: 1,
                     default: current
-                }],
+                },
+                {
+                    label: "Remarks",
+                    fieldname: "remarks",
+                    fieldtype: "Small Text",
+                },
+
+            ],
                 primary_action(values) {
                     frm.set_value("pipeline_status", "Assessment");
                     frm.set_value("custom_sub_status", values.sub_status);
+                    frm.set_value("opportunity_remarks",values.remarks);
+                    frm.add_child("opp_remarks", {
+                        status: "Prospect",
+                        sub_status: values.sub_status,
+                        remarks: values.remarks,
+                        user: frappe.session.user,
+                        date: frappe.datetime.now_datetime(),
+                    });
+                    frm.refresh_field("opp_remarks");
                     updateActiveState();
                     frm.save();
                     d.hide();
