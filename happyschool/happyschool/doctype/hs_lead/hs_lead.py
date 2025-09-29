@@ -10,8 +10,24 @@ from frappe.utils import today
 from frappe.model.naming import make_autoname
 
 class HSLead(Document):
-	def autoname(self):
-		self.name = make_autoname("HS-.lead-.YYYY.-.###")
+    def autoname(self):
+        self.name = make_autoname("HS-.lead-.YYYY.-.###")
+
+    def before_insert(self):
+        # Set default pipeline values
+        if not self.custom_pipeline_status:
+            self.custom_pipeline_status = "Prospect"
+        if not self.custom_pipeline_sub_status:
+            self.custom_pipeline_sub_status = "Open"
+
+
+    def before_save(self):
+        # If Slot Booking child table has rows, mark as Assessment Booked
+        if self.get("custom_booking") and len(self.custom_booking) > 0:
+            self.custom_pipeline_status = "Assessment Booked"
+            self.custom_pipeline_sub_status = ""
+
+    
 
 # @frappe.whitelist()
 # def validate_salesperson_limit(doc, method):

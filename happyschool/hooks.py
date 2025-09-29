@@ -60,7 +60,10 @@ app_license = "unlicense"
 
 
 permission_query_conditions = {
-    "Parent Or Student Ticket":"happyschool.permissions.parent_student_ticket_permission_query"
+    "Parent Or Student Ticket":"happyschool.permissions.parent_student_ticket_permission_query",
+    "HS Opportunity":"happyschool.permissions.salesperson_opportunity_permission_query",
+    "HS Lead":"happyschool.permissions.lead_user_permission_query",
+    
 }
 
 

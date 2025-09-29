@@ -43,7 +43,8 @@
    "fieldname": "lead",
    "fieldtype": "Link",
    "label": "Lead",
-   "options": "HS Lead"
+   "options": "HS Lead",
+   "read_only": 1
   },
   {
    "fieldname": "student_name",
@@ -74,8 +75,9 @@
   },
   {
    "fieldname": "tutorteacher",
-   "fieldtype": "Data",
-   "label": "Tutor/Teacher"
+   "fieldtype": "Link",
+   "label": "Tutor/Teacher",
+   "options": "Tutors"
   },
   {
    "fieldname": "column_break_6hdl",
@@ -206,13 +208,14 @@
    "fieldname": "opportunity",
    "fieldtype": "Link",
    "label": "Opportunity",
-   "options": "HS Opportunity"
+   "options": "HS Opportunity",
+   "read_only": 1
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-09-24 17:12:58.006060",
+ "modified": "2025-09-29 12:31:44.125804",
  "modified_by": "Administrator",
  "module": "happyschool",
  "name": "Assessment",
