@@ -7,7 +7,7 @@
  "field_order": [
   "tutor_id",
   "student_id",
-  "subject"
+  "course_id"
  ],
  "fields": [
   {
@@ -20,18 +20,19 @@
    "fieldname": "student_id",
    "fieldtype": "Link",
    "label": "Student id",
-   "options": "Student"
+   "options": "HS Students"
   },
   {
-   "fieldname": "subject",
-   "fieldtype": "Data",
-   "label": "Subject"
+   "fieldname": "course_id",
+   "fieldtype": "Link",
+   "label": "Course ID",
+   "options": "Courses"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-09-16 12:13:09.331700",
+ "modified": "2025-09-27 18:20:53.103233",
  "modified_by": "Administrator",
  "module": "happyschool",
  "name": "Students List",

@@ -3,13 +3,14 @@
 
 # import frappe
 from frappe.model.document import Document
-import frappe
 
-class StdAttendance(Document):
+
+class HSStudentSubmittedAssignments(Document):
 	pass
 
+import frappe
 from frappe.model.naming import make_autoname
 
-class StdAttendance(frappe.model.document.Document):
+class HSStudentSubmittedAssignments(frappe.model.document.Document):
     def autoname(self):
-        self.name = make_autoname("SA-.YYYY.-.#####")
+        self.name = make_autoname("SSA-.YYYY.-.###")

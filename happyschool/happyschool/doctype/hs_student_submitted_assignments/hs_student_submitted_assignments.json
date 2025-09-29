@@ -1,29 +1,34 @@
 {
  "actions": [],
  "allow_rename": 1,
- "creation": "2025-09-10 16:24:29.259610",
+ "creation": "2025-09-25 11:50:59.101644",
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
+  "assignment_id",
   "student_id",
-  "course_id",
+  "status",
   "tutor_id",
-  "admission_date",
-  "expiry_date",
-  "is_active"
+  "files",
+  "feedback"
  ],
  "fields": [
   {
-   "fieldname": "student_id",
+   "fieldname": "assignment_id",
    "fieldtype": "Link",
-   "label": "Student Id",
-   "options": "HS Students"
+   "label": "Assignment ID",
+   "options": "HS Student Assignments"
   },
   {
-   "fieldname": "course_id",
+   "fieldname": "files",
+   "fieldtype": "Long Text",
+   "label": "File"
+  },
+  {
+   "fieldname": "student_id",
    "fieldtype": "Link",
-   "label": "course_id",
-   "options": "Courses"
+   "label": "Student ID",
+   "options": "HS Students"
   },
   {
    "fieldname": "tutor_id",
@@ -32,29 +37,25 @@
    "options": "Tutors"
   },
   {
-   "fieldname": "admission_date",
-   "fieldtype": "Date",
-   "label": "Admission_date"
-  },
-  {
-   "fieldname": "expiry_date",
-   "fieldtype": "Date",
-   "label": "Expiry_date"
-  },
-  {
-   "fieldname": "is_active",
+   "default": "Pending",
+   "fieldname": "status",
    "fieldtype": "Select",
-   "label": "Is Active",
-   "options": "Active\nIn Active"
+   "label": "Status",
+   "options": "Pending\nRework\nCompleted"
+  },
+  {
+   "fieldname": "feedback",
+   "fieldtype": "Data",
+   "label": "Feedback"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-09-28 12:06:38.964905",
+ "modified": "2025-09-28 15:58:52.957998",
  "modified_by": "Administrator",
  "module": "happyschool",
- "name": "User Courses",
+ "name": "HS Student Submitted Assignments",
  "owner": "Administrator",
  "permissions": [
   {

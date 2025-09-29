@@ -9,7 +9,7 @@ def tutor_login(email, password):
     """
     try:
         # Get tutor information by email
-        tutor = frappe.db.get_value("Tutors", {"email": email}, ["name", "email", "password", "type"], as_dict=True)
+        tutor = frappe.db.get_value("Tutors", {"email": email}, ["name", "email", "password", "type","tutor_name"], as_dict=True)
         if not tutor:
             frappe.local.response.update({
                 "success": False,
@@ -38,6 +38,7 @@ def tutor_login(email, password):
             "success": True,
             "message": "Login successful",
             "tutor_id": tutor.name,
+            "tutor_name":tutor.tutor_name
         })
 
     except Exception as e:

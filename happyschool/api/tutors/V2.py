@@ -23,7 +23,7 @@ def add_feedback():
             return
 
         # ---- Validate Student exists ----
-        if not frappe.db.exists("Students", student_id):
+        if not frappe.db.exists("HS Students", student_id):
             frappe.local.response.update({
                 "success": False,
                 "message": f"Student {student_id} not found"
@@ -38,8 +38,8 @@ def add_feedback():
             })
             return
 
-        # ---- Validate tutor-student mapping in Students List ----
-        if not frappe.db.exists("Students List", {"tutor_id": tutor_id, "student_id": student_id}):
+        # ---- Validate tutor-student mapping in ----
+        if not frappe.db.exists("User Courses", {"tutor_id": tutor_id, "student_id": student_id}):
             frappe.local.response.update({
                 "success": False,
                 "message": f"Student {student_id} is not assigned to Tutor {tutor_id}"
@@ -88,15 +88,18 @@ def get_student_materials():
     """
     Fetch student materials, validate course and session, and return structured material data.
     Request body:
-        {
-            "student_id": "ST001", 
-            "course_id": "COURSE-001"
-        }
+      
     """
     try:
         data = frappe.local.form_dict
         student_id = data.get("student_id")
         course_id = data.get("course_id")
+        
+        if not frappe.db.exists("HS Students", student_id):
+            frappe.local.response.update({
+                "success": False,
+                "message": f"stud {student_id} not found"
+            })
 
         if not student_id or not course_id:
             return {"success": False, "error": "Student ID and Course ID are required"}
@@ -123,7 +126,7 @@ def get_student_materials():
             # ---- Fetch Live Classroom data using session_id ----
             live_classroom = frappe.get_all(
                 "Live Classroom",
-                filters={"name": session_id},  # Correct field to refer to Live Classroom session
+                filters={"name": session_id}, 
                 fields=["course_id"]
             )
 
@@ -184,99 +187,6 @@ def get_student_materials():
         })
 
 
-# @frappe.whitelist(allow_guest=True)
-# def get_student_materials():
-#     """
-#     Fetch student materials, validate course and session, and return structured material data.
-#     Request body:
-#         {
-#             "student_id": "ST001", 
-#             "course_id": "COURSE-001"
-#         }
-#     """
-#     try:
-#         data = frappe.local.form_dict
-#         student_id = data.get("student_id")
-#         course_id = data.get("course_id")
-
-#         if not student_id or not course_id:
-#             return {"success": False, "error": "Student ID and Course ID are required"}
-
-#         # ---- Check if student is enrolled in the course ----
-#         is_enrolled = frappe.db.exists("User Courses", {"student_id": student_id, "course_id": course_id})
-#         if not is_enrolled:
-#             return {"success": False, "error": f"Student {student_id} is not enrolled in Course {course_id}"}
-
-#         materials = frappe.get_all(
-#             "Materials",
-#             filters={"student_id": student_id},
-#             fields=["name", "subject", "topic", "subtopic", "material_name", "session_id", "tutor_id", "submitted_date", "files","student_id"]
-#         )
-
-#         courses_data = []
-
-#         # Dictionary to group materials by topic, subtopic, and course
-#         topic_dict = {}
-
-#         for material in materials:
-#             session_id = material.session_id
-
-#             live_classroom = frappe.get_all(
-#                 "Live Classroom",
-#                 filters={"name": session_id},  # Correct field to refer to Live Classroom session
-#                 fields=["course_id"]
-#             )
-
-#             if live_classroom and live_classroom[0].course_id == course_id:
-#                 if material.topic not in topic_dict:
-#                     topic_dict[material.topic] = {}
-
-#                 if material.subtopic not in topic_dict[material.topic]:
-#                     topic_dict[material.topic][material.subtopic] = []
-
-#                 material_data = {
-#                     "material_name": material.material_name,
-#                     "tutor_id": material.tutor_id,
-#                     "subject": material.subject,
-#                     "topic": material.topic,
-#                     "subtopic": material.subtopic,
-#                     "files": material.files,  # Assuming files are linked correctly in the material doctype
-#                     "submitted_date": material.submitted_date,
-#                     "session_id": material.session_id,
-#                     "student_id": material.student_id
-#                 }
-
-#                 topic_dict[material.topic][material.subtopic].append(material_data)
-
-#         for topic, subtopics in topic_dict.items():
-#             subject_data = {
-#                 "topic": topic,
-#                 "subTopic": []
-#             }
-
-#             for subtopic, materials in subtopics.items():
-#                 subtopic_data = {
-#                     "title": subtopic,
-#                     "data": materials  
-#                 }
-
-#                 subject_data["subTopic"].append(subtopic_data)
-
-#             courses_data.append(subject_data)
-
-#         frappe.local.response.update({
-#             "success": True,
-#             "student_id": student_id,
-#             "courses": courses_data
-#         })
-
-#     except Exception as e:
-#         frappe.log_error(frappe.get_traceback(), "get_student_materials API Error")
-#         frappe.local.response.update({
-#             "success": False,
-#             "message": str(e)
-#         })
-
 
 
 
@@ -331,6 +241,7 @@ def parent_account_delete():
 
 
 
+
 @frappe.whitelist(allow_guest=True)
 def get_tests_by_course(student_id=None):
     try:
@@ -342,10 +253,10 @@ def get_tests_by_course(student_id=None):
             })
             return
 
-        # Step 1: Get courses for the student from User Courses doctype
+        # Step 1: Fetch student's active courses
         user_courses = frappe.get_all(
             "User Courses",
-            filters={"student_id": student_id},
+            filters={"student_id": student_id, "is_active": "Active"},
             fields=["course_id"]
         )
         course_ids = [uc.course_id for uc in user_courses if uc.course_id]
@@ -353,12 +264,18 @@ def get_tests_by_course(student_id=None):
         if not course_ids:
             frappe.local.response.update({
                 "success": True,
-                "message": "No courses assigned to this student",
+                "message": "No active courses assigned to this student",
                 "tests": []
             })
             return
 
-        # Step 2: Fetch tests for these courses
+        assigned_tests = frappe.get_all(
+            "HS Student Tests",
+            filters={"student_id": student_id},
+            fields=["test_id"]
+        )
+        assigned_test_ids = {a.test_id for a in assigned_tests if a.test_id}
+
         tests = frappe.db.sql("""
             SELECT
                 name AS test_id,
@@ -383,11 +300,14 @@ def get_tests_by_course(student_id=None):
                 course_id
             FROM `tabTests`
             WHERE course_id IN %(course_ids)s
+              AND is_active = 1
         """, {"course_ids": tuple(course_ids)}, as_dict=True)
 
-        # Step 3: Prepare the response structure
+        unassigned_tests = [t for t in tests if t.test_id not in assigned_test_ids]
+
+        # Step 5: Build response
         test_data = []
-        for test in tests:
+        for test in unassigned_tests:
             test_data.append({
                 "test_id": test.get("test_id"),
                 "title": test.get("title"),
@@ -414,19 +334,16 @@ def get_tests_by_course(student_id=None):
         frappe.local.response.update({
             "success": True,
             "message": "success",
-            "tests": 
-                test_data
-            
+            "tests": test_data
         })
 
     except Exception as e:
-        frappe.log_error(frappe.get_traceback(), "get_tests_by_student API Error")
+        frappe.log_error(frappe.get_traceback(), "get_tests_by_course API Error")
         frappe.local.response.update({
             "success": False,
             "error": str(e),
             "tests": []
         })
-
 
 
 
@@ -649,3 +566,4 @@ def get_tutor_assigned_student_tests():
             "error": str(e),
             "tests": []
         })
+

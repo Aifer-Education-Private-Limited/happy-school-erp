@@ -1,36 +1,42 @@
 {
  "actions": [],
  "allow_rename": 1,
- "creation": "2025-09-11 15:53:56.610350",
+ "creation": "2025-09-25 11:31:46.077419",
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
+  "student_id",
   "tutor_id",
-  "subject",
+  "course_id",
+  "assignment_name",
   "topic",
   "subtopic",
-  "student_id",
+  "type",
   "files",
-  "submitted_date",
-  "material_name",
-  "session_id"
+  "description"
  ],
  "fields": [
   {
+   "fieldname": "student_id",
+   "fieldtype": "Link",
+   "label": "Student ID ",
+   "options": "HS Students"
+  },
+  {
    "fieldname": "tutor_id",
    "fieldtype": "Link",
-   "label": "Tutor_id",
+   "label": "Tutor ID",
    "options": "Tutors"
   },
   {
-   "fieldname": "subject",
+   "fieldname": "assignment_name",
    "fieldtype": "Data",
-   "label": "Subject"
+   "label": "Assignment Name "
   },
   {
    "fieldname": "topic",
    "fieldtype": "Data",
-   "label": "Topic"
+   "label": "Topic "
   },
   {
    "fieldname": "subtopic",
@@ -38,40 +44,35 @@
    "label": "Subtopic"
   },
   {
-   "fieldname": "submitted_date",
-   "fieldtype": "Datetime",
-   "label": "Submitted Date"
-  },
-  {
-   "fieldname": "material_name",
-   "fieldtype": "Data",
-   "label": "Material Name"
-  },
-  {
    "fieldname": "files",
    "fieldtype": "Long Text",
-   "label": "Material Files"
+   "label": "files"
   },
   {
-   "fieldname": "session_id",
-   "fieldtype": "Link",
-   "label": "Session id",
-   "options": "Live Classroom"
+   "fieldname": "type",
+   "fieldtype": "Select",
+   "label": "Type",
+   "options": "Material\nHomework\nAssignment\nQuestion Paper"
   },
   {
-   "fieldname": "student_id",
+   "fieldname": "description",
+   "fieldtype": "Data",
+   "label": "Description"
+  },
+  {
+   "fieldname": "course_id",
    "fieldtype": "Link",
-   "label": "Student_id",
-   "options": "HS Students"
+   "label": "Course ID",
+   "options": "Courses"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-09-27 18:52:51.849406",
+ "modified": "2025-09-28 15:58:21.498482",
  "modified_by": "Administrator",
  "module": "happyschool",
- "name": "Materials",
+ "name": "HS Student Assignments",
  "owner": "Administrator",
  "permissions": [
   {
