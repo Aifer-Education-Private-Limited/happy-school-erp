@@ -106,7 +106,7 @@ frappe.ui.form.on("HS Lead", {
 
                 <div id="enrolled-step" class="pipeline-step">
                     <span class="icon">E</span>
-                    <div class="text">Enrolled</div>
+                    <div class="text">Assessment Booked</div>
                 </div>
             </div>
         </div>
@@ -135,7 +135,7 @@ frappe.ui.form.on("HS Lead", {
                     if(val === sub_status) $(this).addClass("green");
                     else $(this).addClass("grey");
                 });
-            } else if (status === "Enrolled") {
+            } else if (status === "Assessment Booked") {
                 $("#enrolled-step").addClass("active");
             }
         }
@@ -288,7 +288,7 @@ frappe.ui.form.on("HS Lead", {
 
         // Enrolled click
         $("#enrolled-step").on("click", function() {
-            frm.set_value("custom_pipeline_status", "Enrolled");
+            frm.set_value("custom_pipeline_status", "Assessment Booked");
             frm.set_value("custom_pipeline_sub_status", "");
             updateActiveState();
             frm.save();

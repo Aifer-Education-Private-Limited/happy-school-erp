@@ -3,7 +3,10 @@
 
 # import frappe
 from frappe.model.document import Document
+from frappe.utils import today
+from frappe.model.naming import make_autoname
 
 
 class Assessment(Document):
-	pass
+    def autoname(self):
+        self.name = make_autoname("HS-.ASMT-.YYYY.-.###")

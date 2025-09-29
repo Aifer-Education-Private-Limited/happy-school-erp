@@ -29,7 +29,8 @@
    "fieldname": "custom_lead",
    "fieldtype": "Link",
    "label": "Lead",
-   "options": "HS Lead"
+   "options": "HS Lead",
+   "read_only": 1
   },
   {
    "fieldname": "custom_student_name",
@@ -43,8 +44,9 @@
   },
   {
    "fieldname": "custom_sales_person",
-   "fieldtype": "Data",
-   "label": "Sales Person"
+   "fieldtype": "Link",
+   "label": "Sales Person",
+   "options": "HS Sales Persons"
   },
   {
    "fieldname": "custom_gradeclass",
@@ -82,7 +84,9 @@
   {
    "fieldname": "email",
    "fieldtype": "Data",
-   "label": "Email"
+   "in_list_view": 1,
+   "label": "Email",
+   "reqd": 1
   },
   {
    "fieldname": "pipeline_status",
@@ -121,7 +125,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-09-27 17:44:50.785594",
+ "modified": "2025-09-29 12:32:50.236349",
  "modified_by": "Administrator",
  "module": "happyschool",
  "name": "HS Opportunity",

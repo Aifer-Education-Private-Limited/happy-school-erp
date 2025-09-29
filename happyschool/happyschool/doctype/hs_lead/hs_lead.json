@@ -63,7 +63,7 @@
    "fieldname": "custom_pipeline_status",
    "fieldtype": "Select",
    "label": "Pipeline Status",
-   "options": "\nProspect\nFollow Up\nEnrolled"
+   "options": "\nProspect\nFollow Up\nAssessment Booked"
   },
   {
    "fieldname": "custom_pipeline_sub_status",
@@ -79,12 +79,16 @@
   {
    "fieldname": "email",
    "fieldtype": "Data",
-   "label": "Email"
+   "in_list_view": 1,
+   "label": "Email",
+   "reqd": 1
   },
   {
    "fieldname": "custom_mobile_number",
    "fieldtype": "Phone",
-   "label": "Mobile Number"
+   "in_list_view": 1,
+   "label": "Mobile Number",
+   "reqd": 1
   },
   {
    "fieldname": "custom_gradeclass",
@@ -192,7 +196,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-09-27 17:49:52.857940",
+ "modified": "2025-09-29 09:03:11.516008",
  "modified_by": "Administrator",
  "module": "happyschool",
  "name": "HS Lead",
