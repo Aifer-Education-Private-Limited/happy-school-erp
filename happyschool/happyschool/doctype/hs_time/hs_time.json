@@ -1,49 +1,26 @@
 {
  "actions": [],
  "allow_rename": 1,
- "creation": "2025-09-19 11:13:35.053210",
+ "creation": "2025-09-25 16:00:13.072457",
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
-  "sales_person",
-  "enabled",
-  "user",
-  "meet_link"
+  "time"
  ],
  "fields": [
   {
-   "fieldname": "sales_person",
+   "fieldname": "time",
    "fieldtype": "Data",
-   "in_list_view": 1,
-   "label": "Sales Person Name",
-   "reqd": 1
-  },
-  {
-   "default": "0",
-   "fieldname": "enabled",
-   "fieldtype": "Check",
-   "label": "Enabled"
-  },
-  {
-   "fieldname": "user",
-   "fieldtype": "Link",
-   "label": "User",
-   "options": "User",
-   "reqd": 1
-  },
-  {
-   "fieldname": "meet_link",
-   "fieldtype": "Data",
-   "label": "Google Meet Link"
+   "label": "Time"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-09-29 12:51:13.871985",
+ "modified": "2025-09-25 16:59:22.109313",
  "modified_by": "Administrator",
  "module": "happyschool",
- "name": "HS Sales Persons",
+ "name": "HS Time",
  "owner": "Administrator",
  "permissions": [
   {

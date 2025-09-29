@@ -9,8 +9,10 @@
   "course_id",
   "tutor_id",
   "admission_date",
+  "column_break_ksj1",
   "expiry_date",
-  "is_active"
+  "is_active",
+  "session_count"
  ],
  "fields": [
   {
@@ -46,12 +48,21 @@
    "fieldtype": "Select",
    "label": "Is Active",
    "options": "Active\nIn Active"
+  },
+  {
+   "fieldname": "session_count",
+   "fieldtype": "Data",
+   "label": "Session Count"
+  },
+  {
+   "fieldname": "column_break_ksj1",
+   "fieldtype": "Column Break"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-09-28 12:06:38.964905",
+ "modified": "2025-09-25 10:23:28.245891",
  "modified_by": "Administrator",
  "module": "happyschool",
  "name": "User Courses",

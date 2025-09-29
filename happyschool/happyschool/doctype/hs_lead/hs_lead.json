@@ -31,7 +31,9 @@
   "sales_section",
   "custom_sales_person",
   "column_break_pd3j",
-  "custom_assigned_date"
+  "custom_assigned_date",
+  "comments_tab",
+  "lead_remarks"
  ],
  "fields": [
   {
@@ -61,12 +63,13 @@
    "fieldname": "custom_pipeline_status",
    "fieldtype": "Select",
    "label": "Pipeline Status",
-   "options": "\nProspect\nFollow Up\nEnrolled"
+   "options": "\nProspect\nFollow Up\nAssessment Booked"
   },
   {
    "fieldname": "custom_pipeline_sub_status",
-   "fieldtype": "Data",
-   "label": "Sub Status"
+   "fieldtype": "Select",
+   "label": "Sub Status",
+   "options": "Open\nConnected\nNot Connected\nInterested\nNot Interested\nMaybe Later\nDisqualified"
   },
   {
    "fieldname": "custom_student_name",
@@ -76,12 +79,16 @@
   {
    "fieldname": "email",
    "fieldtype": "Data",
-   "label": "Email"
+   "in_list_view": 1,
+   "label": "Email",
+   "reqd": 1
   },
   {
    "fieldname": "custom_mobile_number",
    "fieldtype": "Phone",
-   "label": "Mobile Number"
+   "in_list_view": 1,
+   "label": "Mobile Number",
+   "reqd": 1
   },
   {
    "fieldname": "custom_gradeclass",
@@ -144,7 +151,7 @@
   {
    "fieldname": "slot_booking_section",
    "fieldtype": "Section Break",
-   "label": "Slot Booking"
+   "label": "Assessment Booking"
   },
   {
    "fieldname": "custom_booking",
@@ -173,12 +180,23 @@
   {
    "fieldname": "column_break_pd3j",
    "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "comments_tab",
+   "fieldtype": "Tab Break",
+   "label": "Comments"
+  },
+  {
+   "fieldname": "lead_remarks",
+   "fieldtype": "Table",
+   "label": "Lead Remarks",
+   "options": "HS Lead Remarks"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-09-23 15:43:05.991231",
+ "modified": "2025-09-29 09:03:11.516008",
  "modified_by": "Administrator",
  "module": "happyschool",
  "name": "HS Lead",

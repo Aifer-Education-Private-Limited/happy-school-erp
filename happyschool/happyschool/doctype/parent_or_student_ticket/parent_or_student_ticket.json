@@ -10,6 +10,7 @@
   "student",
   "parentid",
   "studentid",
+  "type",
   "column_break_9fct",
   "student_course",
   "status",
@@ -33,7 +34,7 @@
    "fieldname": "student",
    "fieldtype": "Link",
    "label": "Student",
-   "options": "Student"
+   "options": "HS Students"
   },
   {
    "fieldname": "student_course",
@@ -106,12 +107,18 @@
    "fieldname": "studentid",
    "fieldtype": "Data",
    "label": "Studentid"
+  },
+  {
+   "fieldname": "type",
+   "fieldtype": "Select",
+   "label": "Type",
+   "options": "CRO\nTutor"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-09-16 16:48:27.481799",
+ "modified": "2025-09-28 18:39:37.502368",
  "modified_by": "Administrator",
  "module": "happyschool",
  "name": "Parent Or Student Ticket",

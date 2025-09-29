@@ -20,15 +20,15 @@
   "items",
   "section_break_stgd",
   "column_break_skwg",
-  "customer_payment",
-  "balance",
-  "custom_paid",
   "column_break_lkki",
-  "total_fees",
   "amount_after_discount",
+  "custom_paid",
   "column_break_erht",
+  "total_fees",
   "grand_total",
+  "balance",
   "payment_type",
+  "customer_payment",
   "payment_link",
   "section_break_drkr",
   "fess_structure"
@@ -79,8 +79,7 @@
   {
    "fieldname": "payment_link",
    "fieldtype": "Small Text",
-   "label": "Payment Link",
-   "read_only": 1
+   "label": "Payment Link"
   },
   {
    "fieldname": "grand_total",
@@ -175,7 +174,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-09-22 12:41:10.305033",
+ "modified": "2025-09-29 14:54:50.716426",
  "modified_by": "Administrator",
  "module": "happyschool",
  "name": "HS Payment Link",

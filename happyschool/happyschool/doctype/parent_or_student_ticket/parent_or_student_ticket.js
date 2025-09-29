@@ -58,3 +58,21 @@ frappe.ui.form.on('Parent Or Student Ticket', {
     }
 });
 
+function toggle_fields_by_type(frm) {
+    if (frm.doc.student) {
+        // Hide parent fields
+        frm.toggle_display(["parent1", "parentid"], false);
+        // Show student fields
+        frm.toggle_display(["student", "studentid"], true);
+    } 
+    else if (frm.doc.parent1) {
+        // Hide student fields
+        frm.toggle_display(["student", "studentid"], false);
+        // Show parent fields
+        frm.toggle_display(["parent1", "parentid"], true);
+    } 
+    else {
+        // Default: show all (if type not selected)
+        frm.toggle_display(["parent1", "parentid", "student", "studentid"], true);
+    }
+}

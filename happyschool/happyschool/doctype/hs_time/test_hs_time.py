@@ -5,5 +5,5 @@
 from frappe.tests.utils import FrappeTestCase
 
 
-class TestPaymentLink(FrappeTestCase):
+class TestHSTime(FrappeTestCase):
 	pass
