@@ -206,7 +206,7 @@ def check_attendance(student_id=None):
             })
             return
 
-        tutor_id = frappe.db.get_value("Students List", {"student_id": student_id}, "tutor_id") or ""
+        tutor_id = frappe.db.get_value("User Courses", {"student_id": student_id}, "tutor_id") or ""
 
         records = frappe.db.sql(
             """

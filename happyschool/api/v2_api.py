@@ -11,7 +11,6 @@ RAZORPAY_KEY_SECRET = frappe.conf.get("RAZORPAY_KEY_SECRET")
 
 # print("razorpay_client", razorpay_client)
 
-import frappe
 
 @frappe.whitelist(allow_guest=True)
 def get_parent_home_page_details(student_id: str, parent_id: str):

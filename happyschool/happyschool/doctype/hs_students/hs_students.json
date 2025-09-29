@@ -30,6 +30,7 @@
   {
    "fieldname": "parent_id",
    "fieldtype": "Link",
+   "in_list_view": 1,
    "label": "Parent Id",
    "options": "Parents"
   },
@@ -46,6 +47,7 @@
   {
    "fieldname": "mobile",
    "fieldtype": "Phone",
+   "in_list_view": 1,
    "label": "Mobile"
   },
   {
@@ -82,7 +84,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-09-27 17:57:36.991578",
+ "modified": "2025-09-29 11:01:08.890512",
  "modified_by": "Administrator",
  "module": "happyschool",
  "name": "HS Students",

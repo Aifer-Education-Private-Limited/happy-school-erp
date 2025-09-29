@@ -38,8 +38,8 @@ def add_feedback():
             })
             return
 
-        # ---- Validate tutor-student mapping in Students List ----
-        if not frappe.db.exists("Students List", {"tutor_id": tutor_id, "student_id": student_id}):
+        # ---- Validate tutor-student mapping in ----
+        if not frappe.db.exists("User Courses", {"tutor_id": tutor_id, "student_id": student_id}):
             frappe.local.response.update({
                 "success": False,
                 "message": f"Student {student_id} is not assigned to Tutor {tutor_id}"
