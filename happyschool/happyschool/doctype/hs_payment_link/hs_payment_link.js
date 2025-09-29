@@ -23,6 +23,30 @@ frappe.ui.form.on("Payment Link Items", {
 });
 
 frappe.ui.form.on('HS Payment Link', {
+    payment_type: function(frm) {
+        if (frm.doc.payment_type === "Full Payment") {
+            // Set customer_payment = grand_total
+            let total = parseFloat(frm.doc.grand_total || 0);
+            frm.set_value("customer_payment", total);
+
+            // Update child table balance to 0
+            if (frm.doc.fess_structure && frm.doc.fess_structure.length > 0) {
+                frm.doc.fess_structure[0].customer_paid = total;
+                frm.doc.fess_structure[0].balance_amount = 0;
+                frm.refresh_field("fess_structure");
+            }
+            
+            // Also update main balance field
+            frm.set_value("balance", 0);
+
+        } else if (frm.doc.payment_type === "Custom Payment") {
+            // Reset customer_payment so user can type manually
+            frm.set_value("customer_payment", 0);
+
+            // Keep balance as per entered amount
+            frm.trigger("calculate_totals");
+        }
+    },
     qty: function(frm, cdt, cdn) {
         let row = locals[cdt][cdn];
         row.amount = (parseFloat(row.session_count || 0) * parseFloat(row.rate || 0));
@@ -82,63 +106,71 @@ frappe.ui.form.on('HS Payment Link', {
     customer_payment: function(frm) { frm.trigger('calculate_totals'); },
 
     calculate_totals: function(frm) {
-        // 1) totals and discount
+        // 1) Calculate total fees from items
         let total_fees = 0;
-        (frm.doc.items || []).forEach(row => total_fees += parseFloat(row.amount || 0));
+        (frm.doc.items || []).forEach(row => {
+            total_fees += parseFloat(row.amount || 0);
+        });
     
+        // 2) Apply discount only if applicable
         let discount_amount = 0;
-        if (frm.doc.discount_perc) {
+        if (frm.doc.discount_perc && parseFloat(frm.doc.discount_perc) > 0) {
             discount_amount = (total_fees * parseFloat(frm.doc.discount_perc || 0)) / 100;
-        } else if (frm.doc.discount_amnt) {
+        } else if (frm.doc.discount_amnt && parseFloat(frm.doc.discount_amnt) > 0) {
             discount_amount = parseFloat(frm.doc.discount_amnt || 0);
         }
     
-        let amount_after_discount = total_fees - discount_amount;
-        let grand_total = amount_after_discount;
+        // 3) Only set amount_after_discount if discount exists
+        let amount_after_discount = null;
+        if (discount_amount > 0) {
+            amount_after_discount = total_fees - discount_amount;
+        }
     
-
-        let custom_paid = parseFloat(frm.doc.custom_paid || 0);
-        
+        // If discount, grand_total = discounted value, else grand_total = total_fees
+        let grand_total = (amount_after_discount !== null) ? amount_after_discount : total_fees;
     
-        // balance = grand_total - custom_paid
-        let balance_preview = grand_total - custom_paid;
-    
+        // 4) Set calculated values
         frm.set_value("total_fees", total_fees);
         frm.set_value("amount_after_discount", amount_after_discount);
         frm.set_value("grand_total", grand_total);
-        frm.set_value("balance", balance_preview);
     
-        
-        if (frm.doc.fess_structure && frm.doc.fess_structure.length > 0) {
-            frm.doc.fess_structure[0].balance_amount = balance_preview;
-            frm.doc.fess_structure[0].customer_paid = custom_paid;  // keep showing last paid
-            frm.refresh_field("fess_structure");
+        // 5) Balance handling (preview only)
+        let balance_preview = 0;
+        let custom_paid = parseFloat(frm.doc.custom_paid || 0);
+        let customer_payment = parseFloat(frm.doc.customer_payment || 0);
+    
+        if (frm.doc.payment_type === "Custom Payment") {
+            balance_preview = grand_total - (custom_paid + customer_payment);
+        } else if (frm.doc.payment_type === "Full Payment") {
+            balance_preview = 0;
         }
+    
+        frm.set_value("balance", balance_preview);
     
         toggle_balance_field(frm);
     },
-    
-    
 
-    // This runs client-side just before save. It updates the child table, increments custom_paid,
-    // resets customer_payment to 0 and sets the final balance.
+
+
+    
     before_save: function(frm) {
         let payment = parseFloat(frm.doc.customer_payment || 0);
         if (payment <= 0) return;
-    
+
         let new_custom_paid = parseFloat(frm.doc.custom_paid || 0) + payment;
-    
-        // Clear all old rows first (so only one remains)
+
+        // Clear old rows
         frm.clear_table('fess_structure');
-    
-        // Add a single row
+
+        // Add only one row (fresh data on save)
         let row = frm.add_child('fess_structure');
         row.date = frappe.datetime.get_today();
         row.customer_paid = payment;
         row.balance_amount = (parseFloat(frm.doc.grand_total || 0) - new_custom_paid);
-    
-        frm.refresh_field('fees_structure');
-    
+
+        // ✅ Corrected fieldname here
+        frm.refresh_field('fess_structure');
+
         frm.set_value('custom_paid', new_custom_paid);
         frm.set_value('customer_payment', 0);
         frm.set_value('balance', (parseFloat(frm.doc.grand_total || 0) - new_custom_paid));
@@ -157,10 +189,11 @@ frappe.ui.form.on('HS Payment Link', {
             // Set the field
             frm.set_value("payment_link", payment_link);
     
-            // Save again to persist
+            // // Save again to persist
             frm.save();
         }
-    }
+    },
+    
 });
 function toggle_offer_fields(frm) {
     const show = frm.doc.offer_applied === "True";

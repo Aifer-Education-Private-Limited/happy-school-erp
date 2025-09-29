@@ -9,7 +9,10 @@
   "date",
   "program_enrollment",
   "program",
-  "project"
+  "project",
+  "session_count",
+  "reschedule",
+  "reschedule_data"
  ],
  "fields": [
   {
@@ -38,13 +41,31 @@
    "fieldtype": "Date",
    "in_list_view": 1,
    "label": "Date"
+  },
+  {
+   "fieldname": "session_count",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Session Count"
+  },
+  {
+   "bold": 1,
+   "fieldname": "reschedule",
+   "fieldtype": "Button",
+   "in_list_view": 1,
+   "label": "schedule"
+  },
+  {
+   "fieldname": "reschedule_data",
+   "fieldtype": "Text",
+   "label": "Reschedule Data"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2025-09-23 20:38:59.330967",
+ "modified": "2025-09-27 14:16:22.477275",
  "modified_by": "Administrator",
  "module": "happyschool",
  "name": "HS Enrolled Details",

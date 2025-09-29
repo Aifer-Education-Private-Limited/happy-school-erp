@@ -1,0 +1,78 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2025-09-25 11:50:59.101644",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "assignment_id",
+  "student_id",
+  "status",
+  "tutor_id",
+  "files",
+  "feedback"
+ ],
+ "fields": [
+  {
+   "fieldname": "assignment_id",
+   "fieldtype": "Link",
+   "label": "Assignment ID",
+   "options": "HS Student Assignments"
+  },
+  {
+   "fieldname": "files",
+   "fieldtype": "Long Text",
+   "label": "File"
+  },
+  {
+   "fieldname": "student_id",
+   "fieldtype": "Link",
+   "label": "Student ID",
+   "options": "HS Students"
+  },
+  {
+   "fieldname": "tutor_id",
+   "fieldtype": "Link",
+   "label": "Tutor Id",
+   "options": "Tutors"
+  },
+  {
+   "default": "Pending",
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "label": "Status",
+   "options": "Pending\nRework\nCompleted"
+  },
+  {
+   "fieldname": "feedback",
+   "fieldtype": "Data",
+   "label": "Feedback"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2025-09-28 15:58:52.957998",
+ "modified_by": "Administrator",
+ "module": "happyschool",
+ "name": "HS Student Submitted Assignments",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

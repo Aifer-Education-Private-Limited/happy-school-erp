@@ -60,7 +60,10 @@ app_license = "unlicense"
 
 
 permission_query_conditions = {
-    "Parent Or Student Ticket":"happyschool.permissions.parent_student_ticket_permission_query"
+    "Parent Or Student Ticket":"happyschool.permissions.parent_student_ticket_permission_query",
+    "HS Opportunity":"happyschool.permissions.salesperson_opportunity_permission_query",
+    "HS Lead":"happyschool.permissions.lead_user_permission_query",
+    
 }
 
 
@@ -76,7 +79,7 @@ doctype_js={
 
 doc_events={
     "HS Lead": {
-        "validate": "happyschool.happyschool.doctype.hs_lead.hs_lead.validate_salesperson_limit",
+        # "validate": "happyschool.happyschool.doctype.hs_lead.hs_lead.validate_salesperson_limit",
         "after_insert":["happyschool.happyschool.doctype.hs_lead.hs_lead.create_or_update_opportunity_for_lead"],
         "on_update":"happyschool.happyschool.doctype.hs_lead.hs_lead.create_or_update_opportunity_for_lead"
     },

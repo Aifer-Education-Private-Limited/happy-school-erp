@@ -4,10 +4,10 @@
 # import frappe
 import frappe
 from frappe.model.document import Document
+from frappe.utils import today
 from frappe.model.naming import make_autoname
 
 
-class Students(Document):
-    def autoname(self):
-        # This will generate ST001, ST002, ST003...
-        self.name = make_autoname("ST.###")
+class HSTime(Document):
+	def autoname(self):
+		self.name = self.time.strip()

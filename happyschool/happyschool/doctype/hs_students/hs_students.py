@@ -10,4 +10,4 @@ from frappe.model.naming import make_autoname
 class HSStudents(Document):
     def autoname(self):
         # This will generate ST001, ST002, ST003...
-        self.name = make_autoname("ST.###")
+        self.name = make_autoname("STD.###")

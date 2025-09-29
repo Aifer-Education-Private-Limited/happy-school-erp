@@ -2,8 +2,8 @@
 frappe.ui.form.on("HS Opportunity", {
     refresh: function (frm) {
         
-        if (!frm.fields_dict.custom_pipeline_html) return;
-        const pipeline_html = frm.get_field("custom_pipeline_html").$wrapper;
+        if (!frm.fields_dict.pipeline_html) return;
+        const pipeline_html = frm.get_field("pipeline_html").$wrapper;
 
         const html = `
         <style>
@@ -36,6 +36,7 @@ frappe.ui.form.on("HS Opportunity", {
                     <span class="icon">F</span>
                     <div class="text">Assessment</div>
                     <div class="sub-steps" id="followup-sub-steps">
+                        <div class="sub-step" data-value="FollowUp"><span class="icon">F</span><div class="text">FollowUp</div></div>
                         <div class="sub-step" data-value="Scheduled"><span class="icon">S</span><div class="text">Scheduled</div></div>
                         <div class="sub-step" data-value="Completed"><span class="icon">C</span><div class="text">Completed</div></div>
                         <div class="sub-step" data-value="Report Shared"><span class="icon">RS</span><div class="text">Report Shared</div></div>
@@ -58,7 +59,7 @@ frappe.ui.form.on("HS Opportunity", {
             $(".pipeline-step").removeClass("active");
             $(".sub-step").removeClass("green grey");
 
-            const status = frm.doc.custom_pipeline_status;
+            const status = frm.doc.pipeline_status;
             const sub_status = frm.doc.custom_sub_status;
 
             if (status === "Prospect") {
@@ -94,10 +95,25 @@ frappe.ui.form.on("HS Opportunity", {
                     options: ["Open", "Connected", "Not Connected"],
                     reqd: 1,
                     default: current
-                }],
+                },
+                {
+                    label: "Remarks",
+                    fieldname: "remarks",
+                    fieldtype: "Small Text",
+                },
+            ],
                 primary_action(values) {
-                    frm.set_value("custom_pipeline_status", "Prospect");
+                    frm.set_value("pipeline_status", "Prospect");
                     frm.set_value("custom_sub_status", values.sub_status);
+                    frm.set_value("opportunity_remarks",values.remarks)
+                    frm.add_child("opp_remarks", {
+                        status: "Prospect",
+                        sub_status: values.sub_status,
+                        remarks: values.remarks,
+                        user: frappe.session.user,
+                        date: frappe.datetime.now_datetime(),
+                    });
+                    frm.refresh_field("opp_remarks");
                     updateActiveState();
                     frm.save();
                     d.hide();
@@ -115,13 +131,29 @@ frappe.ui.form.on("HS Opportunity", {
                     label: "Sub Status",
                     fieldname: "sub_status",
                     fieldtype: "Select",
-                    options: ["Assessment","Scheduled","Completed","Report Shared","Maybe Later","Lost","DS","LP"],
+                    options: ["Assessment","Scheduled","Completed","Report Shared","Maybe Later","Lost","DS","LP","FollowUp"],
                     reqd: 1,
                     default: current
-                }],
+                },
+                {
+                    label: "Remarks",
+                    fieldname: "remarks",
+                    fieldtype: "Small Text",
+                },
+
+            ],
                 primary_action(values) {
-                    frm.set_value("custom_pipeline_status", "Assessment");
+                    frm.set_value("pipeline_status", "Assessment");
                     frm.set_value("custom_sub_status", values.sub_status);
+                    frm.set_value("opportunity_remarks",values.remarks);
+                    frm.add_child("opp_remarks", {
+                        status: "Prospect",
+                        sub_status: values.sub_status,
+                        remarks: values.remarks,
+                        user: frappe.session.user,
+                        date: frappe.datetime.now_datetime(),
+                    });
+                    frm.refresh_field("opp_remarks");
                     updateActiveState();
                     frm.save();
                     d.hide();
@@ -132,7 +164,7 @@ frappe.ui.form.on("HS Opportunity", {
 
         // Enrolled click
         $("#enrolled-step").on("click", function() {
-            frm.set_value("custom_pipeline_status", "Enrolled");
+            frm.set_value("pipeline_status", "Enrolled");
             frm.set_value("custom_sub_status", "");
             updateActiveState();
             frm.save();
@@ -141,7 +173,7 @@ frappe.ui.form.on("HS Opportunity", {
         // Direct click on sub-steps
         $("#prospect-sub-steps .sub-step").on("click", function() {
             const val = $(this).data("value");
-            frm.set_value("custom_pipeline_status", "Prospect");
+            frm.set_value("pipeline_status", "Prospect");
             frm.set_value("custom_sub_status", val);
             updateActiveState();
             frm.save();
@@ -149,7 +181,7 @@ frappe.ui.form.on("HS Opportunity", {
 
         $("#followup-sub-steps .sub-step").on("click", function() {
             const val = $(this).data("value");
-            frm.set_value("custom_pipeline_status", "Assessment");
+            frm.set_value("pipeline_status", "Assessment");
             frm.set_value("custom_sub_status", val);
             updateActiveState();
             frm.save();
@@ -158,6 +190,46 @@ frappe.ui.form.on("HS Opportunity", {
 
         // Add the button only if it's not already added
         if (!frm.custom_buttons_added) {
+
+            frm.add_custom_button("Schedule Assessment", function() {
+                // Fetch Google Meet link from Salesperson
+                frappe.db.get_value('HS Sales Persons', frm.doc.sales_person, 'meet_link')
+                .then(r => {
+                    const meet_link = r.message ? r.message.meet_link : '';
+
+                    // Show dialog
+                    let d = new frappe.ui.Dialog({
+                        title: "Schedule Assessment",
+                        fields: [
+                            {
+                                label: "Google Meet Link",
+                                fieldname: "google_meet_link",
+                                fieldtype: "Data",
+                                default: meet_link
+                                
+                            },
+                            {
+                                label: "Schedule Time",
+                                fieldname: "schedule_time",
+                                fieldtype: "Datetime"
+                            
+                            }
+                        ],
+                        primary_action_label: "Schedule",
+                        primary_action(values) {
+                            // Save values to opportunity
+                            frm.set_value("google_meet_link", values.google_meet_link);
+                            frm.set_value("assessment_schedule_time", values.schedule_time);
+
+                            frappe.msgprint("Assessment scheduled successfully!");
+                            frm.save();
+                            d.hide();
+                        }
+                    });
+
+                    d.show();
+                });
+            });
             // Check if the form is saved
             if (!frm.is_new()) {
                 frm.add_custom_button("Assessment", function () {
@@ -186,6 +258,8 @@ frappe.ui.form.on("HS Opportunity", {
                     
                 });
             });
+
+            
         }
     },
     after_save: function (frm) {

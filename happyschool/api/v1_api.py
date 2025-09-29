@@ -1,50 +1,159 @@
 import frappe
 from datetime import datetime
 from frappe.utils import get_datetime, format_datetime, format_date
+import frappe
+from frappe.utils import getdate, today
+from dateutil.relativedelta import relativedelta
+
+
 
 @frappe.whitelist(allow_guest=True)
 def get_home_page_details(student_id: str):
     """
-    API that mimics the Node.js GetUserCourseDetails response
+    Home page details:
+      - Active & inactive courses (with test counts, attendance, weeks since joining, assignment %, completion %)
+      - Upcoming live classes
     """
-
     try:
-        # 1. Fetch enrolled courses
+        # 1. Fetch ALL enrolled courses (both active & inactive)
         user_courses = frappe.db.sql("""
-            SELECT course_id, expiry_date
+            SELECT course_id, expiry_date, admission_date, is_active
             FROM `tabUser Courses`
             WHERE student_id=%s
-            AND is_active= "Active"
         """, student_id, as_dict=True)
 
-        Course, upcoming = [], []
+        active_courses, inactive_courses, upcoming = [], [], []
 
         if user_courses:
             course_ids = [c["course_id"] for c in user_courses]
 
-            # 2. Dynamic Courses
+            # 2. Fetch course details
             dynamic_courses = frappe.db.sql("""
-                SELECT course_id, title, subject, image,
+                SELECT name as course_id, title, subject, image,
                        language_of_instruction, description,
                        details, ask_doubt_number
                 FROM `tabCourses`
-                WHERE course_id IN %(course_ids)s
+                WHERE name IN %(course_ids)s
             """, {"course_ids": tuple(course_ids)}, as_dict=True)
 
+            # Map admission_date & status by course_id
+            admission_map = {c.course_id: c.admission_date for c in user_courses}
+            status_map = {c.course_id: c.is_active for c in user_courses}
+
             for course in dynamic_courses:
-                Course.append({
-                    "course_id": course["course_id"],
+                course_id = course["course_id"]
+
+                # --- Count total assigned tests ---
+                assigned_test_ids = frappe.db.sql_list("""
+                    SELECT test_id
+                    FROM `tabHS Student Tests`
+                    WHERE student_id=%s
+                """, (student_id,))
+
+                if assigned_test_ids:
+                    total_item_count = frappe.db.count("Tests", {
+                        "name": ["in", assigned_test_ids],
+                        "course_id": course_id,
+                        "is_active": 1
+                    })
+                else:
+                    total_item_count = 0
+
+                # --- Attended tests ---
+                attended_test_ids = frappe.db.sql("""
+                    SELECT tuh.test_id
+                    FROM `tabTest User History` tuh
+                    INNER JOIN `tabTests` t ON t.name = tuh.test_id
+                    WHERE tuh.student_id=%s AND t.course_id=%s
+                """, (student_id, course_id), as_dict=True)
+                total_attended_count = len(attended_test_ids)
+
+                # --- Attendance ---
+                present_count = frappe.db.count("Std Attendance", {
+                    "student_id": student_id,
+                    "course_id": course_id,
+                    "attendance": "Present"
+                })
+                absent_count = frappe.db.count("Std Attendance", {
+                    "student_id": student_id,
+                    "course_id": course_id,
+                    "attendance": "Absent"
+                })
+                total_sessions = present_count + absent_count
+                attendance_percentage = int(round((present_count / total_sessions * 100))) if total_sessions > 0 else 0
+
+                # --- Weeks since joining ---
+                weeks_completed = 0
+                admission_date = admission_map.get(course_id)
+                if admission_date:
+                    join_date = getdate(admission_date)
+                    today_date = getdate(today())
+                    delta = relativedelta(today_date, join_date)
+                    weeks_completed = (delta.years * 52) + (delta.months * 4) + (delta.days // 7)
+
+                # --- Assignments ---
+                total_assignments = frappe.db.count("HS Student Assignments", {
+                    "student_id": student_id,
+                    "course_id": course_id
+                })
+
+                submitted_assignments = frappe.db.sql("""
+                    SELECT COUNT(sub.name) AS cnt
+                    FROM `tabHS Student Submitted Assignments` sub
+                    INNER JOIN `tabHS Student Assignments` assign
+                        ON assign.name = sub.assignment_id
+                    WHERE sub.student_id = %s
+                      AND assign.course_id = %s
+                """, (student_id, course_id), as_dict=True)[0].cnt or 0
+
+                assignment_percentage = int(round((submitted_assignments / total_assignments * 100))) if total_assignments > 0 else 0
+
+                # --- Live Sessions ---
+                total_live_sessions = frappe.db.count("Live Classroom", {
+                    "student_id": student_id,
+                    "course_id": course_id
+                })
+
+                completed_live_sessions = frappe.db.count("Live Classroom", {
+                    "student_id": student_id,
+                    "course_id": course_id,
+                    "status": "Completed"
+                })
+                scheduled_live_sessions = frappe.db.count("Live Classroom", {
+                    "student_id": student_id,
+                    "course_id": course_id,
+                    "status": ["!=", "Completed"]
+                })
+
+                completion_percentage = int(round((completed_live_sessions / total_live_sessions * 100))) if total_live_sessions > 0 else 0
+
+                course_data = {
+                    "course_id": course_id,
                     "title": course["title"],
                     "subject": course["subject"],
-                    "image": f"http://happyschool.localhost:8000/{course['image']}",
+                    "image": f"http://happyschool.localhost:8000/{course['image']}" if course.get("image") else None,
                     "language_of_instruction": course["language_of_instruction"],
                     "description": course["description"],
                     "details": course["details"],
                     "ask_doubt_number": course["ask_doubt_number"],
-                    "total_item_count": 0,
-                    "total_attended_count": 0
-                })
+                    "total_item_count": total_item_count,
+                    "total_attended_count": total_attended_count,
+                    "attendance_percentage": attendance_percentage,
+                    "total_weeks_completed": weeks_completed,
+                    "assignment_percentage": assignment_percentage,
+                    "completed_live_sessions": completed_live_sessions,
+                    "scheduled_live_sessions": scheduled_live_sessions,
+                    "total_live_sessions":total_live_sessions,
+                    # "completion_percentage": completion_percentage,
+                    "status": status_map.get(course_id, "Inactive")  
+                }
 
+                if status_map.get(course_id) == "Active":
+                    active_courses.append(course_data)
+                else:
+                    inactive_courses.append(course_data)
+
+            # 3. Upcoming live classes (only for active)
             upcoming_live = frappe.db.sql("""
                 SELECT topic, subtopic, meeting_link, caption, description,
                        student_id, faculty_email, meeting_start_time, meeting_end_time,
@@ -64,7 +173,7 @@ def get_home_page_details(student_id: str):
                     "faculty_email": live["faculty_email"],
                     "meeting_start_time": live["meeting_start_time"],
                     "meeting_end_time": live["meeting_end_time"],
-                    "thumbnail": f"http://happyschool.localhost:8000/{live['thumbnail']}",
+                    "thumbnail": f"http://happyschool.localhost:8000/{live['thumbnail']}" if live.get("thumbnail") else None,
                     "status": live["status"],
                     "scheduled_date": live["scheduled_date"]
                 })
@@ -72,7 +181,8 @@ def get_home_page_details(student_id: str):
         frappe.local.response.update({
             "success": True,
             "upcoming_data": upcoming,
-            "datas": Course
+            "active_courses": active_courses,
+            "inactive_courses": inactive_courses
         })
 
     except Exception as e:
@@ -81,6 +191,9 @@ def get_home_page_details(student_id: str):
             "success": False,
             "error": str(e)
         })
+
+
+
 
 
 @frappe.whitelist(allow_guest=True)
@@ -148,7 +261,7 @@ def classroom_details(student_id=None):
 
         upcoming, ongoing, past = [], [], []
 
-        # ✅ Fetch live classroom details using student_id
+        # Fetch live classroom details using student_id
         query = """
             SELECT name, subject, topic, subtopic, meeting_link, caption, description,
                    faculty_email, meeting_start_time, meeting_end_time, thumbnail,
