@@ -8,8 +8,7 @@
  "field_order": [
   "slot_date",
   "from_time",
-  "sales_person",
-  "status"
+  "sales_person"
  ],
  "fields": [
   {
@@ -31,19 +30,13 @@
    "in_list_view": 1,
    "label": "Sales Person",
    "options": "HS Sales Persons"
-  },
-  {
-   "fieldname": "status",
-   "fieldtype": "Select",
-   "in_list_view": 1,
-   "label": "Status"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2025-09-25 17:02:37.242257",
+ "modified": "2025-09-29 12:08:49.455494",
  "modified_by": "Administrator",
  "module": "happyschool",
  "name": "Slot Booking",
