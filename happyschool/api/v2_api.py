@@ -99,6 +99,9 @@ def get_parent_home_page_details(student_id: str, parent_id: str):
             "student_id": student_id,
             "status": ["in", ["Upcoming", "Ongoing"]]
         })
+        total_live_sessions = frappe.db.count("Live Classroom", {
+                    "student_id": student_id,
+                })
 
         # -------- Final response --------
         datas = {
@@ -112,6 +115,7 @@ def get_parent_home_page_details(student_id: str, parent_id: str):
             "overall_attended_data_count": overall_attended_data_count,
             "completed_sessions_count": completed_sessions_count,
             "scheduled_sessions_count": scheduled_sessions_count,
+            "total_live_sessions":total_live_sessions,
             "subject_wise_data_count": subject_wise_data_count
            
         }
