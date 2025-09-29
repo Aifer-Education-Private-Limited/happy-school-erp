@@ -46,7 +46,7 @@
    "fieldname": "student_id",
    "fieldtype": "Link",
    "label": "Student_id",
-   "options": "Student"
+   "options": "HS Students"
   },
   {
    "fieldname": "parent_id",
@@ -74,7 +74,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-09-17 17:58:59.012298",
+ "modified": "2025-09-28 16:49:04.973226",
  "modified_by": "Administrator",
  "module": "happyschool",
  "name": "Events",

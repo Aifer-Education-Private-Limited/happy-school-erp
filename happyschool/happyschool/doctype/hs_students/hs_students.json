@@ -9,7 +9,7 @@
   "student_name",
   "mobile",
   "grade",
-  "join_date",
+  "joinig_date",
   "column_break_p5m5",
   "password",
   "dob",
@@ -60,11 +60,6 @@
    "label": "Password"
   },
   {
-   "fieldname": "join_date",
-   "fieldtype": "Date",
-   "label": "Join Date"
-  },
-  {
    "default": "Linked",
    "fieldname": "status",
    "fieldtype": "Select",
@@ -77,12 +72,17 @@
    "fieldtype": "Select",
    "label": "Type",
    "options": "Active\nInactive"
+  },
+  {
+   "fieldname": "joinig_date",
+   "fieldtype": "Date",
+   "label": "Joinig Date"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-09-12 14:28:43.874330",
+ "modified": "2025-09-27 17:57:36.991578",
  "modified_by": "Administrator",
  "module": "happyschool",
  "name": "HS Students",

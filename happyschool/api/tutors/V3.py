@@ -45,7 +45,7 @@ def submit_student_assignment_by_tutor():
             })
             return
 
-        if not frappe.db.exists("Student", student_id):
+        if not frappe.db.exists("HS Students", student_id):
             frappe.local.response.update({
                 "success": False,
                 "message": f"Student {student_id} not found"
@@ -170,7 +170,7 @@ def submit_student_assignment_answer():
             })
             return
 
-        if not frappe.db.exists("Student", student_id):
+        if not frappe.db.exists("HS Students", student_id):
             frappe.local.response.update({
                 "success": False,
                 "message": f"Student {student_id} not found"

@@ -23,7 +23,7 @@
    "fieldname": "student_id",
    "fieldtype": "Link",
    "label": "Student ID",
-   "options": "Student"
+   "options": "HS Students"
   },
   {
    "fieldname": "attended_date",
@@ -49,7 +49,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-09-19 14:47:14.572095",
+ "modified": "2025-09-28 13:26:10.629528",
  "modified_by": "Administrator",
  "module": "happyschool",
  "name": "Test User History",

@@ -17,7 +17,7 @@
    "fieldname": "student_id",
    "fieldtype": "Link",
    "label": "Student Id",
-   "options": "Student"
+   "options": "HS Students"
   },
   {
    "fieldname": "course_id",
@@ -51,7 +51,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-09-16 12:07:11.967404",
+ "modified": "2025-09-28 12:06:38.964905",
  "modified_by": "Administrator",
  "module": "happyschool",
  "name": "User Courses",

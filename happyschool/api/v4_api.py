@@ -8,90 +8,90 @@ import re
 from frappe import _
 from frappe.utils import nowdate, now_datetime
 
-@frappe.whitelist(allow_guest=True)
-def get_student_materials():
+# @frappe.whitelist(allow_guest=True)
+# def get_student_materials():
 
-    try:
-        data = frappe.local.form_dict
-        student_id = data.get("student_id")
-        course_id = data.get("course_id")
+#     try:
+#         data = frappe.local.form_dict
+#         student_id = data.get("student_id")
+#         course_id = data.get("course_id")
 
-        if not student_id or not course_id:
-            return {"success": False, "error": "Student ID and Course ID are required"}
+#         if not student_id or not course_id:
+#             return {"success": False, "error": "Student ID and Course ID are required"}
 
-        # ---- Check if student is enrolled in the course ----
-        is_enrolled = frappe.db.exists("User Courses", {"student_id": student_id, "course_id": course_id})
-        if not is_enrolled:
-            return {"success": False, "error": f"Student {student_id} is not enrolled in Course {course_id}"}
+#         # ---- Check if student is enrolled in the course ----
+#         is_enrolled = frappe.db.exists("User Courses", {"student_id": student_id, "course_id": course_id})
+#         if not is_enrolled:
+#             return {"success": False, "error": f"Student {student_id} is not enrolled in Course {course_id}"}
 
-        materials = frappe.get_all(
-            "Materials",
-            filters={"student_id": student_id},
-            fields=["name", "subject", "topic", "subtopic", "material_name", "session_id", "tutor_id", "submitted_date", "files","student_id"]
-        )
+#         materials = frappe.get_all(
+#             "Materials",
+#             filters={"student_id": student_id},
+#             fields=["name", "subject", "topic", "subtopic", "material_name", "session_id", "tutor_id", "submitted_date", "files","student_id"]
+#         )
 
-        courses_data = []
+#         courses_data = []
 
-        topic_dict = {}
+#         topic_dict = {}
 
-        for material in materials:
-            session_id = material.session_id
+#         for material in materials:
+#             session_id = material.session_id
 
-            live_classroom = frappe.get_all(
-                "Live Classroom",
-                filters={"name": session_id},  
-                fields=["course_id"]
-            )
+#             live_classroom = frappe.get_all(
+#                 "Live Classroom",
+#                 filters={"name": session_id},  
+#                 fields=["course_id"]
+#             )
 
-            if live_classroom and live_classroom[0].course_id == course_id:
-                if material.topic not in topic_dict:
-                    topic_dict[material.topic] = {}
+#             if live_classroom and live_classroom[0].course_id == course_id:
+#                 if material.topic not in topic_dict:
+#                     topic_dict[material.topic] = {}
 
-                if material.subtopic not in topic_dict[material.topic]:
-                    topic_dict[material.topic][material.subtopic] = []
+#                 if material.subtopic not in topic_dict[material.topic]:
+#                     topic_dict[material.topic][material.subtopic] = []
 
-                material_data = {
-                    "material_name": material.material_name,
-                    "tutor_id": material.tutor_id,
-                    "subject": material.subject,
-                    "topic": material.topic,
-                    "subtopic": material.subtopic,
-                    "files": material.files,  
-                    "submitted_date": material.submitted_date,
-                    "session_id": material.session_id,
-                    "student_id": material.student_id
-                }
+#                 material_data = {
+#                     "material_name": material.material_name,
+#                     "tutor_id": material.tutor_id,
+#                     "subject": material.subject,
+#                     "topic": material.topic,
+#                     "subtopic": material.subtopic,
+#                     "files": material.files,  
+#                     "submitted_date": material.submitted_date,
+#                     "session_id": material.session_id,
+#                     "student_id": material.student_id
+#                 }
 
-                topic_dict[material.topic][material.subtopic].append(material_data)
+#                 topic_dict[material.topic][material.subtopic].append(material_data)
 
-        for topic, subtopics in topic_dict.items():
-            subject_data = {
-                "topic": topic,
-                "subTopic": []
-            }
+#         for topic, subtopics in topic_dict.items():
+#             subject_data = {
+#                 "topic": topic,
+#                 "subTopic": []
+#             }
 
-            for subtopic, materials in subtopics.items():
-                subtopic_data = {
-                    "title": subtopic,
-                    "data": materials  
-                }
+#             for subtopic, materials in subtopics.items():
+#                 subtopic_data = {
+#                     "title": subtopic,
+#                     "data": materials  
+#                 }
 
-                subject_data["subTopic"].append(subtopic_data)
+#                 subject_data["subTopic"].append(subtopic_data)
 
-            courses_data.append(subject_data)
+#             courses_data.append(subject_data)
 
-        frappe.local.response.update({
-            "success": True,
-            "student_id": student_id,
-            "courses": courses_data
-        })
+#         frappe.local.response.update({
+#             "success": True,
+#             "student_id": student_id,
+#             "courses": courses_data
+#         })
 
-    except Exception as e:
-        frappe.log_error(frappe.get_traceback(), "get_student_materials API Error")
-        frappe.local.response.update({
-            "success": False,
-            "message": str(e)
-        })
+#     except Exception as e:
+#         frappe.log_error(frappe.get_traceback(), "get_student_materials API Error")
+#         frappe.local.response.update({
+#             "success": False,
+#             "message": str(e)
+#         })
 
 
 
@@ -349,7 +349,7 @@ def test_complete():
                 pass
 
         test_id     = payload.get("test_id")
-        student_id  = payload.get("student_id") or payload.get("uid") 
+        student_id  = payload.get("student_id") 
         attended_at = payload.get("date") or now_datetime()
         total_time  = payload.get("total_time")
         marks       = payload.get("marks")
@@ -612,7 +612,7 @@ def get_analytics():
         if  not history_id:
             frappe.local.response.update({
                 "success": False,
-                "message": _("Test ID, Student ID, and History ID are required")
+                "message": _("History ID are required")
             })
             return
 
@@ -714,7 +714,7 @@ def get_progress_report(student_id=None, course_id=None):
             })
             return
          # ✅ Validate Student exists
-        if not frappe.db.exists("Student", student_id):
+        if not frappe.db.exists("HS Students", student_id):
             frappe.local.response.update({
                 "success": False,
                 "message": f"Student {student_id} not found",
@@ -861,7 +861,6 @@ def get_progress_report(student_id=None, course_id=None):
         "status": ["!=", "Completed"]
                 })
          
-       
 
                 # completion_percentage = (completed_live_sessions / total_live_sessions * 100) if total_live_sessions > 0 else 0
         complete_session_percentage = int(round((completed_live_sessions / total_live_sessions * 100))) if total_live_sessions > 0 else 0

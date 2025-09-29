@@ -5,6 +5,8 @@ import mimetypes
 from datetime import datetime
 # from happyschool.utils.oci_storage import upload_pdf_to_oracle
 from frappe.utils import today, getdate
+import frappe
+from frappe.utils import nowdate, get_first_day, get_last_day
 
 
 ORACLE_UPLOAD_URL = frappe.conf.get("ORACLE_UPLOAD_URL")
@@ -152,10 +154,10 @@ def student_list():
             student_id = link.student_id
             course_id = link.course_id
 
-            if not frappe.db.exists("Student", student_id):
+            if not frappe.db.exists("HS Students", student_id):
                 continue
 
-            student_doc = frappe.get_doc("Student", student_id)
+            student_doc = frappe.get_doc("HS Students", student_id)
 
             # ✅ Fetch subject from Courses
             subject = frappe.db.get_value("Courses", course_id, "subject") or ""
@@ -206,10 +208,10 @@ def student_list():
             # -------- Student info --------
             students_data.append({
                 "student_id": student_doc.name,
-                "student_name": student_doc.get("first_name"),
-                "grade": student_doc.get("custom_grade"),
-                "mobile": student_doc.get("student_mobile_number"),
-                "profile": student_doc.get("custom_profile"),
+                "student_name": student_doc.get("student_name"),
+                "grade": student_doc.get("grade"),
+                "mobile": student_doc.get("mobile"),
+                "profile": student_doc.get("profile"),
                 "join_date": student_doc.get("joining_date"),
                 "course_id": course_id,
                 "subject": subject,
@@ -234,8 +236,7 @@ def student_list():
             "message": str(e)
         })
 
-import frappe
-from frappe.utils import nowdate, get_first_day, get_last_day
+
 
 @frappe.whitelist(allow_guest=True)
 def tutor_profile():
@@ -369,13 +370,13 @@ def scheduled_session():
         session_data = []
         for s in sessions:
             student_info = {}
-            if s.student_id and frappe.db.exists("Student", s.student_id):
-                student_doc = frappe.get_doc("Student", s.student_id)
+            if s.student_id and frappe.db.exists("HS Students", s.student_id):
+                student_doc = frappe.get_doc("HS Students", s.student_id)
                 student_info = {
                     "student_id": student_doc.name,
                     "student_name": student_doc.get("student_name"),
-                    "profile": student_doc.get("custom_profile"),
-                    "grade": student_doc.get("custom_grade")
+                    "profile": student_doc.get("profile"),
+                    "grade": student_doc.get("grade")
                 }
 
             session_data.append({
@@ -452,13 +453,13 @@ def completed_live_sessions():
         for s in sessions:
             # ---- Get Student Info ----
             student_info = {}
-            if s.student_id and frappe.db.exists("Student", s.student_id):
-                student_doc = frappe.get_doc("Student", s.student_id)
+            if s.student_id and frappe.db.exists("HS Students", s.student_id):
+                student_doc = frappe.get_doc("HS Students", s.student_id)
                 student_info = {
                     "student_id": student_doc.name,
                     "student_name": student_doc.get("student_name"),
-                    "profile": student_doc.get("custom_profile"),
-                    "grade": student_doc.get("custom_grade")
+                    "profile": student_doc.get("profile"),
+                    "grade": student_doc.get("grade")
                 }
 
             # ---- Attendance Check ----
@@ -549,11 +550,11 @@ def get_feedback():
 
             if frappe.db.exists("Students List", {"tutor_id": tutor_id, "student_id": student_id}):
                 student_info = {}
-                if frappe.db.exists("Student", student_id):
-                    student_doc = frappe.get_doc("Student", student_id)
+                if frappe.db.exists("HS Students", student_id):
+                    student_doc = frappe.get_doc("HS Students", student_id)
                     student_info = {
                         "student_name": student_doc.get("student_name"),
-                        "profile": student_doc.get("custom_profile"),
+                        "profile": student_doc.get("profile"),
                        
                     }
 
@@ -648,12 +649,12 @@ def tutor_home():
         upcoming_classes = []
         for c in upcoming_classes_raw:
             student_info = {}
-            if c.student_id and frappe.db.exists("Student", c.student_id):
-                student_doc = frappe.get_doc("Student", c.student_id)
+            if c.student_id and frappe.db.exists("HS Students", c.student_id):
+                student_doc = frappe.get_doc("HS Students", c.student_id)
                 student_info = {
                     "student_id": student_doc.name,
                     "student_name": student_doc.get("first_name"),
-                    "grade": student_doc.get("custom_grade")
+                    "grade": student_doc.get("grade")
                 }
 
             upcoming_classes.append({
