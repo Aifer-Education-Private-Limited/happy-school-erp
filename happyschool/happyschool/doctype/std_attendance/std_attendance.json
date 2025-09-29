@@ -20,7 +20,7 @@
    "fieldname": "student_id",
    "fieldtype": "Link",
    "label": "Student_id",
-   "options": "Student"
+   "options": "HS Students"
   },
   {
    "fieldname": "course_id",
@@ -63,13 +63,13 @@
    "fieldname": "attendance",
    "fieldtype": "Select",
    "label": "Attendance",
-   "options": "Present\nAbsent\nScheduled"
+   "options": "Present\nAbsent\nRescheduled"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-09-26 17:42:46.030329",
+ "modified": "2025-09-27 18:41:54.019856",
  "modified_by": "Administrator",
  "module": "happyschool",
  "name": "Std Attendance",

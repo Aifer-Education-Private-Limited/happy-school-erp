@@ -11,7 +11,6 @@ RAZORPAY_KEY_SECRET = frappe.conf.get("RAZORPAY_KEY_SECRET")
 
 # print("razorpay_client", razorpay_client)
 
-import frappe
 
 @frappe.whitelist(allow_guest=True)
 def get_parent_home_page_details(student_id: str, parent_id: str):
@@ -32,7 +31,7 @@ def get_parent_home_page_details(student_id: str, parent_id: str):
             return
 
         # -------- 1. Student & Parent names --------
-        student_name = frappe.db.get_value("Student", student_id, "student_name") or "Unknown Student"
+        student_name = frappe.db.get_value("HS Students", student_id, "student_name") or "Unknown Student"
         parent_name = frappe.db.get_value("Parents", parent_id, "first_name") or "Unknown Parent"
 
         # -------- 2. Attendance counts --------
@@ -230,8 +229,8 @@ def get_announcements_by_student_or_parent():
             if not events:
                 # Use custom_parent_id (as used elsewhere in your project)
                 student_list = frappe.get_all(
-                    "Student",
-                    filters={"custom_parent_id": parent_id},
+                    "HS Students",
+                    filters={"parent_id": parent_id},
                     fields=["name"]
                 ) or []
                 student_ids = [s.name for s in student_list]

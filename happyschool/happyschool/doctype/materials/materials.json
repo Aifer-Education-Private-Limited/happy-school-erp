@@ -9,11 +9,11 @@
   "subject",
   "topic",
   "subtopic",
+  "student_id",
   "files",
   "submitted_date",
   "material_name",
-  "session_id",
-  "student_id"
+  "session_id"
  ],
  "fields": [
   {
@@ -62,13 +62,13 @@
    "fieldname": "student_id",
    "fieldtype": "Link",
    "label": "Student_id",
-   "options": "Student"
+   "options": "HS Students"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-09-16 17:29:41.623174",
+ "modified": "2025-09-27 18:52:51.849406",
  "modified_by": "Administrator",
  "module": "happyschool",
  "name": "Materials",

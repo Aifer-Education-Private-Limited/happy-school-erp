@@ -45,7 +45,7 @@ def submit_student_assignment_by_tutor():
             })
             return
 
-        if not frappe.db.exists("Student", student_id):
+        if not frappe.db.exists("HS Students", student_id):
             frappe.local.response.update({
                 "success": False,
                 "message": f"Student {student_id} not found"
@@ -170,7 +170,7 @@ def submit_student_assignment_answer():
             })
             return
 
-        if not frappe.db.exists("Student", student_id):
+        if not frappe.db.exists("HS Students", student_id):
             frappe.local.response.update({
                 "success": False,
                 "message": f"Student {student_id} not found"
@@ -296,6 +296,7 @@ def list_assignments(role=None, tutor_id=None, student_id=None, course_id=None):
                     "assignment_name",
                     "topic",
                     "subtopic",
+                    "type",
                     "files",
                     "description",
                     "creation"
@@ -339,6 +340,7 @@ def list_assignments(role=None, tutor_id=None, student_id=None, course_id=None):
                     "assignment_name": a.assignment_name,
                     "topic": a.topic,
                     "subtopic": a.subtopic,
+                    "type":a.type,
                     "files": files,
                     "description": a.description,
                     "given_date": a.creation,
@@ -378,7 +380,7 @@ def list_assignments(role=None, tutor_id=None, student_id=None, course_id=None):
                 assignment_details = frappe.db.get_value(
                     "HS Student Assignments",
                     {"name": s.assignment_id, "tutor_id": tutor_id},
-                    ["assignment_name", "topic", "subtopic", "course_id"],
+                    ["assignment_name", "topic", "subtopic","type", "course_id"],
                     as_dict=True
                 )
 
@@ -394,6 +396,7 @@ def list_assignments(role=None, tutor_id=None, student_id=None, course_id=None):
                     "assignment_name": assignment_details.assignment_name,
                     "topic": assignment_details.topic,
                     "subtopic": assignment_details.subtopic,
+                    "type":assignment_details.type,
                     "course_id": assignment_details.course_id,
                     "files": files,
                     "submitted_date": s.creation

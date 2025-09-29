@@ -12,6 +12,7 @@ def get_students_parents_tutors(tutor_id=None, student_id=None, parent_id=None, 
             )
 
             student_details = []
+
             parent_details = []
 
             for s in students_list:
@@ -84,9 +85,10 @@ def get_students_parents_tutors(tutor_id=None, student_id=None, parent_id=None, 
                 "message": "Provide tutor_id or student_id/parent_id"
             })
 
+
     except Exception as e:
         frappe.log_error(frappe.get_traceback(), "Get Students/Parents/Tutors API Error")
         frappe.local.response.update({
             "success": False,
             "message": str(e)
-        })
+

@@ -7,3 +7,10 @@ from frappe.model.document import Document
 
 class Events(Document):
 	pass
+
+import frappe 
+from frappe.model.naming import make_autoname
+
+class Announcement(frappe.model.document.Document):
+    def autoname(self):
+        self.name = make_autoname("EVT-.YYYY.-.#####")
