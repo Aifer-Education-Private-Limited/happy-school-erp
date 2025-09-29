@@ -20,7 +20,7 @@ def student_signup():
         profile = data.get("profile")
 
         # Check duplicate student
-        if frappe.db.exists("Student", {"student_name": student_name, "parent_id": parent_id}):
+        if frappe.db.exists("HS Students", {"student_name": student_name, "parent_id": parent_id}):
             frappe.local.response.update ( {"success": False, "message": "Already registered"} )
             return
 
@@ -31,19 +31,18 @@ def student_signup():
 
 
         # Create student
-        student = frappe.new_doc("Student")
-        student.custom_parent_id= parent_id
-        student.first_name = student_name
-        student.student_mobile_number = mobile
-        student.custom_grade = grade
+        student = frappe.new_doc("HS Students")
+        student.parent_id= parent_id
+        student.student_name = student_name
+        student.mobile = mobile
+        student.grade = grade
         student.joining_date= join_date
-        student.custom_password = password  
-        student.date_of_birth = dob
-        student.student_email_id = f"{uuid}@example.com"
+        student.password = password  
+        student.dob = dob
 
-        student.custom_profile = profile
-        student.custom_status = "Linked"
-        student.custom_type = "Active"
+        student.profile = profile
+        student.status = "Linked"
+        student.type = "Active"
 
         # Prevent auto Customer creation
         student.set_missing_customer_details = lambda: None
@@ -54,8 +53,8 @@ def student_signup():
 
         student_details = {
             "student_id": student.name,
-            "name": student.first_name,
-            "password": student.custom_password,  
+            "name": student.student_name,
+            "password": student.password,  
         }
 
         frappe.local.response.update ( {"success": True, "message": "Signup successful.", "student": student_details} )
@@ -68,7 +67,7 @@ def student_signup():
 @frappe.whitelist(allow_guest=True)
 def student_login(student_id,password):
     try:
-        student = frappe.db.get_value("Student", {"name":student_id,"custom_password":password}, "name")
+        student = frappe.db.get_value("HS Students", {"name":student_id,"password":password}, "name")
         if not student:
             frappe.local.response.update({
                 "success": False,
@@ -94,10 +93,10 @@ def student_login(student_id,password):
 def get_student(parent_id):
     try:
         student_details = frappe.db.sql("""
-            SELECT name as student_id, custom_parent_id as parent_id, first_name as full_name, joining_date, student_mobile_number,
-                   date_of_birth as dob, custom_grade as grade, custom_password as password, custom_profile as profile
-            FROM `tabStudent`
-            WHERE custom_parent_id = %s AND custom_status = "Linked"
+            SELECT name as student_id,parent_id, student_name as full_name,join_date as joining_date,mobile as student_mobile_number,
+                   dob,grade,password,profile
+            FROM `tabHS Students`
+            WHERE parent_id = %s AND status = "Linked"
             ORDER BY creation DESC
         """, parent_id, as_dict=True)
 
@@ -133,37 +132,21 @@ def edit_student(student_id):
 
 
         # Fetch the student document
-        if not frappe.db.exists("Student",student_id):
+        if not frappe.db.exists("HS Students",student_id):
             frappe.local.response.update({
                 "success": False,
                 "error": f"Student {student_id} not found."
             })
             return
 
-        student = frappe.get_doc("Student", student_id)
-
-        # Example: Check for duplicate email
-        student_email = data.get("student_email_id")
-        if student_email:
-            existing_student = frappe.db.get_value(
-                "Student",
-                {"student_email_id": student_email, "name": ["!=", student_id]},
-                "name"
-            )
-            if existing_student:
-                frappe.local.response.update({
-                    "success": False,
-                    "error": f"Email ID {student_email} already exists."
-                })
-                return
-            student.student_email_id = student_email
+        student = frappe.get_doc("HS Students", student_id)
 
         # Example: Check for duplicate mobile number
-        student_mobile = data.get("student_mobile_number")
+        student_mobile = data.get("mobile")
         if student_mobile:
             existing_student = frappe.db.get_value(
-                "Student",
-                {"student_mobile_number": student_mobile, "name": ["!=", student_id]},
+                "HS Students",
+                {"mobile": student_mobile, "name": ["!=", student_id]},
                 "name"
             )
             if existing_student:
@@ -176,15 +159,16 @@ def edit_student(student_id):
 
         # List of editable fields
         editable_fields = [
-            "first_name",
+            "student_name",
             "joining_date",
-            "date_of_birth",
-            "custom_grade",
-            "custom_password",
-            "custom_profile",
-            "custom_status",
-            "custom_type",
-            "custom_parent_id"
+            "dob",
+            "grade",
+            "mobile",
+            "password",
+            "profile",
+            "status",
+            "type",
+            "parent_id"
         ]
 
         # Update fields from form_dict
@@ -203,16 +187,15 @@ def edit_student(student_id):
             "message": f"Student {student_id} updated successfully.",
             "student": {
                 "name": student.name,
-                "first_name": student.first_name or "",
-                "student_email_id": student.student_email_id or "",
-                "student_mobile_number": student.student_mobile_number or "",
-                "joining_date": student.joining_date or "",
-                "date_of_birth": student.date_of_birth or "",
-                "custom_grade": student.custom_grade or "",
-                "custom_profile": student.custom_profile or "",
-                "custom_status": student.custom_status or "",
-                "custom_type": student.custom_type or "",
-                "custom_parent_id": student.custom_parent_id or ""
+                "student_name": student.student_name or "",
+                "mobile": student.mobile or "",
+                "join_date": student.joining_date or "",
+                "dob": student.dob or "",
+                "grade": student.grade or "",
+                "profile": student.profile or "",
+                "status": student.status or "",
+                "type": student.type or "",
+                "parent_id": student.parent_id or ""
             },
             "http_status_code": 200
         })
@@ -239,10 +222,10 @@ def student_status_unlink(student_id):
             return
 
         # Load student doc
-        student = frappe.get_doc("Student", student_id)
+        student = frappe.get_doc("HS Students", student_id)
 
         # Update status to Unlink
-        student.custom_status = "Unlink"
+        student.status = "Unlink"
         student.save(ignore_permissions=True)
         frappe.db.commit()
         frappe.local.message_log = []
@@ -261,6 +244,9 @@ def student_status_unlink(student_id):
         })
         return
 
+import uuid
+import frappe
+
 @frappe.whitelist(allow_guest=True)
 def create_student():
     try:
@@ -276,36 +262,37 @@ def create_student():
 
         # Check parent exists
         if not frappe.db.exists("Parents", {"name": parent_id}):
-            frappe.local.response.update ( {"success": False, "message": f"Parent {parent_id} not found"} )
+            frappe.local.response.update({
+                "success": False,
+                "message": f"Parent {parent_id} not found"
+            })
             return
 
-        existing_student = frappe.db.exists("Student", {
-            "first_name":student_name,
-            "custom_parent_id": parent_id
-        },"name")
+        # Check duplicate student
+        existing_student = frappe.db.exists("HS Students", {
+            "student_name": student_name,
+            "parent_id": parent_id
+        })
         if existing_student:
             frappe.local.response.update({
                 "success": False,
                 "message": "Already registered",
-                "student_id": existing_student        
+                "student_id": existing_student
             })
             return
-        
-
 
         # Create student
-        student = frappe.new_doc("Student")
-        student.custom_parent_id = parent_id
-        student.first_name = student_name
-        student.student_mobile_number = mobile
-        student.custom_grade = grade
+        student = frappe.new_doc("HS Students")
+        student.parent_id = parent_id
+        student.student_name = student_name
+        student.mobile = mobile
+        student.grade = grade
         student.joining_date = join_date
-        student.custom_password = f"{uuid.uuid4().hex[:6]}"
-        student.date_of_birth = dob
-        student.custom_profile = profile
-        student.student_email_id = f"student_{uuid.uuid4().hex[:6]}@example.com"
-        student.custom_status = "Linked"
-        student.custom_type = "Active"
+        student.password = f"{uuid.uuid4().hex[:6]}"  # random 6 char password
+        student.dob = dob
+        student.profile = profile
+        student.status = "Linked"
+        student.type = "Active"
 
         # Prevent auto Customer creation
         student.set_missing_customer_details = lambda: None
@@ -313,24 +300,30 @@ def create_student():
         # Save
         student.insert(ignore_permissions=True)
         frappe.db.commit()
-        
 
+        # Response details
         student_details = {
-            "parent_id":student.custom_parent_id,
+            "parent_id": student.parent_id,
             "student_id": student.name,
-            "name": student.first_name,
-            "mobile":student.student_mobile_number,
-            "grade":student.custom_grade,
-            "joining_date":student.joining_date,
-            "date_of_birth": student.date_of_birth,
-            "profile":student.custom_profile,
-            "status":student.custom_status,
-            "type":student.custom_type
+            "name": student.student_name,
+            "mobile": student.mobile,
+            "grade": student.grade,
+            "joining_date": student.joining_date,
+            "date_of_birth": student.dob,
+            "profile": student.profile,
+            "status": student.status,
+            "type": student.type
         }
 
-        frappe.local.response.update ( {"success": True, "message": "Created Student Successfully", "student": student_details} )
+        frappe.local.response.update({
+            "success": True,
+            "message": "Created Student Successfully",
+            "student": student_details
+        })
 
     except Exception as e:
         frappe.log_error(frappe.get_traceback(), "Student Creation Error")
-        frappe.local.response.update ( {"success": False, "message": "Internal server error"} )
-
+        frappe.local.response.update({
+            "success": False,
+            "message": f"Internal server error: {str(e)}"
+        })

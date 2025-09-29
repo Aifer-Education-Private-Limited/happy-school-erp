@@ -190,6 +190,46 @@ frappe.ui.form.on("HS Opportunity", {
 
         // Add the button only if it's not already added
         if (!frm.custom_buttons_added) {
+
+            frm.add_custom_button("Schedule Assessment", function() {
+                // Fetch Google Meet link from Salesperson
+                frappe.db.get_value('HS Sales Persons', frm.doc.sales_person, 'meet_link')
+                .then(r => {
+                    const meet_link = r.message ? r.message.meet_link : '';
+
+                    // Show dialog
+                    let d = new frappe.ui.Dialog({
+                        title: "Schedule Assessment",
+                        fields: [
+                            {
+                                label: "Google Meet Link",
+                                fieldname: "google_meet_link",
+                                fieldtype: "Data",
+                                default: meet_link
+                                
+                            },
+                            {
+                                label: "Schedule Time",
+                                fieldname: "schedule_time",
+                                fieldtype: "Datetime"
+                            
+                            }
+                        ],
+                        primary_action_label: "Schedule",
+                        primary_action(values) {
+                            // Save values to opportunity
+                            frm.set_value("google_meet_link", values.google_meet_link);
+                            frm.set_value("assessment_schedule_time", values.schedule_time);
+
+                            frappe.msgprint("Assessment scheduled successfully!");
+                            frm.save();
+                            d.hide();
+                        }
+                    });
+
+                    d.show();
+                });
+            });
             // Check if the form is saved
             if (!frm.is_new()) {
                 frm.add_custom_button("Assessment", function () {
@@ -218,6 +258,8 @@ frappe.ui.form.on("HS Opportunity", {
                     
                 });
             });
+
+            
         }
     },
     after_save: function (frm) {

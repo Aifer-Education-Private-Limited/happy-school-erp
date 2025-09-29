@@ -7,7 +7,8 @@
  "field_order": [
   "sales_person",
   "enabled",
-  "user"
+  "user",
+  "meet_link"
  ],
  "fields": [
   {
@@ -29,12 +30,17 @@
    "label": "User",
    "options": "User",
    "reqd": 1
+  },
+  {
+   "fieldname": "meet_link",
+   "fieldtype": "Data",
+   "label": "Google Meet Link"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-09-25 15:34:39.419113",
+ "modified": "2025-09-29 12:51:13.871985",
  "modified_by": "Administrator",
  "module": "happyschool",
  "name": "HS Sales Persons",

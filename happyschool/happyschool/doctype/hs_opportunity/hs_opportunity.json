@@ -16,6 +16,7 @@
   "custom_sales_person",
   "custom_gradeclass",
   "custom_curriculum",
+  "schedule_time",
   "column_break_szqv",
   "custom_assessment_status",
   "pipeline_status",
@@ -120,12 +121,17 @@
    "fieldtype": "Table",
    "label": "Opportunity Remarks",
    "options": "HS Lead Remarks"
+  },
+  {
+   "fieldname": "schedule_time",
+   "fieldtype": "Data",
+   "label": "Schedule Time"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-09-29 12:32:50.236349",
+ "modified": "2025-09-29 16:36:31.111028",
  "modified_by": "Administrator",
  "module": "happyschool",
  "name": "HS Opportunity",

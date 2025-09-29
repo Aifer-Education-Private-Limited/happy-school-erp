@@ -137,14 +137,14 @@ def create_program_enrollment():
         student_id = data.get("student_id")
         program = data.get("program")
 
-        student = frappe.db.get_value("Student", {"name": student_id}, "name")
+        student = frappe.db.get_value("HS Students", {"name": student_id}, "name")
         if not student:
             frappe.local.response.update({
                 "success": False,
                 "message": "Could not find student"
             })
             return
-        student_name=frappe.db.get_value("Student",{"name":student_id},"first_name")
+        student_name=frappe.db.get_value("HS Students",{"name":student_id},"student_name")
         project=frappe.db.get_value("HS Program List",{"program":program},"project")
         program_enrollment = frappe.new_doc("HS Program Enrollment")
         program_enrollment.student = student_id
@@ -197,7 +197,7 @@ def check_program_enrollment():
         }
 
     try:
-        student = frappe.db.get_value("Student", {"name": student_id}, "name")
+        student = frappe.db.get_value("HS Students", {"name": student_id}, "name")
 
         if not student:
             return {

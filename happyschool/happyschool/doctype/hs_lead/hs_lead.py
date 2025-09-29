@@ -14,19 +14,23 @@ class HSLead(Document):
         self.name = make_autoname("HS-.lead-.YYYY.-.###")
 
     def before_insert(self):
-        # Set default pipeline values
+        # Set default pipeline values when creating a new lead
         if not self.custom_pipeline_status:
             self.custom_pipeline_status = "Prospect"
         if not self.custom_pipeline_sub_status:
             self.custom_pipeline_sub_status = "Open"
-
 
     def before_save(self):
         # If Slot Booking child table has rows, mark as Assessment Booked
         if self.get("custom_booking") and len(self.custom_booking) > 0:
             self.custom_pipeline_status = "Assessment Booked"
             self.custom_pipeline_sub_status = ""
-
+        else:
+            # Only set to default Open if this is a new Lead without bookings
+            if not self.custom_pipeline_status:
+                self.custom_pipeline_status = "Prospect"
+            if not self.custom_pipeline_sub_status:
+                self.custom_pipeline_sub_status = "Open"
     
 
 # @frappe.whitelist()
@@ -88,6 +92,15 @@ def check_salesperson_daily_limit(sales_person, parent=None):
 
 @frappe.whitelist()
 def create_or_update_opportunity_for_lead(doc, method):
+    # Fetch the latest slot from Lead's slot_booking child table
+    slot_date = None
+    slot_time = None
+    if hasattr(doc, "custom_booking") and doc.custom_booking:
+        # Assuming you want the first slot, or you can pick last, or based on some condition
+        latest_slot = doc.custom_booking[0]
+        slot_date = latest_slot.slot_date
+        slot_time = latest_slot.from_time
+
     # Check if opportunity already exists for this lead
     opportunity_name = frappe.db.get_value("HS Opportunity", {"custom_lead": doc.name}, "name")
 
@@ -100,22 +113,23 @@ def create_or_update_opportunity_for_lead(doc, method):
         opportunity.custom_curriculum = doc.custom_board
         opportunity.custom_sales_person = doc.custom_sales_person
         opportunity.parent_name = doc.first_name
-        opportunity.email=doc.email
+        opportunity.email = doc.email
+        if slot_date and slot_time:
+            opportunity.schedule_time = f"{slot_date} {slot_time}"
         opportunity.save(ignore_permissions=True)
     else:
         # Create new opportunity
         opportunity = frappe.get_doc({
             "doctype": "HS Opportunity",
-
-            # --- Custom fields ---
             "custom_lead": doc.name,
             "custom_student_name": doc.custom_student_name,
             "custom_mobile": doc.custom_mobile_number,
             "custom_gradeclass": doc.custom_gradeclass,
             "custom_curriculum": doc.custom_board,
             "custom_sales_person": doc.custom_sales_person,
-            "email":doc.email,
-            "parent_name": doc.first_name
+            "email": doc.email,
+            "parent_name": doc.first_name,
+            "schedule_time": f"{slot_date} {slot_time}" if slot_date and slot_time else None
         })
         opportunity.insert(ignore_permissions=True)
 

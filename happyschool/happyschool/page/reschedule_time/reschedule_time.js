@@ -166,15 +166,14 @@ frappe.pages['reschedule-time'].on_page_load = function (wrapper) {
                     flatpickr("#session-to", { enableTime: true, noCalendar: true, dateFormat: "H:i" });
                 }, 300);
 
-                // ✅ Handle thumbnail upload
                 $(document).on("change", "#thumbnail-upload", function (e) {
                     let file = e.target.files[0];
                     if (!file) return;
-
+                
                     let formData = new FormData();
                     formData.append("file", file, file.name);
                     formData.append("is_private", 0);
-
+                
                     $.ajax({
                         url: "/api/method/upload_file",
                         type: "POST",
@@ -184,17 +183,34 @@ frappe.pages['reschedule-time'].on_page_load = function (wrapper) {
                         success: function (r) {
                             if (r.message && r.message.file_url) {
                                 let file_url = r.message.file_url;
-                                $("#thumbnail-hidden").val(file_url);
+                
+                                // ✅ set hidden input value (Attach Image expects /files/xyz.png)
+                                $("#thumbnail-hidden")
+                                    .val(file_url)
+                                    .attr("name", "thumbnail"); // ensure it has correct fieldname
+                
+                                // ✅ show preview
                                 $("#thumbnail-preview").html(
                                     `<img src="${file_url}" class="img-thumbnail" style="max-height:80px;">`
                                 );
-                                frappe.msgprint("✅ Thumbnail uploaded!");
+                
+                                frappe.show_alert({
+                                    message: "✅ Thumbnail uploaded successfully",
+                                    indicator: "green"
+                                });
+                
+                                // 🔎 Debug log
+                                console.log("Thumbnail file_url:", file_url);
                             } else {
                                 frappe.msgprint("❌ Failed to upload thumbnail");
                             }
+                        },
+                        error: function (xhr, status, error) {
+                            frappe.msgprint("❌ Upload failed: " + error);
                         }
                     });
                 });
+                
 
                 // 🔹 Save Session → Create multiple records
                 $(document).on("click", "#add-session", function () {

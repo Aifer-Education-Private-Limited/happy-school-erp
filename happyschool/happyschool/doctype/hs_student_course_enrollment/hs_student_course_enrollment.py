@@ -2,11 +2,15 @@
 # For license information, please see license.txt
 
 import frappe
+from frappe import _
 from frappe.model.document import Document
+from frappe.utils import today
+from frappe.model.naming import make_autoname
 
 
 class HSStudentCourseEnrollment(Document):
-	pass
+    def autoname(self):
+        self.name = make_autoname("HS-SCE-.YYYY.-.###")
 
 
 @frappe.whitelist()
