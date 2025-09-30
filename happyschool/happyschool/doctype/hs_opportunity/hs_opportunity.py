@@ -5,6 +5,8 @@ import frappe
 from frappe.model.document import Document
 from frappe.utils import today
 from frappe.model.naming import make_autoname
+from frappe.core.doctype.communication.email import make
+
 
 
 class HSOpportunity(Document):
@@ -35,3 +37,42 @@ class HSOpportunity(Document):
 		except Exception:
 			frappe.log_error(frappe.get_traceback(), "HS Opportunity Notification Error")
 
+
+
+import frappe
+
+import frappe
+
+@frappe.whitelist()
+def send_assessment_email(docname, meet_link, schedule_time):
+    doc = frappe.get_doc("HS Opportunity", docname)
+
+    if not doc.email:
+        frappe.throw("No email set for this Opportunity!")
+
+    subject = "Assessment Session for Your Child"
+
+    # HTML Email Template
+    message = f"""
+		<p>Dear Parent,</p>
+
+		<p>We are happy to inform you that we are ready to conduct the assessment session for your child. Kindly use the link below to join the session at the scheduled time.</p>
+
+		<p>
+			Google Meet Link: <a href="{meet_link}">{meet_link}</a>
+		</p>
+
+		<p><strong>Scheduled Time:</strong> {schedule_time}</p>
+
+		<p>If you have any questions or need assistance, feel free to reach out.</p>
+
+		"""
+
+    # Send email
+    frappe.sendmail(
+        recipients=doc.email,
+        subject=subject,
+        message=message,
+        reference_doctype="HS Opportunity",
+        reference_name=docname
+    )

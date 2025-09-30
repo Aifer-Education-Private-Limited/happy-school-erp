@@ -44,7 +44,7 @@
   {
    "fieldname": "first_name",
    "fieldtype": "Data",
-   "label": "Full Name"
+   "label": "Parent Name"
   },
   {
    "fieldname": "source",
@@ -80,8 +80,7 @@
    "fieldname": "email",
    "fieldtype": "Data",
    "in_list_view": 1,
-   "label": "Email",
-   "reqd": 1
+   "label": "Email"
   },
   {
    "fieldname": "custom_mobile_number",
@@ -106,7 +105,7 @@
    "fieldname": "presales_person",
    "fieldtype": "Link",
    "label": "Presales Person",
-   "options": "Pre-sales Person"
+   "options": "HS Sales Persons"
   },
   {
    "fieldname": "custom_followup_date",
@@ -196,7 +195,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-09-29 09:03:11.516008",
+ "modified": "2025-09-30 10:13:29.943680",
  "modified_by": "Administrator",
  "module": "happyschool",
  "name": "HS Lead",

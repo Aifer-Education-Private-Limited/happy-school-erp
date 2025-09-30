@@ -62,6 +62,34 @@ frappe.ui.form.on("Slot Booking", {
 frappe.ui.form.on("HS Lead", {
    
     refresh: function(frm) {
+        if (!frm.custom_opportunity_button_added) {
+            frm.add_custom_button("Open Opportunity", function() {
+
+                // Check if an Opportunity already exists for this lead
+                frappe.db.get_value("HS Opportunity", {"custom_lead": frm.doc.name}, "name")
+                .then(r => {
+                    let opp_name = r.message ? r.message.name : null;
+
+                    if (opp_name) {
+                        // Open existing Opportunity
+                        frappe.set_route("Form", "HS Opportunity", opp_name);
+                    } else {
+                        // Create new Opportunity
+                        frappe.new_doc("HS Opportunity", {
+                            custom_lead: frm.doc.name,
+                            custom_student_name: frm.doc.custom_student_name,
+                            custom_mobile: frm.doc.custom_mobile,
+                            custom_gradeclass: frm.doc.custom_gradeclass,
+                            custom_curriculum: frm.doc.custom_board,
+                            custom_sales_person: frm.doc.custom_sales_person,
+                            parent_name: frm.doc.first_name,
+                            email: frm.doc.email
+                        });
+                    }
+                });
+
+            });
+        }
         
         if (!frm.fields_dict.custom_pipeline_html) return;
         const pipeline_html = frm.get_field("custom_pipeline_html").$wrapper;
