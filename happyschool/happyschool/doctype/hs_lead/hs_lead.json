@@ -93,7 +93,7 @@
    "fieldname": "custom_gradeclass",
    "fieldtype": "Select",
    "label": "Grade/Class",
-   "options": "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12"
+   "options": "\n1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12"
   },
   {
    "fieldname": "custom_board",
@@ -195,7 +195,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-09-30 10:13:29.943680",
+ "modified": "2025-09-30 12:38:38.375119",
  "modified_by": "Administrator",
  "module": "happyschool",
  "name": "HS Lead",

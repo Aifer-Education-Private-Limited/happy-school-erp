@@ -127,7 +127,8 @@
    "fieldname": "assessment",
    "fieldtype": "Link",
    "label": "Assessment",
-   "options": "Assessment"
+   "options": "Assessment",
+   "read_only": 1
   },
   {
    "fieldname": "schedule_date",
@@ -143,7 +144,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-09-30 10:17:12.023800",
+ "modified": "2025-09-30 12:38:09.333631",
  "modified_by": "Administrator",
  "module": "happyschool",
  "name": "HS Opportunity",
