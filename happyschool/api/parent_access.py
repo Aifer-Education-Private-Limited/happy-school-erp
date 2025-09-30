@@ -28,10 +28,10 @@ def parent_signup():
             return
 
         # Validation
-        if not first_name or not last_name:
+        if not first_name:
             frappe.local.response.update ({
                 "success": False,
-                "message": "First Name and Last Name is required."
+                "message": "First Name is required."
             })
             return
 
