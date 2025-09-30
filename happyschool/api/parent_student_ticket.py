@@ -17,6 +17,7 @@ def ticket():
         studentId=frappe.form_dict.get('studentId')
         course = frappe.form_dict.get('course')
         description = frappe.form_dict.get('description')
+        ticket_type=frappe.form_dict.get('type')
         uid=frappe.form_dict.get('uid')
 
         
@@ -54,7 +55,7 @@ def ticket():
         ticket.parentid=parent_id
         ticket.studentid=studentId
         ticket.student_course = course
-
+        ticket.type=ticket_type
         ticket.status = "Open"
         ticket.description = description
 
@@ -107,7 +108,7 @@ def ticket():
         ticket_details = {
             "ticket_id": ticket.name,
             "category": ticket.subject,
-        
+             "type":ticket.type,
             "course": ticket.student_course,
             "status": ticket.status,
 
@@ -156,7 +157,7 @@ def get_ticket():
             filters=filters,
             fields=[
                 "name", "subject", "student", "student_course", "status",
-                "description", "creation", "modified",
+                "description", "creation", "modified","type",
                 "progress_time", "complete_time",
                 "progress_comment", "complete_comment",
                 "parentid", "studentid"   # ✅ must match DB fieldnames
@@ -179,6 +180,7 @@ def get_ticket():
                     "category": t.subject,
                     "course": t.student_course,
                     "status": t.status,
+                    "type":t.type,
                     "description": t.description,
                     "progress_comment": t.progress_comment,
                     "complete": t.complete_comment,
