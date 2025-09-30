@@ -12,4 +12,4 @@ from frappe.model.naming import make_autoname
 
 class Announcement(frappe.model.document.Document):
     def autoname(self):
-        self.name = make_autoname("PST-.YYYY.-.#####")
+        self.name = make_autoname("ANT-.YYYY.-.#####")

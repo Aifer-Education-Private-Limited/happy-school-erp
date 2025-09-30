@@ -12,6 +12,7 @@ def get_students_parents_tutors(tutor_id=None, student_id=None, parent_id=None, 
             )
 
             student_details = []
+
             parent_details = []
 
             for s in students_list:
@@ -42,11 +43,11 @@ def get_students_parents_tutors(tutor_id=None, student_id=None, parent_id=None, 
                         except frappe.DoesNotExistError:
                             continue
 
-            frappe.local.response.update({
+            frappe.local.response = {
                 "success": True,
                 "students": student_details,
                 "parents": parent_details
-            })
+            }
 
         elif student_id or parent_id:
             # Build filters based on presence of parent_id
@@ -73,20 +74,23 @@ def get_students_parents_tutors(tutor_id=None, student_id=None, parent_id=None, 
                     tutor["chat_subject"] = f"{t.tutor_id}_{student_id or ''}"
                     tutor_details.append(tutor)
 
-            frappe.local.response.update({
+            frappe.local.response = {
                 "success": True,
                 "tutors": tutor_details
-            })
+            }
 
         else:
-            frappe.local.response.update({
+            frappe.local.response = {
                 "success": False,
                 "message": "Provide tutor_id or student_id/parent_id"
-            })
+            }
 
     except Exception as e:
         frappe.log_error(frappe.get_traceback(), "Get Students/Parents/Tutors API Error")
-        frappe.local.response.update({
+        frappe.local.response = {
             "success": False,
             "message": str(e)
-        })
+        }
+
+    return frappe.local.response
+

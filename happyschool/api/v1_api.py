@@ -7,24 +7,22 @@ from dateutil.relativedelta import relativedelta
 
 
 
-
 @frappe.whitelist(allow_guest=True)
 def get_home_page_details(student_id: str):
     """
     Home page details:
-      - Active courses (with test counts, attendance, weeks since joining, assignment %, completion %)
+      - Active & inactive courses (with test counts, attendance, weeks since joining, assignment %, completion %)
       - Upcoming live classes
     """
     try:
-        # 1. Fetch enrolled active courses
+        # 1. Fetch ALL enrolled courses (both active & inactive)
         user_courses = frappe.db.sql("""
-            SELECT course_id, expiry_date, admission_date
+            SELECT course_id, expiry_date, admission_date, is_active
             FROM `tabUser Courses`
             WHERE student_id=%s
-              AND is_active="Active"
         """, student_id, as_dict=True)
 
-        Course, upcoming = [], []
+        active_courses, inactive_courses, upcoming = [], [], []
 
         if user_courses:
             course_ids = [c["course_id"] for c in user_courses]
@@ -38,8 +36,9 @@ def get_home_page_details(student_id: str):
                 WHERE name IN %(course_ids)s
             """, {"course_ids": tuple(course_ids)}, as_dict=True)
 
-            # Index admission_date by course_id from User Courses
+            # Map admission_date & status by course_id
             admission_map = {c.course_id: c.admission_date for c in user_courses}
+            status_map = {c.course_id: c.is_active for c in user_courses}
 
             for course in dynamic_courses:
                 course_id = course["course_id"]
@@ -60,14 +59,13 @@ def get_home_page_details(student_id: str):
                 else:
                     total_item_count = 0
 
-                # --- Attended tests for this course ---
+                # --- Attended tests ---
                 attended_test_ids = frappe.db.sql("""
                     SELECT tuh.test_id
                     FROM `tabTest User History` tuh
                     INNER JOIN `tabTests` t ON t.name = tuh.test_id
                     WHERE tuh.student_id=%s AND t.course_id=%s
                 """, (student_id, course_id), as_dict=True)
-
                 total_attended_count = len(attended_test_ids)
 
                 # --- Attendance ---
@@ -82,11 +80,9 @@ def get_home_page_details(student_id: str):
                     "attendance": "Absent"
                 })
                 total_sessions = present_count + absent_count
-                # attendance_percentage = (present_count / total_sessions * 100) if total_sessions > 0 else 0
                 attendance_percentage = int(round((present_count / total_sessions * 100))) if total_sessions > 0 else 0
 
-
-                # --- Weeks since joining this course ---
+                # --- Weeks since joining ---
                 weeks_completed = 0
                 admission_date = admission_map.get(course_id)
                 if admission_date:
@@ -95,7 +91,7 @@ def get_home_page_details(student_id: str):
                     delta = relativedelta(today_date, join_date)
                     weeks_completed = (delta.years * 52) + (delta.months * 4) + (delta.days // 7)
 
-                # --- Assignments (course-based) ---
+                # --- Assignments ---
                 total_assignments = frappe.db.count("HS Student Assignments", {
                     "student_id": student_id,
                     "course_id": course_id
@@ -110,11 +106,9 @@ def get_home_page_details(student_id: str):
                       AND assign.course_id = %s
                 """, (student_id, course_id), as_dict=True)[0].cnt or 0
 
-                # assignment_percentage = (submitted_assignments / total_assignments * 100) if total_assignments > 0 else 0
                 assignment_percentage = int(round((submitted_assignments / total_assignments * 100))) if total_assignments > 0 else 0
 
-
-                # --- Course Completion % (based on Live Classroom) ---
+                # --- Live Sessions ---
                 total_live_sessions = frappe.db.count("Live Classroom", {
                     "student_id": student_id,
                     "course_id": course_id
@@ -131,11 +125,9 @@ def get_home_page_details(student_id: str):
                     "status": ["!=", "Completed"]
                 })
 
-                # completion_percentage = (completed_live_sessions / total_live_sessions * 100) if total_live_sessions > 0 else 0
                 completion_percentage = int(round((completed_live_sessions / total_live_sessions * 100))) if total_live_sessions > 0 else 0
 
-
-                Course.append({
+                course_data = {
                     "course_id": course_id,
                     "title": course["title"],
                     "subject": course["subject"],
@@ -146,17 +138,22 @@ def get_home_page_details(student_id: str):
                     "ask_doubt_number": course["ask_doubt_number"],
                     "total_item_count": total_item_count,
                     "total_attended_count": total_attended_count,
-                    "attendance_percentage": round(attendance_percentage, 2),
+                    "attendance_percentage": attendance_percentage,
                     "total_weeks_completed": weeks_completed,
-                    "assignment_percentage": round(assignment_percentage, 2),
-                    "completed_live_sessions":completed_live_sessions,
-                    # "total_live_sessions":total_live_sessions,    
-                    # "session_completion_percentage": round(completion_percentage, 2),
-                    "scheduled_live_sessions": scheduled_live_sessions
+                    "assignment_percentage": assignment_percentage,
+                    "completed_live_sessions": completed_live_sessions,
+                    "scheduled_live_sessions": scheduled_live_sessions,
+                    "total_live_sessions":total_live_sessions,
+                    # "completion_percentage": completion_percentage,
+                    "status": status_map.get(course_id, "Inactive")  
+                }
 
-                })
+                if status_map.get(course_id) == "Active":
+                    active_courses.append(course_data)
+                else:
+                    inactive_courses.append(course_data)
 
-            # 3. Upcoming live classes
+            # 3. Upcoming live classes (only for active)
             upcoming_live = frappe.db.sql("""
                 SELECT topic, subtopic, meeting_link, caption, description,
                        student_id, faculty_email, meeting_start_time, meeting_end_time,
@@ -184,7 +181,8 @@ def get_home_page_details(student_id: str):
         frappe.local.response.update({
             "success": True,
             "upcoming_data": upcoming,
-            "datas": Course
+            "active_courses": active_courses,
+            "inactive_courses": inactive_courses
         })
 
     except Exception as e:
@@ -263,7 +261,7 @@ def classroom_details(student_id=None):
 
         upcoming, ongoing, past = [], [], []
 
-        # ✅ Fetch live classroom details using student_id
+        # Fetch live classroom details using student_id
         query = """
             SELECT name, subject, topic, subtopic, meeting_link, caption, description,
                    faculty_email, meeting_start_time, meeting_end_time, thumbnail,
