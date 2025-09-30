@@ -75,7 +75,6 @@ def student_login(student_id,password):
             })
             return
         
-        
         frappe.local.response.update({
             "success": True,
             "student_id": student_id
