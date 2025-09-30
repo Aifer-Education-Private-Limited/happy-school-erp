@@ -1,0 +1,112 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2025-09-12 15:28:01.619829",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "question",
+  "column_break_mqdu",
+  "a",
+  "b",
+  "c",
+  "d",
+  "column_break_srgf",
+  "subject",
+  "answer"
+ ],
+ "fields": [
+  {
+   "fieldname": "question",
+   "fieldtype": "Text Editor",
+   "in_list_view": 1,
+   "label": "Question",
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_mqdu",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "a",
+   "fieldtype": "Text Editor",
+   "in_list_view": 1,
+   "label": "A",
+   "reqd": 1
+  },
+  {
+   "fieldname": "b",
+   "fieldtype": "Text Editor",
+   "in_list_view": 1,
+   "label": "B",
+   "reqd": 1
+  },
+  {
+   "fieldname": "c",
+   "fieldtype": "Text Editor",
+   "in_list_view": 1,
+   "label": "C",
+   "reqd": 1
+  },
+  {
+   "fieldname": "d",
+   "fieldtype": "Text Editor",
+   "label": "D",
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_srgf",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "subject",
+   "fieldtype": "Link",
+   "label": "Subject",
+   "options": "Tutor Subject",
+   "reqd": 1
+  },
+  {
+   "fieldname": "answer",
+   "fieldtype": "Select",
+   "label": "Answer",
+   "options": "\nA\nB\nC\nD",
+   "reqd": 1
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2025-09-19 12:07:29.984909",
+ "modified_by": "Administrator",
+ "module": "happyschool",
+ "name": "Tutor Assessment Question",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Tutor",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

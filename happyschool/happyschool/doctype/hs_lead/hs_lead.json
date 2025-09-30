@@ -21,6 +21,7 @@
   "custom_gradeclass",
   "column_break_wjw5",
   "custom_board",
+  "category",
   "section_break_cs7e",
   "presales_person",
   "custom_followup_date",
@@ -44,7 +45,8 @@
   {
    "fieldname": "first_name",
    "fieldtype": "Data",
-   "label": "Parent Name"
+   "label": "Parent Name",
+   "reqd": 1
   },
   {
    "fieldname": "source",
@@ -190,12 +192,18 @@
    "fieldtype": "Table",
    "label": "Lead Remarks",
    "options": "HS Lead Remarks"
+  },
+  {
+   "fieldname": "category",
+   "fieldtype": "Select",
+   "label": "Category",
+   "options": "\nLP\nUP\nHS\nHSS\nRemedial"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-09-30 12:38:38.375119",
+ "modified": "2025-09-30 14:04:33.984348",
  "modified_by": "Administrator",
  "module": "happyschool",
  "name": "HS Lead",

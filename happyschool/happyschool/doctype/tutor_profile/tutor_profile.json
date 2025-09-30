@@ -1,0 +1,359 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "format:AI-HS-TUT-{YYYY}-{#####}",
+ "creation": "2025-09-12 15:08:56.276462",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "full_name",
+  "dob",
+  "gender",
+  "aadhar_number",
+  "column_break_gjdv",
+  "contact_number",
+  "contact_email",
+  "user",
+  "status",
+  "column_break_ohjg",
+  "time_zone",
+  "highest_qualification",
+  "demo_url",
+  "image",
+  "cv",
+  "section_break_dtxr",
+  "certifications",
+  "subject_expertise",
+  "section_break_dkqm",
+  "column_break_reor",
+  "years_of_experience",
+  "bridge_course_y_n",
+  "bridge_course",
+  "column_break_ksmh",
+  "pace_adaptability",
+  "weekly_capacity_hours",
+  "reschedule_flex",
+  "section_break_dpeg",
+  "curriculum_expertise",
+  "engagement_style",
+  "sen_experience",
+  "column_break_lhuf",
+  "teaching_style_table",
+  "preferred_age_bands_table",
+  "platform_familiarity",
+  "section_break_znmd",
+  "device_type",
+  "column_break_bjqe",
+  "internet_bandwidth",
+  "section_break_czrb",
+  "availability_slots_table",
+  "section_break_dbxn",
+  "references",
+  "column_break_nmvn",
+  "background_check_ok",
+  "agree_code_of_conduct",
+  "consent_recording",
+  "column_break_kxjy",
+  "notes",
+  "section_break_oysn",
+  "performance_metrics"
+ ],
+ "fields": [
+  {
+   "fieldname": "full_name",
+   "fieldtype": "Data",
+   "label": "Full Name"
+  },
+  {
+   "fieldname": "dob",
+   "fieldtype": "Date",
+   "label": "DOB"
+  },
+  {
+   "fieldname": "gender",
+   "fieldtype": "Select",
+   "label": "Gender",
+   "options": "\nFemale\nMale\nOthers\nPrefer Not"
+  },
+  {
+   "fieldname": "contact_number",
+   "fieldtype": "Data",
+   "label": "Contact Number",
+   "reqd": 1
+  },
+  {
+   "fieldname": "time_zone",
+   "fieldtype": "Autocomplete",
+   "label": "Time Zone"
+  },
+  {
+   "fieldname": "highest_qualification",
+   "fieldtype": "Select",
+   "label": "Highest Qualification",
+   "options": "\nBachelors\nMasters\nPHD"
+  },
+  {
+   "fieldname": "years_of_experience",
+   "fieldtype": "Float",
+   "label": "Years of Experience In Online Teaching"
+  },
+  {
+   "fieldname": "weekly_capacity_hours",
+   "fieldtype": "Float",
+   "hidden": 1,
+   "label": "Weekly Capacity Hours"
+  },
+  {
+   "fieldname": "reschedule_flex",
+   "fieldtype": "Select",
+   "label": "Are You OK Rescheduling the Sessions if Situation Demands",
+   "options": "\nYes\nNo"
+  },
+  {
+   "fieldname": "device_type",
+   "fieldtype": "Select",
+   "label": "Device Type",
+   "options": "\nLaptop\nDesktop"
+  },
+  {
+   "fieldname": "internet_bandwidth",
+   "fieldtype": "Select",
+   "label": "Internet Bandwidth",
+   "options": "\nLow\nMedium\nHigh"
+  },
+  {
+   "fieldname": "platform_familiarity",
+   "fieldtype": "Table",
+   "label": "Platform Familiarity",
+   "options": "Platform Familiarity Table"
+  },
+  {
+   "fieldname": "references",
+   "fieldtype": "Small Text",
+   "label": "References"
+  },
+  {
+   "default": "0",
+   "fieldname": "background_check_ok",
+   "fieldtype": "Check",
+   "label": "Background Check Ok"
+  },
+  {
+   "default": "0",
+   "fieldname": "agree_code_of_conduct",
+   "fieldtype": "Check",
+   "label": "Agree Code Of Conduct"
+  },
+  {
+   "default": "0",
+   "fieldname": "consent_recording",
+   "fieldtype": "Check",
+   "label": "Consent Recording"
+  },
+  {
+   "fieldname": "notes",
+   "fieldtype": "Small Text",
+   "label": "Notes"
+  },
+  {
+   "fieldname": "certifications",
+   "fieldtype": "Table",
+   "label": "Certifications",
+   "options": "Certifications"
+  },
+  {
+   "fieldname": "curriculum_expertise",
+   "fieldtype": "Table",
+   "label": "Curriculum Expertise",
+   "options": "Curriculum Expertise Table"
+  },
+  {
+   "fieldname": "subject_expertise",
+   "fieldtype": "Table",
+   "label": "Subject Expertise",
+   "options": "Subject Expertise"
+  },
+  {
+   "fieldname": "sen_experience",
+   "fieldtype": "Table",
+   "label": "Sen Experience",
+   "options": "Sen Experience Table"
+  },
+  {
+   "fieldname": "teaching_style_table",
+   "fieldtype": "Table",
+   "label": "Teaching Style",
+   "options": "Teaching Style Table"
+  },
+  {
+   "fieldname": "pace_adaptability",
+   "fieldtype": "Select",
+   "label": "Pace Adaptability",
+   "options": "\nLow\nMedium\nhigh"
+  },
+  {
+   "fieldname": "availability_slots_table",
+   "fieldtype": "Table",
+   "label": "Availability Slots",
+   "options": "Availability Slots Table"
+  },
+  {
+   "fieldname": "engagement_style",
+   "fieldtype": "Table",
+   "label": "Engagement Style",
+   "options": "Engagement Style Table"
+  },
+  {
+   "fieldname": "preferred_age_bands_table",
+   "fieldtype": "Table",
+   "label": "Preferred Age bands",
+   "options": "Preferred Age bands Table"
+  },
+  {
+   "fieldname": "performance_metrics",
+   "fieldtype": "Table",
+   "label": "Performance Metrics",
+   "options": "Performance Metrics"
+  },
+  {
+   "fieldname": "contact_email",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Contact Email",
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_gjdv",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "column_break_ohjg",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "section_break_dkqm",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "column_break_reor",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "section_break_znmd",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "section_break_dbxn",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "column_break_nmvn",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "section_break_oysn",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "section_break_czrb",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "section_break_dtxr",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "column_break_ksmh",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "column_break_kxjy",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "user",
+   "fieldtype": "Link",
+   "label": "User",
+   "options": "User"
+  },
+  {
+   "fieldname": "demo_url",
+   "fieldtype": "Data",
+   "label": "Demo URL"
+  },
+  {
+   "fieldname": "aadhar_number",
+   "fieldtype": "Data",
+   "label": "Aadhar Number",
+   "unique": 1
+  },
+  {
+   "fieldname": "image",
+   "fieldtype": "Attach Image",
+   "label": "Image"
+  },
+  {
+   "fieldname": "cv",
+   "fieldtype": "Attach",
+   "label": "CV"
+  },
+  {
+   "default": "Profile Uploaded",
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "label": "Status",
+   "options": "\nProfile Uploaded\nDemo Uploaded\nExam Failed\nExam Passed\nRejected\nInterview Pending\nSelected"
+  },
+  {
+   "fieldname": "bridge_course",
+   "fieldtype": "Data",
+   "label": "Bridge Course"
+  },
+  {
+   "fieldname": "bridge_course_y_n",
+   "fieldtype": "Select",
+   "label": "Are You Completed Bridge Course?",
+   "options": "\nYes\nNo"
+  },
+  {
+   "fieldname": "section_break_dpeg",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "column_break_lhuf",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "column_break_bjqe",
+   "fieldtype": "Column Break"
+  }
+ ],
+ "grid_page_length": 50,
+ "image_field": "image",
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2025-09-26 11:07:26.166847",
+ "modified_by": "Administrator",
+ "module": "happyschool",
+ "name": "Tutor Profile",
+ "naming_rule": "Expression",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

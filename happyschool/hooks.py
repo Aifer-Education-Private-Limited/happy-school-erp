@@ -284,6 +284,11 @@ override_doctype_class={
 # default_log_clearing_doctypes = {
 # 	"Logging DocType Name": 30  # days to retain logs
 # }
+
+# website_route_rules = [
+# 	{"from_route": "/job-application-port", "to_route": "job-application-port"},
+# ]
+
 # "happyschool.happyschool.doctype.hs_lead.hs_lead.create_or_update_opportunity_for_lead",
 #  "happyschool.happyschool.doctype.hs_lead.hs_lead.create_parent_from_lead",
 # "happyschool.happyschool.doctype.hs_lead.hs_lead.send_notification"
