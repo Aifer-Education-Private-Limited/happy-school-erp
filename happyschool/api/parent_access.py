@@ -365,10 +365,10 @@ def check_user(parent_id=None, studentId=None):
     try:
         # App version details
         app_version = {
-            "ios_latest": 4003,
-            "android_latest": 4003,
-            "ios_minimum": 3262,
-            "android_minimum": 3266,
+            "ios_latest": 1000,
+            "android_latest": 1000,
+            "ios_minimum": 1000,
+            "android_minimum": 1000,
         }
 
         # ✅ Case 1: Only Parent ID
