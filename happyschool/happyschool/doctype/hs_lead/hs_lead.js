@@ -57,52 +57,47 @@ frappe.ui.form.on("Slot Booking", {
     }
 });
 
-// -----------------------
-// HS Lead custom logic
-// -----------------------
+
 frappe.ui.form.on("HS Lead", {
     onload: function(frm) {
         // Reload browser only when entering this form for the first time
-        // Prevent infinite loop by checking URL param
         if (!frm.doc.__islocal && !window.location.href.includes("force_reload=1")) {
-            // Append a marker to URL so next load skips reload
             let url = window.location.href;
-            if (url.indexOf("?") > -1) {
-                url += "&force_reload=1";
-            } else {
-                url += "?force_reload=1";
-            }
+            url += url.indexOf("?") > -1 ? "&force_reload=1" : "?force_reload=1";
             window.location.replace(url);
         }
     },
 
     refresh: function(frm) {
-        // Re-render pipeline visuals
+        // Render pipeline visuals and attach click handlers
         renderPipeline(frm);
         updateActiveState(frm);
+        setupPipelineClicks(frm); // Ensure clicks work
 
         // Add Open Opportunity button
-        frm.add_custom_button("Open Opportunity", function() {
-            frappe.db.get_value("HS Opportunity", {"custom_lead": frm.doc.name}, "name")
-            .then(r => {
-                let opp_name = r.message ? r.message.name : null;
-
-                if (opp_name) {
-                    frappe.set_route("Form", "HS Opportunity", opp_name);
-                } else {
-                    frappe.new_doc("HS Opportunity", {
-                        custom_lead: frm.doc.name,
-                        custom_student_name: frm.doc.custom_student_name,
-                        custom_mobile: frm.doc.custom_mobile,
-                        custom_gradeclass: frm.doc.custom_gradeclass,
-                        custom_curriculum: frm.doc.custom_board,
-                        custom_sales_person: frm.doc.custom_sales_person,
-                        parent_name: frm.doc.first_name,
-                        email: frm.doc.email
-                    });
-                }
+        if (!frm.custom_opportunity_button_added) {
+            frm.custom_opportunity_button_added = true;
+            frm.add_custom_button("Open Opportunity", function() {
+                frappe.db.get_value("HS Opportunity", {"custom_lead": frm.doc.name}, "name")
+                .then(r => {
+                    let opp_name = r.message ? r.message.name : null;
+                    if (opp_name) {
+                        frappe.set_route("Form", "HS Opportunity", opp_name);
+                    } else {
+                        frappe.new_doc("HS Opportunity", {
+                            custom_lead: frm.doc.name,
+                            custom_student_name: frm.doc.custom_student_name,
+                            custom_mobile: frm.doc.custom_mobile,
+                            custom_gradeclass: frm.doc.custom_gradeclass,
+                            custom_curriculum: frm.doc.custom_board,
+                            custom_sales_person: frm.doc.custom_sales_person,
+                            parent_name: frm.doc.first_name,
+                            email: frm.doc.email
+                        });
+                    }
+                });
             });
-        });
+        }
     },
 
     before_save:function(frm){
@@ -204,6 +199,8 @@ function updateActiveState(frm) {
 // -----------------------
 function setupPipelineClicks(frm) {
     const wrapper = $("#pipeline-wrapper");
+    if (wrapper.data("clicks-bound")) return; // prevent multiple bindings
+    wrapper.data("clicks-bound", true);
 
     // Prospect
     wrapper.on("click", "#prospect-step, #prospect-sub-steps .sub-step", function () {
