@@ -14,7 +14,7 @@ def parent_signup():
         state=data.get("state")
         dob=data.get("dob")
         authtype=data.get("authtype")
-        token=data.get("token")
+        profile=data.get("profile")
         email = data.get("email")
         mobile = data.get("mobile")
         password = data.get("password")
@@ -25,17 +25,18 @@ def parent_signup():
                 "success":False,
                 "message":"email is required"
             })
+            return
 
         # Validation
-        if not first_name:
+        if not first_name or not last_name:
             frappe.local.response.update ({
                 "success": False,
-                "message": "First Name is required."
+                "message": "First Name and Last Name is required."
             })
             return
 
         # Check if mobile already exists
-        if frappe.db.exists("Parents", {"mobile": mobile}):
+        if frappe.db.exists("Parents", {"mobile_number": mobile}):
             frappe.local.response.update({
                 "success": False,
                 "message": "Mobile already registered."
@@ -58,30 +59,35 @@ def parent_signup():
         parent.password=password
         parent.state=state
         parent.date_of_birth=dob
-        parent.token=token
+        parent.profile=profile
         parent.auth_type=authtype
-        parent.mobile = mobile
+        parent.mobile_number = mobile
+        parent.joindate = frappe.utils.now()
         parent.insert(ignore_permissions=True)
 
+        customer = frappe.new_doc("Customer")
+        customer.customer_name = f"{first_name} {last_name}"
+        customer.customer_type = "Individual"
+        customer.customer_group = "Student"  # change if you have a specific group
 
+        # link Parent to Customer (optional custom field in Customer)
+        if "parent_id" in customer.as_dict():
+            customer.parent_id = parent.name
+
+        customer.insert(ignore_permissions=True)
+    
+        parent.customer = customer.name
+        parent.save(ignore_permissions=True)
         frappe.db.commit()
+        
 
-        parent_details = {
-            "parent_id":parent.name,
-            "first_name": parent.first_name,
-            "last_name": parent.last_name,
-            "email": parent.email,
-            "mobile_number": parent.mobile_number,
-            "dob":parent.date_of_birth,
-            "state":parent.state,
-            "authtype":parent.auth_type,
-
-        }
+        parent_id = parent.name
 
         frappe.local.response.update ({
             "success": True,
             "message": "Signup successful.",
-            "parent_details": parent_details
+            "parent_id": parent_id,
+            "customer":customer.name
         })
         return 
         
@@ -97,19 +103,38 @@ def parent_signup():
 @frappe.whitelist(allow_guest=True)
 def login_with_email(email, password):
     try:
-        parent = frappe.db.get_value("Parents", {"email": email}, "name")
+        # Fetch parent record with email and password
+        parent = frappe.db.get_value(
+            "Parents",
+            {"email": email},
+            ["name", "password"],
+            as_dict=True
+        )
+
+        # If no parent found
         if not parent:
+            frappe.local.response.update({
+                "success": False,
+                "message": "Account does not exist"
+            })
+            return
+
+        # Check password
+        if parent.password != password:
             frappe.local.response.update({
                 "success": False,
                 "message": "Invalid email or password"
             })
             return
-        
-        
+
+        # Success
         frappe.local.response.update({
-            "success": True     
+            "success": True,
+            "parent_id": parent.name,
+            "message": "Login successful"
         })
         return
+
     except Exception as e:
         frappe.local.response.update({
             "success": False,
@@ -202,7 +227,6 @@ def parent_signup_with_mobile():
         })
         return
 
-
 @frappe.whitelist(allow_guest=True)
 def generate_otp_by_otpless(mobile, isLogin=False, auth_type=None, channel="sms"):
     """
@@ -211,17 +235,22 @@ def generate_otp_by_otpless(mobile, isLogin=False, auth_type=None, channel="sms"
     try:
         isLogin = True if str(isLogin).lower() in ["true", "1"] else False
 
-        print(OTPLESS_CLIENT_ID, OTPLESS_CLIENT_SECRET, "OTPLESS_CLIENT_ID")
+        print("mobile", mobile)
+        print("isLogin", isLogin)
+        print("auth_type", auth_type)
+        print("channel", channel)
 
         # Case 1: If user is logging in
         if isLogin:
             if auth_type == "whatsapp":
                 # Check if mobile exists in dot_users
                 mobile_exists = frappe.db.sql("""
-                    SELECT name 
+                    SELECT * 
                     FROM `tabParents`
                     WHERE mobile_number LIKE %s AND (auth_type = %s OR auth_type = 'phone')
                 """, (f"%{mobile}", auth_type), as_dict=True)
+
+                print("mobile_exists", mobile_exists)
 
                 if mobile_exists:
                     frappe.local.response.update( {"status": True, "uid": mobile_exists[0].firebase_uid} )
@@ -230,8 +259,8 @@ def generate_otp_by_otpless(mobile, isLogin=False, auth_type=None, channel="sms"
 
             else:
                 # Call OTP service
-                return _send_otp(mobile, channel)
-
+                otp_result = _send_otp(mobile, channel)
+                frappe.local.response.update(otp_result)
         # Case 2: New registration
         else:
             mobile_exists = frappe.db.sql("""
@@ -243,7 +272,8 @@ def generate_otp_by_otpless(mobile, isLogin=False, auth_type=None, channel="sms"
             if mobile_exists:
                 frappe.local.response.update( {"message": "Phone number already in use by another account"} )
             else:
-                return _send_otp(mobile, channel)
+                otp_result = _send_otp(mobile, channel)
+                frappe.local.response.update(otp_result)
 
     except Exception as e:
         frappe.log_error(frappe.get_traceback(), "Create OTP Error")
@@ -255,37 +285,214 @@ def verify_otp_by_otpless(mobile, otp, orderId):
     Verify OTP using Otpless API and return UID if exists
     """
     try:
-        result = _verify_otp(orderId, otp, mobile)
+        editedMobile = mobile.replace("-", "").replace("+", "")
+        result = _verify_otp(orderId, otp, editedMobile)
 
         # If OTP verified
         if result.get("isOTPVerified"):
             # Check if firebase_uid exists for this mobile
             mobile_exists = frappe.db.sql("""
-                SELECT firebase_uid 
-                FROM `tabDot Users`
+                SELECT name 
+                FROM `tabParents`
                 WHERE mobile_number LIKE %s
             """, (f"%{mobile}",), as_dict=True)
 
             if mobile_exists:
-                result["uid"] = mobile_exists[0].firebase_uid
+                result["parent_id"] = mobile_exists[0].name
             else:
-                result["uid"] = "xxxx"
+                result["parent_id"] = "xxxx"
 
-        return result
+        frappe.local.response.update(result)
+        return  # Important: return nothing (None) to prevent extra wrapping
+
 
     except Exception as e:
         frappe.log_error(frappe.get_traceback(), "Verify OTP Error")
-        return {"error": True, "message": str(e)}
+        frappe.local.response.update({
+            "error": True,
+            "message": str(e)
+        })
+        return
+
+@frappe.whitelist(allow_guest=True)
+def resend_otp(orderId):
+    """
+    Resend OTP using OtpLess API
+    Args:
+        order_id: Order ID received from previous OTP request
+    """
+    try:
+        # Prepare request payload
+        data = {"orderId": orderId}
+
+        # Fetch credentials from environment
+        # client_id = os.getenv("OTPLESS_CLIENT_ID")
+        # client_secret = os.getenv("OTPLESS_CLIENT_SECRET")
+
+        # if not client_id or not client_secret:
+        #     return {"error": True, "message": "Missing OTPLESS credentials"}
+
+        headers = {
+            "Content-Type": "application/json",
+        "clientId": OTPLESS_CLIENT_ID,
+        "clientSecret": OTPLESS_CLIENT_SECRET,
+        }
+
+        url = "https://auth.otpless.app/auth/otp/v1/resend"
+        response = requests.post(url, headers=headers, json=data)
+
+        # ✅ Don't raise_for_status; parse JSON even on 400
+        try:
+            res_json = response.json()
+        except Exception:
+            res_json = {"error": True, "message": response.text}
+
+        if response.status_code == 200:
+            # success → return only orderId
+            frappe.local.response.update(res_json)
+        else:
+            # failure → return full error from OTPLESS
+            frappe.local.response.update({"error": True, "details": res_json})
+
+    except requests.exceptions.HTTPError as http_err:
+        frappe.local.response.update({"error": True, "message": f"HTTP error: {str(http_err)}"})
+    except Exception as e:
+        frappe.local.response.update({"error": True, "message": str(e)})
 
 
+@frappe.whitelist(allow_guest=True)
+def check_user(parent_id=None, studentId=None):
+    try:
+        # App version details
+        app_version = {
+            "ios_latest": 1000,
+            "android_latest": 1000,
+            "ios_minimum": 1000,
+            "android_minimum": 1000,
+        }
 
+        # ✅ Case 1: Only Parent ID
+        if parent_id and not studentId:
+            user_data = frappe.db.sql("""
+                SELECT first_name, last_name, mobile_number, email, auth_type, joindate, state, profile
+                FROM `tabParents`
+                WHERE name = %s
+                ORDER BY joindate DESC
+                LIMIT 1
+            """, (parent_id,), as_dict=True)
+
+            # format joindate
+            if user_data:
+                user_data[0]["joindate"] = _format_date(user_data[0].get("joindate"))
+
+            frappe.local.response.update( {
+                "success": True,
+                "data": user_data,
+                "app_version": app_version
+            } )
+
+            return
+
+        # ✅ Case 2: studentId
+        if studentId:
+            student_data = frappe.db.sql("""
+                SELECT student_name, mobile as student_mobile_number, joining_date as joindate, profile
+                FROM `tabHS Students`
+                WHERE name = %s
+                ORDER BY joindate DESC
+                LIMIT 1
+            """, (studentId), as_dict=True)
+
+            if student_data:
+                student = student_data[0]
+                student["joindate"] = _format_date(student.get("joindate"))
+
+                # Update expired courses
+                frappe.db.sql("""
+                    UPDATE `tabUser Courses`
+                    SET is_active = 'In Active'
+                    WHERE student_id = %s
+                    AND is_active = 'Active'
+                    AND expiry_date <= NOW()
+                """, (studentId,))
+
+                # Active courses
+                user_courses = frappe.db.sql("""
+                    SELECT course_id, expiry_date
+                    FROM `tabUser Courses`
+                    WHERE student_id = %s AND is_active = 'Active'
+                """, (studentId,), as_dict=True)
+
+                # Count active courses (expiry in future)
+                user_course_count = frappe.db.sql("""
+                    SELECT COUNT(*) as count
+                    FROM `tabUser Courses`
+                    WHERE student_id = %s AND is_active = 'Active'
+                    AND expiry_date > NOW()
+                """, (studentId,), as_dict=True)[0].count
+
+                # Course titles
+                course_ids = [c["course_id"] for c in user_courses]
+                title_map = {}
+                if course_ids:
+                    placeholders = ", ".join(["%s"] * len(course_ids))
+                    titles = frappe.db.sql(f"""
+                        SELECT course_id, title
+                        FROM `tabCourses`
+                        WHERE course_id IN ({placeholders})
+                    """, tuple(course_ids), as_dict=True)
+                    for t in titles:
+                        title_map[t.course_id] = t.title
+
+                # Attach courses to student
+                student["user_courses"] = []
+                for c in user_courses:
+                    student["user_courses"].append({
+                        "course_id": c.course_id,
+                        "course_expiry_date": _format_date(c.expiry_date),
+                        "course_title": title_map.get(c.course_id, "")
+                    })
+
+                student["course_count"] = user_course_count
+
+            frappe.local.response.update( {
+                "success": True,
+                "data": student_data,
+                "app_version": app_version
+            } )
+
+            return
+
+        # ❌ Missing uid or studentId
+        frappe.local.response.update( {"success": False, "error": "Missing uid or studentId"} )
+
+    except Exception as e:
+        frappe.log_error(frappe.get_traceback(), "check_user API")
+        frappe.local.response.update( {"success": False, "error": str(e)} )
+
+    return
+
+@frappe.whitelist(allow_guest=True)
+def check_for_account(email=None, mobile=None):
+    try:
+        exists = frappe.db.exists("Parents", {"email": email}) or frappe.db.exists("Parents", {"mobile_number": mobile})
+        
+        frappe.local.response.update({"success": True if exists else False})
+
+    except Exception as e:
+        frappe.log_error(frappe.get_traceback(), "CheckForAccount API Error")
+        frappe.local.response.update({
+            "success": False,
+            "error": str(e)
+        })
 
 # # # functions # # #
 def _send_otp(mobile, channel="sms"):
+    editedMobile = mobile.replace("-", "")
     """Helper function to send OTP using Otpless API"""
     url = "https://auth.otpless.app/auth/otp/v1/send"
     data = {
-        "phoneNumber": mobile,
+        "phoneNumber": editedMobile,
         "otpLength": 6,
         "channel": channel,
         "expiry": 60
@@ -317,3 +524,10 @@ def _verify_otp(orderId, otp, mobile):
     response = requests.post(url, json=data, headers=headers)
     response.raise_for_status()
     return response.json()
+
+def _format_date(date_val):
+    if not date_val:
+        return None
+    if isinstance(date_val, str):
+        return date_val.split(" ")[0]
+    return date_val.strftime("%Y-%m-%d")

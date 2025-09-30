@@ -1,0 +1,170 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2025-09-19 11:43:01.241825",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "pipeline_html",
+  "section_break_agkg",
+  "custom_lead",
+  "custom_student_name",
+  "custom_mobile",
+  "parent_name",
+  "email",
+  "column_break_mnsr",
+  "custom_sales_person",
+  "custom_gradeclass",
+  "custom_curriculum",
+  "schedule_date",
+  "schedule_time",
+  "assessment",
+  "column_break_szqv",
+  "custom_assessment_status",
+  "pipeline_status",
+  "custom_sub_status",
+  "opportunity_remarks",
+  "comments_tab",
+  "opp_remarks"
+ ],
+ "fields": [
+  {
+   "fieldname": "custom_lead",
+   "fieldtype": "Link",
+   "label": "Lead",
+   "options": "HS Lead",
+   "read_only": 1
+  },
+  {
+   "fieldname": "custom_student_name",
+   "fieldtype": "Data",
+   "label": "Student Name"
+  },
+  {
+   "fieldname": "custom_mobile",
+   "fieldtype": "Phone",
+   "label": "Mobile"
+  },
+  {
+   "fieldname": "custom_sales_person",
+   "fieldtype": "Link",
+   "label": "Sales Person",
+   "options": "HS Sales Persons"
+  },
+  {
+   "fieldname": "custom_gradeclass",
+   "fieldtype": "Data",
+   "label": "Grade/Class"
+  },
+  {
+   "fieldname": "custom_curriculum",
+   "fieldtype": "Data",
+   "label": "Curriculum"
+  },
+  {
+   "fieldname": "custom_assessment_status",
+   "fieldtype": "Select",
+   "label": "Assessment Status",
+   "options": "Not Shared\nShared"
+  },
+  {
+   "fieldname": "column_break_mnsr",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "column_break_szqv",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "section_break_agkg",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "parent_name",
+   "fieldtype": "Data",
+   "label": "Parent Name"
+  },
+  {
+   "fieldname": "email",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Email"
+  },
+  {
+   "fieldname": "pipeline_status",
+   "fieldtype": "Select",
+   "label": "Pipeline Status",
+   "options": "Prospect\nAssessment\nEnrolled"
+  },
+  {
+   "fieldname": "pipeline_html",
+   "fieldtype": "HTML",
+   "label": "Pipeline HTML"
+  },
+  {
+   "fieldname": "custom_sub_status",
+   "fieldtype": "Select",
+   "label": "Sub Status",
+   "options": "Open\nProspect\nAssessment\nConnected\nNot Connected\nDS\nLP\nFollowUp\nScheduled\nCompleted\nReport Shared\nMaybe Later\nLost"
+  },
+  {
+   "fieldname": "comments_tab",
+   "fieldtype": "Tab Break",
+   "label": "Comments"
+  },
+  {
+   "fieldname": "opportunity_remarks",
+   "fieldtype": "Small Text",
+   "label": "Opportunity Remarks"
+  },
+  {
+   "fieldname": "opp_remarks",
+   "fieldtype": "Table",
+   "label": "Opportunity Remarks",
+   "options": "HS Lead Remarks"
+  },
+  {
+   "fieldname": "assessment",
+   "fieldtype": "Link",
+   "label": "Assessment",
+   "options": "Assessment",
+   "read_only": 1
+  },
+  {
+   "fieldname": "schedule_date",
+   "fieldtype": "Data",
+   "label": "Schedule Date"
+  },
+  {
+   "fieldname": "schedule_time",
+   "fieldtype": "Data",
+   "label": "Schedule Time"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2025-09-30 12:38:09.333631",
+ "modified_by": "Administrator",
+ "module": "happyschool",
+ "name": "HS Opportunity",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

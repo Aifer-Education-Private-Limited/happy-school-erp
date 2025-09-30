@@ -1,5 +1,7 @@
 frappe.ui.form.on("Lead", {
+   
     refresh: function(frm) {
+        
         if (!frm.fields_dict.custom_pipeline_html) return;
         const pipeline_html = frm.get_field("custom_pipeline_html").$wrapper;
 

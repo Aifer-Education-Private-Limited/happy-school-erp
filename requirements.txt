@@ -1,0 +1,2 @@
+oci==2.160.0
+razorpay

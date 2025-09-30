@@ -9,24 +9,29 @@
   "course_id",
   "tutor_id",
   "admission_date",
+  "column_break_ksj1",
   "expiry_date",
-  "is_active"
+  "is_active",
+  "session_count"
  ],
  "fields": [
   {
    "fieldname": "student_id",
-   "fieldtype": "Data",
-   "label": "Student Id"
+   "fieldtype": "Link",
+   "label": "Student Id",
+   "options": "HS Students"
   },
   {
    "fieldname": "course_id",
-   "fieldtype": "Data",
-   "label": "course_id"
+   "fieldtype": "Link",
+   "label": "course_id",
+   "options": "Courses"
   },
   {
    "fieldname": "tutor_id",
-   "fieldtype": "Data",
-   "label": "Tutor Id"
+   "fieldtype": "Link",
+   "label": "Tutor Id",
+   "options": "Tutors"
   },
   {
    "fieldname": "admission_date",
@@ -43,12 +48,21 @@
    "fieldtype": "Select",
    "label": "Is Active",
    "options": "Active\nIn Active"
+  },
+  {
+   "fieldname": "session_count",
+   "fieldtype": "Data",
+   "label": "Session Count"
+  },
+  {
+   "fieldname": "column_break_ksj1",
+   "fieldtype": "Column Break"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-09-10 16:44:38.181276",
+ "modified": "2025-09-25 10:23:28.245891",
  "modified_by": "Administrator",
  "module": "happyschool",
  "name": "User Courses",

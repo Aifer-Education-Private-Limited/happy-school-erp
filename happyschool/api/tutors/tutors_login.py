@@ -1,16 +1,27 @@
 import frappe
 
+
 @frappe.whitelist(allow_guest=True)
 def tutor_login(email, password):
     """
-    Authenticate tutor using Tutors doctype with Data field password (plain text)
+    Authenticate tutor using Tutors doctype with Data field password (plain text).
+    Check that the tutor is not deactivated (type is 'Unlink').
     """
     try:
-        tutor = frappe.db.get_value("Tutors", {"email": email}, ["name", "email", "password"], as_dict=True)
+        # Get tutor information by email
+        tutor = frappe.db.get_value("Tutors", {"email": email}, ["name", "email", "password", "type","tutor_name"], as_dict=True)
         if not tutor:
             frappe.local.response.update({
                 "success": False,
                 "message": "Invalid email or password"
+            })
+            return
+
+        # Check if account is deactivated
+        if tutor.type == "Unlink":
+            frappe.local.response.update({
+                "success": False,
+                "message": "Account is deactivated"
             })
             return
 
@@ -27,6 +38,7 @@ def tutor_login(email, password):
             "success": True,
             "message": "Login successful",
             "tutor_id": tutor.name,
+            "tutor_name":tutor.tutor_name
         })
 
     except Exception as e:
@@ -37,18 +49,16 @@ def tutor_login(email, password):
         })
 
 
-
 @frappe.whitelist(allow_guest=True)
-def check_user(tutor_id=None):
-    """
-    Fetch Tutor details by Tutor 'name' (DocType primary key).
-    """
+def check_user_by_tutor(tutor_id=None):
+    
+   
     try:
         app_version = {
-            "ios_latest": 4003,
-            "android_latest": 4003,
-            "ios_minimum": 3262,
-            "android_minimum": 3266,
+            "ios_latest": 1000,
+            "android_latest": 1000,
+            "ios_minimum": 1000,
+            "android_minimum": 1000,
         }
 
         if not tutor_id:

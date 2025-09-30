@@ -1,0 +1,103 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2025-09-17 18:35:24.899402",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "questions_batch_id",
+  "question_number",
+  "question",
+  "option_1",
+  "option_2",
+  "option_3",
+  "option_4",
+  "right_answer",
+  "explanation",
+  "topic",
+  "subtopic"
+ ],
+ "fields": [
+  {
+   "fieldname": "questions_batch_id",
+   "fieldtype": "Int",
+   "label": "Questions Batch ID"
+  },
+  {
+   "fieldname": "question_number",
+   "fieldtype": "Int",
+   "label": "Question Number"
+  },
+  {
+   "fieldname": "question",
+   "fieldtype": "Text Editor",
+   "label": "Question"
+  },
+  {
+   "fieldname": "option_1",
+   "fieldtype": "Text Editor",
+   "label": "option_1"
+  },
+  {
+   "fieldname": "option_2",
+   "fieldtype": "Text Editor",
+   "label": "option_2"
+  },
+  {
+   "fieldname": "option_3",
+   "fieldtype": "Text Editor",
+   "label": "option_3"
+  },
+  {
+   "fieldname": "option_4",
+   "fieldtype": "Text Editor",
+   "label": "option_4"
+  },
+  {
+   "fieldname": "right_answer",
+   "fieldtype": "Int",
+   "label": "Right Answer"
+  },
+  {
+   "fieldname": "topic",
+   "fieldtype": "Data",
+   "label": "Topic"
+  },
+  {
+   "fieldname": "subtopic",
+   "fieldtype": "Data",
+   "label": "Subtopic"
+  },
+  {
+   "fieldname": "explanation",
+   "fieldtype": "Text Editor",
+   "label": "Explanation"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2025-09-21 12:30:02.106870",
+ "modified_by": "Administrator",
+ "module": "happyschool",
+ "name": "Test Questions",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

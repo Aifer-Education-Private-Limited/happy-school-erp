@@ -12,13 +12,15 @@
   "caption",
   "description",
   "student_id",
+  "course_id",
   "column_break_bw4x",
   "faculty_email",
   "meeting_start_time",
   "meeting_end_time",
   "thumbnail",
   "status",
-  "scheduled_date"
+  "scheduled_date",
+  "tutor_id"
  ],
  "fields": [
   {
@@ -88,14 +90,27 @@
   },
   {
    "fieldname": "student_id",
-   "fieldtype": "Data",
-   "label": "Student Id"
+   "fieldtype": "Link",
+   "label": "Student Id",
+   "options": "HS Students"
+  },
+  {
+   "fieldname": "tutor_id",
+   "fieldtype": "Link",
+   "label": "Tutor Id",
+   "options": "Tutors"
+  },
+  {
+   "fieldname": "course_id",
+   "fieldtype": "Link",
+   "label": "Course_id",
+   "options": "Courses"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-09-11 10:40:31.728261",
+ "modified": "2025-09-27 18:33:11.597853",
  "modified_by": "Administrator",
  "module": "happyschool",
  "name": "Live Classroom",

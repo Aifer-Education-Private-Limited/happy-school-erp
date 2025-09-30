@@ -8,9 +8,7 @@
  "field_order": [
   "slot_date",
   "from_time",
-  "to_time",
-  "sales_person",
-  "status"
+  "sales_person"
  ],
  "fields": [
   {
@@ -21,35 +19,24 @@
   },
   {
    "fieldname": "from_time",
-   "fieldtype": "Datetime",
+   "fieldtype": "Link",
    "in_list_view": 1,
-   "label": "From Time"
-  },
-  {
-   "fieldname": "to_time",
-   "fieldtype": "Datetime",
-   "in_list_view": 1,
-   "label": "To Time"
+   "label": "Time",
+   "options": "HS Time"
   },
   {
    "fieldname": "sales_person",
    "fieldtype": "Link",
    "in_list_view": 1,
    "label": "Sales Person",
-   "options": "Sales Person"
-  },
-  {
-   "fieldname": "status",
-   "fieldtype": "Select",
-   "in_list_view": 1,
-   "label": "Status"
+   "options": "HS Sales Persons"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2025-09-09 18:22:28.237855",
+ "modified": "2025-09-29 12:08:49.455494",
  "modified_by": "Administrator",
  "module": "happyschool",
  "name": "Slot Booking",

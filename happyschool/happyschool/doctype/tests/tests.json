@@ -1,0 +1,164 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2025-09-15 11:41:18.887821",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "course_id",
+  "title",
+  "type",
+  "question_set_id",
+  "question_batch_id",
+  "is_active",
+  "is_paid",
+  "is_free",
+  "is_result_published",
+  "is_response_sheet_needed",
+  "column_break_7fti",
+  "topic",
+  "total_questions",
+  "valid_from",
+  "valid_to",
+  "duration",
+  "general_instruction",
+  "question_attend_limit",
+  "correct_answer_mark",
+  "wrong_answer_mark",
+  "uploaded_time"
+ ],
+ "fields": [
+  {
+   "fieldname": "course_id",
+   "fieldtype": "Link",
+   "label": "Course Id",
+   "options": "Courses"
+  },
+  {
+   "fieldname": "title",
+   "fieldtype": "Data",
+   "label": "Title"
+  },
+  {
+   "fieldname": "type",
+   "fieldtype": "Select",
+   "label": "Type",
+   "options": "dt\nmt"
+  },
+  {
+   "fieldname": "question_set_id",
+   "fieldtype": "Int",
+   "label": "Question Set Id"
+  },
+  {
+   "fieldname": "question_batch_id",
+   "fieldtype": "Int",
+   "label": "Question Batch Id"
+  },
+  {
+   "fieldname": "is_active",
+   "fieldtype": "Int",
+   "label": "Is Active"
+  },
+  {
+   "fieldname": "is_paid",
+   "fieldtype": "Int",
+   "label": "Is Paid"
+  },
+  {
+   "fieldname": "is_free",
+   "fieldtype": "Int",
+   "label": "Is Free"
+  },
+  {
+   "fieldname": "is_result_published",
+   "fieldtype": "Int",
+   "label": "Is Result Published"
+  },
+  {
+   "fieldname": "is_response_sheet_needed",
+   "fieldtype": "Int",
+   "label": "Is Response Sheet Needed"
+  },
+  {
+   "fieldname": "topic",
+   "fieldtype": "Data",
+   "label": "Topic"
+  },
+  {
+   "fieldname": "total_questions",
+   "fieldtype": "Int",
+   "label": "Total Questions"
+  },
+  {
+   "fieldname": "valid_from",
+   "fieldtype": "Datetime",
+   "label": "Valid From"
+  },
+  {
+   "fieldname": "valid_to",
+   "fieldtype": "Datetime",
+   "label": "Valid To"
+  },
+  {
+   "fieldname": "duration",
+   "fieldtype": "Int",
+   "label": "Duration"
+  },
+  {
+   "fieldname": "general_instruction",
+   "fieldtype": "Data",
+   "label": "General Instruction"
+  },
+  {
+   "fieldname": "question_attend_limit",
+   "fieldtype": "Int",
+   "label": "Question Attend Limit"
+  },
+  {
+   "fieldname": "correct_answer_mark",
+   "fieldtype": "Int",
+   "label": "Correct Answer Mark"
+  },
+  {
+   "fieldname": "wrong_answer_mark",
+   "fieldtype": "Int",
+   "label": "Wrong Answer Mark"
+  },
+  {
+   "fieldname": "uploaded_time",
+   "fieldtype": "Datetime",
+   "label": "Uploaded Time"
+  },
+  {
+   "fieldname": "column_break_7fti",
+   "fieldtype": "Column Break"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2025-09-21 18:08:46.839703",
+ "modified_by": "Administrator",
+ "module": "happyschool",
+ "name": "Tests",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

@@ -1,7 +1,7 @@
 {
  "actions": [],
  "allow_rename": 1,
- "autoname": "field:phone",
+ "autoname": "hash",
  "creation": "2025-09-10 18:01:08.546979",
  "doctype": "DocType",
  "engine": "InnoDB",
@@ -10,13 +10,18 @@
   "password",
   "tutor_name",
   "subject",
-  "phone"
+  "phone",
+  "join_date",
+  "profile",
+  "location",
+  "type"
  ],
  "fields": [
   {
    "fieldname": "email",
    "fieldtype": "Data",
-   "label": "Email"
+   "label": "Email",
+   "unique": 1
   },
   {
    "fieldname": "password",
@@ -25,9 +30,8 @@
   },
   {
    "fieldname": "phone",
-   "fieldtype": "Data",
-   "label": "Phone",
-   "unique": 1
+   "fieldtype": "Phone",
+   "label": "mobile"
   },
   {
    "fieldname": "tutor_name",
@@ -39,16 +43,38 @@
    "fieldname": "subject",
    "fieldtype": "Data",
    "label": "Subject"
+  },
+  {
+   "fieldname": "join_date",
+   "fieldtype": "Date",
+   "label": "Join Date"
+  },
+  {
+   "fieldname": "profile",
+   "fieldtype": "Attach",
+   "label": "Profile"
+  },
+  {
+   "fieldname": "location",
+   "fieldtype": "Data",
+   "label": "Location"
+  },
+  {
+   "default": "Link",
+   "fieldname": "type",
+   "fieldtype": "Select",
+   "label": "Type",
+   "options": "Link\nUnlink"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-09-11 12:13:48.794509",
+ "modified": "2025-09-14 17:47:52.164650",
  "modified_by": "Administrator",
  "module": "happyschool",
  "name": "Tutors",
- "naming_rule": "By fieldname",
+ "naming_rule": "Random",
  "owner": "Administrator",
  "permissions": [
   {

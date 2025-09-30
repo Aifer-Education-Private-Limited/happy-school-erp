@@ -10,11 +10,14 @@
   "mobile_number",
   "email",
   "password",
+  "type",
   "column_break_sgeo",
   "state",
   "date_of_birth",
   "auth_type",
-  "token"
+  "profile",
+  "joindate",
+  "customer"
  ],
  "fields": [
   {
@@ -53,11 +56,6 @@
    "fieldtype": "Column Break"
   },
   {
-   "fieldname": "token",
-   "fieldtype": "Data",
-   "label": "Token"
-  },
-  {
    "fieldname": "password",
    "fieldtype": "Data",
    "label": "Password"
@@ -66,12 +64,36 @@
    "fieldname": "auth_type",
    "fieldtype": "Data",
    "label": "Auth Type"
+  },
+  {
+   "fieldname": "profile",
+   "fieldtype": "Data",
+   "label": "Profile"
+  },
+  {
+   "fieldname": "joindate",
+   "fieldtype": "Date",
+   "label": "Joindate"
+  },
+  {
+   "default": "Link",
+   "fieldname": "type",
+   "fieldtype": "Select",
+   "label": "Type",
+   "options": "Link\nUnlink"
+  },
+  {
+   "fieldname": "customer",
+   "fieldtype": "Link",
+   "label": "Customer",
+   "options": "Customer",
+   "read_only": 1
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-09-11 12:55:33.372237",
+ "modified": "2025-09-24 17:45:56.938495",
  "modified_by": "Administrator",
  "module": "happyschool",
  "name": "Parents",

@@ -1,0 +1,75 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2025-09-17 14:24:17.090655",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "test_id",
+  "student_id",
+  "attended_date",
+  "total_time",
+  "attempt_count",
+  "marks"
+ ],
+ "fields": [
+  {
+   "fieldname": "test_id",
+   "fieldtype": "Link",
+   "label": "Test ID",
+   "options": "Tests"
+  },
+  {
+   "fieldname": "student_id",
+   "fieldtype": "Link",
+   "label": "Student ID",
+   "options": "HS Students"
+  },
+  {
+   "fieldname": "attended_date",
+   "fieldtype": "Datetime",
+   "label": "Attended Date"
+  },
+  {
+   "fieldname": "total_time",
+   "fieldtype": "Data",
+   "label": "Total_time"
+  },
+  {
+   "fieldname": "attempt_count",
+   "fieldtype": "Int",
+   "label": "Attempt Count"
+  },
+  {
+   "fieldname": "marks",
+   "fieldtype": "Int",
+   "label": "Marks"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2025-09-28 13:26:10.629528",
+ "modified_by": "Administrator",
+ "module": "happyschool",
+ "name": "Test User History",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

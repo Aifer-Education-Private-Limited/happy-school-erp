@@ -1,0 +1,95 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2025-09-25 11:31:46.077419",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "student_id",
+  "tutor_id",
+  "course_id",
+  "assignment_name",
+  "topic",
+  "subtopic",
+  "type",
+  "files",
+  "description"
+ ],
+ "fields": [
+  {
+   "fieldname": "student_id",
+   "fieldtype": "Link",
+   "label": "Student ID ",
+   "options": "HS Students"
+  },
+  {
+   "fieldname": "tutor_id",
+   "fieldtype": "Link",
+   "label": "Tutor ID",
+   "options": "Tutors"
+  },
+  {
+   "fieldname": "assignment_name",
+   "fieldtype": "Data",
+   "label": "Assignment Name "
+  },
+  {
+   "fieldname": "topic",
+   "fieldtype": "Data",
+   "label": "Topic "
+  },
+  {
+   "fieldname": "subtopic",
+   "fieldtype": "Data",
+   "label": "Subtopic"
+  },
+  {
+   "fieldname": "files",
+   "fieldtype": "Long Text",
+   "label": "files"
+  },
+  {
+   "fieldname": "type",
+   "fieldtype": "Select",
+   "label": "Type",
+   "options": "Material\nHomework\nAssignment\nQuestion Paper"
+  },
+  {
+   "fieldname": "description",
+   "fieldtype": "Data",
+   "label": "Description"
+  },
+  {
+   "fieldname": "course_id",
+   "fieldtype": "Link",
+   "label": "Course ID",
+   "options": "Courses"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2025-09-28 15:58:21.498482",
+ "modified_by": "Administrator",
+ "module": "happyschool",
+ "name": "HS Student Assignments",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}
