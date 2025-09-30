@@ -25,7 +25,7 @@
    "fieldname": "student",
    "fieldtype": "Link",
    "label": "Student",
-   "options": "Student"
+   "options": "HS Students"
   },
   {
    "fieldname": "student_name",
@@ -96,7 +96,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-09-23 20:13:59.165388",
+ "modified": "2025-09-30 12:03:28.128351",
  "modified_by": "Administrator",
  "module": "happyschool",
  "name": "HS Student Course Enrollment",
