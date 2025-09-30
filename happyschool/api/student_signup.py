@@ -317,7 +317,8 @@ def create_student():
         frappe.local.response.update({
             "success": True,
             "message": "Created Student Successfully",
-            "student": student_details
+            "student": student_details,
+            "student_id": student.name
         })
 
     except Exception as e:
