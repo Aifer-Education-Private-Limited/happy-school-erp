@@ -220,7 +220,7 @@
                 <!-- Additional Button -->
 
                 <div class="d-flex justify-content-end mb-2">
-                    <button type="button" class="btn btn-primary mb-2" onclick="showReviewHelp()">Review Help</button>
+                    <button type="button" class="btn btn-primary mb-2" onclick="showReviewHelp()">Check Your Status</button>
                 </div>
 
                 <div class="d-flex gap-3 justify-content-center">
@@ -254,6 +254,10 @@
         event.currentTarget.classList.add('active');
         if (tabID === 'tab3') {
             showExistingDemoUrl();
+            checkBridgeCourseUser();
+        }
+        if (tabID === 'tab2') {
+            checkBridgeCourseUser();
         }
     }
     function showExistingDemoUrl() {
@@ -273,6 +277,20 @@
         });
 
     }
+    function checkBridgeCourseUser() {
+        return frappe.call({
+            method: "happyschool.www.job_portal.check_bridge_course_user",
+            async: false,
+            callback: function (response) {
+                if (!response.exc) {
+                    if (response.message === true) {
+                        frappe.msgprint('You are registered as a Bridge Course tutor. No need to Do Exam and Demo Upload steps.');
+                        // window.open('/bridge-course-tutor-registration-form', '_self');
+                    }
+                }
+            }
+        });
+    }
     function navigateToTab(tabID) {
         const targetButton = Array.from(document.querySelectorAll('.tab-btn'))
             .find(btn => btn.getAttribute('onclick').includes(`'${tabID}'`));
@@ -280,7 +298,15 @@
     }
 
     function showReviewHelp() {
-        frappe.msgprint('Please double-check all your details before submitting.');
+        frappe.call({
+            method: "happyschool.www.job_portal.get_tutor_status",
+            callback: function (response) {
+                if (!response.exc) {
+                    const helpText = response.message;
+                    frappe.msgprint(helpText, 'Your Application Status');
+                }
+            }
+        });
     }
 
     function uploadDemoUrl() {
@@ -296,6 +322,8 @@
             callback: function (response) {
                 if (!response.exc) {
                     showExistingDemoUrl();
+                    frappe.msgprint('Demo video URL uploaded successfully.');
+
                 } else {
                     frappe.msgprint('Failed to upload Demo URL. Please try again.');
                 }
@@ -303,23 +331,6 @@
         });
         
     }
-
-    // Button handlers for each tab
-    // window.onWelcomeClick = function() {
-    //     window.open("/tutor-registration-form", "_self");
-    // }
-    // window.onExamClick = function() {
-    //     window.open("/app/tutor-assignment-", "_self");
-    // }
-    // window.onUploadClick = function() {
-    //     frappe.msgprint("Upload tab button clicked!");
-    // }
-    // window.onStatusClick = function() {
-    //     frappe.msgprint("Status tab button clicked!");
-    // }
-
-    // ---- Init ----
-    // renderStatus();
 
 </script>
 
