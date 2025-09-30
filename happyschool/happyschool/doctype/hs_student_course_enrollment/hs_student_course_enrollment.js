@@ -61,7 +61,7 @@ frappe.ui.form.on("HS Student Course Enrollment", {
     
     student: function(frm) {
         if(!frm.doc.student) return; // check if student is selected
-        frappe.db.get_doc("Student", frm.doc.student).then(stu => {
+        frappe.db.get_doc("HS Students", frm.doc.student).then(stu => {
             frm.set_value("student_name", stu.student_name); // make sure this is the correct fieldname
         });
     },

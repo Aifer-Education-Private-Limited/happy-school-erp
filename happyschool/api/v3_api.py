@@ -408,6 +408,14 @@ def student_course_enrollment():
         board=data.get("board")
         student_id = data.get("student_id")
         programs = data.get("programs", [])
+        parent_id=data.get("parent_id")
+        student_name=frappe.db.get_value("HS Students",{"name":student_id},"student_name")
+        first_name=frappe.db.get_value("Parents",{"name":parent_id},"first_name")
+        last_name=frappe.db.get_value("Parents",{"name":parent_id},"last_name")
+        email=frappe.db.get_value("Parents",{"name":parent_id},"email")
+        mobile=frappe.db.get_value("Parents",{"name":parent_id},"mobile_number")
+        if not student_name:
+            return {"status": "error", "message": "student name not found "}
 
         if not student_id:
             return {"status": "error", "message": "student_id is required"}
@@ -462,7 +470,13 @@ def student_course_enrollment():
             enrollment_doc.student = student_id
             enrollment_doc.grade = grade
             enrollment_doc.board=board
+            enrollment_doc.student_name=student_name
+            enrollment_doc.parent1=parent_id
+            enrollment_doc.parent_name=first_name + " " + last_name
+            enrollment_doc.email=email
+            enrollment_doc.mobile=mobile
             enrollment_doc.posting_date=today()
+
             for prog in programs:
                 program_enrollment_id = prog.get("program_enrollment_id")
                 program_title = prog.get("program")
