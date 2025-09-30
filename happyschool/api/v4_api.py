@@ -543,7 +543,7 @@ def get_set_questions(questions_batch_id=None):
                 question,
                 option_1, option_2, option_3, option_4,
                 right_answer,
-                explenation,
+                explanation,
                 topic
             FROM `tabTest Questions`
             WHERE questions_batch_id = %s
@@ -576,7 +576,7 @@ def get_set_questions(questions_batch_id=None):
                 "option_3": clean_html(r.option_3),
                 "option_4": clean_html(r.option_4),
                 "right_answer": r.right_answer,
-                "explenation": clean_html(r.explenation),
+                "explanation": clean_html(r.explenation),
                 "topic": r.topic,
                 "question_no": r.question_number
             })
