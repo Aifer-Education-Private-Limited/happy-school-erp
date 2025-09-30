@@ -1,0 +1,251 @@
+{% extends "templates/portal_base.html" %}
+
+{% block content %}
+<div id="exam-timer-fixed" style="display:none"></div>
+<div id="exam-center-root"></div>
+{% endblock %}
+
+{% block script %}
+<script>
+    frappe.ready(() => {
+        class TutorAssignmentPage {
+            constructor(root) {
+                this.root = $(root);
+                this.answers = {};
+                this.exam_name = null;
+                this.current = 0;
+                this.submitted = false;
+                this.questions = [];
+                this.subjects = [];
+                this.set_exam_time();
+                
+                this.setup_dom();
+                this.load_subjects();
+                this.bind_events();
+            }
+
+            setup_dom() {
+                this.$container = $('<div id="exam-center-container"></div>').appendTo(this.root);
+
+                this.$subjectLabel = $('<label for="subject_select" class="mb-2" style="font-size:1.15rem;color:#157347;"><b>Select Subject</b></label>')
+                    .appendTo(this.$container);
+                this.$subjectSelect = $(`
+                        <select id="subject_select" class="form-control mb-4" style="border-radius:1.5rem;border:1.5px solid #0d6efd;">
+                            <option>Loading...</option>
+                        </select>
+                    `).appendTo(this.$container);
+
+                this.$startBtn = $('<button class="btn btn-success">Start Exam</button>').appendTo(this.$container);
+
+                this.$timer = $('#exam-timer-fixed');
+
+                this.$questions = $('<div id="questions-container" style="display:none"></div>').appendTo(this.$container);
+
+                frappe.dom.set_style(`
+                #exam-timer-fixed {
+                    right: 32px;
+                    font-weight: bold;
+                    padding: 12px 28px;
+                    border-radius: 12px;
+                    display: none;
+                }
+            `);
+            }
+
+            bind_events() {
+                this.$startBtn.on('click', () => this.start_exam());
+            }
+
+            set_exam_time() {
+               frappe.call({
+                    method: "happyschool.www.tutor_exam.get_tutor_settings",
+                    callback: (r) => {
+                        this.timer_duration = r.message.exam_time
+                    }
+                });
+            }
+
+            load_subjects() {
+                frappe.call({
+                    method: "frappe.client.get_list",
+                    args: {
+                        doctype: "Tutor Subject",
+                        fields: ["name", "subject"],
+                        limit_page_length: 50
+                    },
+                    callback: (r) => {
+                        this.subjects = r.message || [];
+                        this.$subjectSelect.empty();
+                        this.$subjectSelect.append(`<option value="">Select a subject</option>`);
+                        this.subjects.forEach(sub => {
+                            this.$subjectSelect.append(`<option value="${sub.name}">${sub.subject}</option>`);
+                        });
+                    }
+                });
+            }
+
+            start_exam() {
+                const subject = this.$subjectSelect.val();
+                if (!subject) {
+                    frappe.msgprint("Please select a subject before starting the exam.");
+                    return;
+                }
+
+                this.$startBtn.hide();
+                this.$subjectLabel.hide();
+                this.$subjectSelect.hide();
+                this.$timer.show();
+                this.$questions.show();
+
+                this.block_navigation();
+                this.render_questions(subject);
+            }
+
+            block_navigation() {
+                window.addEventListener('beforeunload', this.beforeUnloadHandler);
+                window.history.pushState(null, '', window.location.href);
+                window.addEventListener('popstate', this.popStateHandler);
+            }
+
+            beforeUnloadHandler(e) {
+                e.preventDefault();
+                e.returnValue = '';
+            }
+
+            popStateHandler(e) {
+                window.history.pushState(null, '', window.location.href);
+                frappe.msgprint('You cannot leave the exam page until you submit.');
+            }
+
+            submit_exam() {
+                if (this.submitted) return;
+                this.submitted = true;
+                this.unblock_navigation();
+                this.$timer.hide();
+                frappe.call({
+                    method: "happyschool.www.tutor_exam.submit_tutor_exam",
+                    args: {
+                        exam_name: this.exam_name,
+                        answers: this.answers,
+                        time:this.remaining_time
+                    },
+                    callback: (r) => {
+                        frappe.msgprint("Exam submitted!<br>Your score: " + r.message.score + " out of " + r.message.total + "and you " +r.message.is_pass);
+                        if (r.message.is_pass === "Pass") { 
+                                this.$questions.html('<div class="alert alert-info">Exam submitted. Please Upload Demo Video URL.</div>');
+                        }
+                        else{
+                            this.$questions.html('<div class="alert alert-danger">We appreciate your effort, but your score is below 90%. Unfortunately, you are not eligible to move to the next round.</div>');
+                        }
+                    }
+                });
+
+            }
+
+            unblock_navigation() {
+                window.removeEventListener('beforeunload', this.beforeUnloadHandler);
+                window.removeEventListener('popstate', this.popStateHandler);
+            }
+
+            start_timer(duration, on_expire) {
+                const endTime = Date.now() + duration * 1000;
+                if (window.exam_timer_interval) clearInterval(window.exam_timer_interval);
+
+                window.exam_timer_interval = setInterval(() => {
+                    const remaining = Math.max(0, Math.floor((endTime - Date.now()) / 1000));
+                    this.remaining_time = remaining;
+                    const h = String(Math.floor(remaining / 3600)).padStart(2, '0');
+                    const m = String(Math.floor((remaining % 3600) / 60)).padStart(2, '0');
+                    const s = String(remaining % 60).padStart(2, '0');
+                    this.$timer.text(`Time Remaining: ${h}:${m}:${s}`);
+                    if (remaining <= 0) {
+                        clearInterval(window.exam_timer_interval);
+                        this.$timer.text("Time's up!");
+                        on_expire();
+                    }
+                }, 1000);
+            }
+
+            render_questions(subject) {
+                frappe.call({
+                    method: "happyschool.www.tutor_exam.create_tutor_exam",
+                    args: {
+                        subject: subject
+                    },
+                    callback: (r) => {
+                        if (!r.message.tutor_exam?.length) {
+                            this.$questions.html('<div class="alert alert-warning">No questions found.</div>');
+                            return;
+                        }
+                        this.questions = r.message.tutor_exam.map(q => ({
+                            q: q.question,
+                            choices: [q.a, q.b, q.c, q.d]
+                        }));
+                        this.exam_name = r.message.name;
+                        this.current = 0;
+                        this.submitted = false;
+                        this.answers = {};
+                        this.show_question(this.current);
+                        this.start_timer(this.timer_duration, () => this.submit_exam());
+                    }
+                });
+            }
+
+            show_question(idx) {
+                if (this.submitted) return;
+                const q = this.questions[idx];
+                this.$questions.html(`
+                    <div class="card mb-3" style="min-width:600px;max-width:800px;margin:auto; border-radius:12px; box-shadow:0 4px 8px rgba(0,0,0,0.1);">
+                        <div class="card-body">
+                            <h5 class="card-title">Question ${idx + 1} of ${this.questions.length}</h5>
+                            <p class="card-text"><b>${q.q}</b></p>
+                            <form id="question-form">
+                                ${q.choices.map((choice, i) => `
+                                    <div class="form-check mb-2 d-flex align-items-center">
+                                        <input class="form-check-input me-2" type="radio" 
+                                            name="answer" id="choice_${i}" 
+                                            value="${String.fromCharCode(65 + i)}"
+                                            ${this.answers[idx] === String.fromCharCode(65 + i) ? 'checked' : ''}>
+                                        <label class="form-check-label ms-2" for="choice_${i}" style="flex:1; text-align:left;">
+                                            ${String.fromCharCode(65 + i)}. ${choice}
+                                        </label>
+                                    </div>
+                                `).join('')}
+                            </form>
+                            <div class="mt-3 d-flex justify-content-between" style="gap: 24px;">
+                                <button type="button" class="btn btn-secondary prev-btn" ${idx === 0 ? 'disabled' : ''}>Previous</button>
+                                <button type="button" class="btn btn-secondary next-btn" ${idx === this.questions.length - 1 ? 'disabled' : ''}>Next</button>
+                                ${idx === this.questions.length - 1 ? '<button type="button" class="btn btn-primary submit-btn">Submit</button>' : ''}
+                            </div>
+                        </div>
+                    </div>
+                `);
+
+                $('#question-form input[name="answer"]').on('change', e => {
+                    this.answers[idx] = e.target.value;
+                });
+
+                $('.prev-btn').on('click', () => { if (this.current > 0) this.show_question(--this.current); });
+
+                $('.next-btn').on('click', () => {
+                    if (!this.answers[idx]) {
+                        frappe.msgprint("Please select an answer before proceeding to the next question.");
+                        return;
+                    }
+                    if (this.current < this.questions.length - 1) this.show_question(++this.current);
+                });
+
+                $('.submit-btn').on('click', () => {
+                    if (!this.answers[idx]) {
+                        frappe.msgprint("Please select an answer before submitting.");
+                        return;
+                    }
+                    this.submit_exam();
+                });
+            }
+        }
+
+        new TutorAssignmentPage(document.getElementById('exam-center-root'));
+    });
+</script>
+{% endblock %}

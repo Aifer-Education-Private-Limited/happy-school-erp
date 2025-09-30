@@ -1,0 +1,93 @@
+
+  body {
+    background: #f4f8fb;
+  }
+  .container {
+    margin: 40px auto;
+    background: #fff;
+    border-radius: 2rem;
+    box-shadow: 0 8px 32px rgba(44, 62, 80, 0.08);
+  }
+  .tab-btn {
+    border: none;
+    background: none;
+    font-weight: 600;
+    color: #6c757d;
+    border-bottom: 3px solid transparent;
+    transition: color 0.2s, border-bottom 0.2s;
+    border-radius: 0;
+  }
+  .tab-btn.active, .tab-btn:focus {
+    color: #157347;
+    border-bottom: 3px solid #157347;
+    background: linear-gradient(90deg, #e0f7fa 0%, #e8f5e9 100%);
+  }
+  .tab-btn:not(.active):hover {
+    color: #0d6efd;
+    background: #f1f8ff;
+  }
+  .tab-content {
+    display: none;
+    animation: fadeIn 0.5s;
+  }
+  .tab-content.active {
+    display: block;
+  }
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(16px);}
+    to { opacity: 1; transform: none;}
+  }
+  .btn-primary, .btn-success, .btn-secondary {
+    font-weight: 600;
+    border: none;
+    border-radius: 2rem;
+    padding: 0.75rem 2.5rem;
+    box-shadow: 0 2px 8px rgba(44, 62, 80, 0.07);
+    transition: background 0.2s, color 0.2s, box-shadow 0.2s;
+  }
+  .btn-primary {
+    background: #0d6efd;
+    color: #fff;
+  }
+  .btn-primary:hover, .btn-primary:focus {
+    background: #157347;
+    color: #fff;
+    box-shadow: 0 4px 16px rgba(13,110,253,0.12);
+  }
+  .btn-success {
+    background: #157347;
+    color: #fff;
+  }
+  .btn-success:hover, .btn-success:focus {
+    background: #145a32;
+    color: #fff;
+    box-shadow: 0 4px 16px rgba(21,115,71,0.12);
+  }
+  .btn-secondary {
+    background: #e3f2fd;
+    color: #0d6efd;
+    border: 1px solid #b6e0fe;
+  }
+  .btn-secondary:hover, .btn-secondary:focus {
+    background: #d1e7dd;
+    color: #157347;
+    border: 1px solid #a7e9af;
+  }
+  .p-4.rounded.bg-light.border.text-center {
+    background: linear-gradient(120deg, #f1f8ff 60%, #e8f5e9 100%);
+    border-radius: 1.5rem !important;
+    border: none !important;
+    box-shadow: 0 2px 8px rgba(44, 62, 80, 0.04);
+    margin-bottom: 1.5rem;
+  }
+  .fw-semibold {
+    font-weight: 700 !important;
+  }
+  .w-100 {
+    width: 100% !important;
+  }
+  @media (min-width: 768px) {
+    .w-md-50 {
+      width: 50% !important;
+    }
+  }

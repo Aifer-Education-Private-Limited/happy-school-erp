@@ -1,0 +1,105 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2025-09-22 15:17:04.908081",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "section_break_docy",
+  "tutor",
+  "subject",
+  "amended_from",
+  "column_break_cchh",
+  "date",
+  "time_taken",
+  "section_break_oenq",
+  "tutor_exam_table",
+  "total_score"
+ ],
+ "fields": [
+  {
+   "fieldname": "section_break_docy",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "amended_from",
+   "fieldtype": "Link",
+   "label": "Amended From",
+   "no_copy": 1,
+   "options": "Tutor Exam Result",
+   "print_hide": 1,
+   "read_only": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "tutor",
+   "fieldtype": "Link",
+   "label": "Tutor",
+   "options": "Tutor Profile"
+  },
+  {
+   "fieldname": "subject",
+   "fieldtype": "Link",
+   "label": "Subject",
+   "options": "Tutor Subject"
+  },
+  {
+   "fieldname": "column_break_cchh",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "date",
+   "fieldtype": "Date",
+   "label": "Date",
+   "options": "Today"
+  },
+  {
+   "fieldname": "time_taken",
+   "fieldtype": "Data",
+   "label": "Time Taken"
+  },
+  {
+   "fieldname": "section_break_oenq",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "tutor_exam_table",
+   "fieldtype": "Table",
+   "label": "Tutor Exam Table",
+   "options": "Tutor Exam Table"
+  },
+  {
+   "fieldname": "total_score",
+   "fieldtype": "Data",
+   "label": "Total Score"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "is_submittable": 1,
+ "links": [],
+ "modified": "2025-09-22 15:46:58.323092",
+ "modified_by": "Administrator",
+ "module": "happyschool",
+ "name": "Tutor Exam Result",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "submit": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}
