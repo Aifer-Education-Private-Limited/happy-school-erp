@@ -1,7 +1,24 @@
 
 frappe.ui.form.on("HS Opportunity", {
-
+    onload: function(frm) {
+        // Reload browser only when entering this form for the first time
+        // Prevent infinite loop by checking URL param
+        if (!frm.doc.__islocal && !window.location.href.includes("force_reload=1")) {
+            // Append a marker to URL so next load skips reload
+            let url = window.location.href;
+            if (url.indexOf("?") > -1) {
+                url += "&force_reload=1";
+            } else {
+                url += "?force_reload=1";
+            }
+            window.location.replace(url);
+        }
+    },
+  
+    
     refresh: function(frm) {
+        
+        
         if (!frm.fields_dict.pipeline_html) return;
 
         const pipeline_html = frm.get_field("pipeline_html").$wrapper;
@@ -110,6 +127,7 @@ frappe.ui.form.on("HS Opportunity", {
                     frm.set_value("pipeline_status", step);
                     frm.set_value("custom_sub_status", values.sub_status);
                     frm.set_value("opportunity_remarks", values.remarks);
+                    
 
                     frm.add_child("opp_remarks",{
                         status: step,
@@ -119,8 +137,11 @@ frappe.ui.form.on("HS Opportunity", {
                         date: frappe.datetime.now_datetime()
                     });
                     frm.refresh_field("opp_remarks");
-                    updateActiveState();
-                    frm.save();
+                    frm.save().then(() => {
+                        frm.reload_doc().then(() => {
+                            updateActiveState();   // redraw with fresh values
+                        });
+                    });
                     d.hide();
                 }
             });
@@ -195,7 +216,7 @@ frappe.ui.form.on("HS Opportunity", {
                         gradeclass: frm.doc.custom_gradeclass,
                         curriculum: frm.doc.custom_curriculum,
                         mobile: frm.doc.custom_mobile
-                        
+
                     });
                 });
 

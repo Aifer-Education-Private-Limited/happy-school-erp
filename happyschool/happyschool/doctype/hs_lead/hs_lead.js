@@ -1,17 +1,15 @@
 // Copyright (c) 2025, esra and contributors
 // For license information, please see license.txt
 
-// frappe.ui.form.on("HS Lead", {
-// 	refresh(frm) {
-
-// 	},
-// });
-
+// -----------------------
+// Slot Booking validation
+// -----------------------
 frappe.ui.form.on("Slot Booking", {
     sales_person: function(frm, cdt, cdn) {
         let row = locals[cdt][cdn];
         if (!row.sales_person || !row.slot_date || !row.from_time) return;
 
+        // Conflict check
         frappe.call({
             method: "happyschool.happyschool.doctype.hs_lead.hs_lead.check_salesperson_conflict",
             args: {
@@ -28,12 +26,13 @@ frappe.ui.form.on("Slot Booking", {
                         indicator: "red",
                         message: __("This Sales Person is already booked for this date and time.")
                     });
-
                     frappe.model.set_value(cdt, cdn, "sales_person", "");
                 }
             }
-        }); 
-        let booking = locals[cdt][cdn];   // renamed from row → booking
+        });
+
+        // Daily limit check
+        let booking = locals[cdt][cdn];
         if (!booking.sales_person) return;
 
         frappe.call({
@@ -51,7 +50,6 @@ frappe.ui.form.on("Slot Booking", {
                             `Sales Person ${booking.sales_person} already has ${r.message.count} bookings today. Limit is 5.`
                         )
                     });
-
                     frappe.model.set_value(cdt, cdn, "sales_person", "");
                 }
             }
@@ -59,23 +57,31 @@ frappe.ui.form.on("Slot Booking", {
     }
 });
 
+// -----------------------
+// HS Lead custom logic
+// -----------------------
 frappe.ui.form.on("HS Lead", {
-    onload: function(frm){
-        // Delay rendering so DOM is ready
-        setTimeout(() => {
-            renderPipeline(frm);
-            updateActiveState(frm);
-        }, 100);
+    onload: function(frm) {
+        // Reload browser only when entering this form for the first time
+        // Prevent infinite loop by checking URL param
+        if (!frm.doc.__islocal && !window.location.href.includes("force_reload=1")) {
+            // Append a marker to URL so next load skips reload
+            let url = window.location.href;
+            if (url.indexOf("?") > -1) {
+                url += "&force_reload=1";
+            } else {
+                url += "?force_reload=1";
+            }
+            window.location.replace(url);
+        }
     },
 
     refresh: function(frm) {
-        // Render pipeline and update colors every refresh
+        // Re-render pipeline visuals
         renderPipeline(frm);
         updateActiveState(frm);
 
-        // -----------------------
-        // Open Opportunity button
-        // -----------------------
+        // Add Open Opportunity button
         frm.add_custom_button("Open Opportunity", function() {
             frappe.db.get_value("HS Opportunity", {"custom_lead": frm.doc.name}, "name")
             .then(r => {
@@ -97,25 +103,20 @@ frappe.ui.form.on("HS Lead", {
                 }
             });
         });
-
-        // -----------------------
-        // Pipeline click handlers
-        // -----------------------
-        setupPipelineClicks(frm);
     },
 
     before_save:function(frm){
         if (frm.doc.custom_booking && frm.doc.custom_booking.length > 0) {
             frm.doc.custom_booking.forEach(row => {
                 if (row.sales_person) frm.set_value("custom_sales_person", row.sales_person);
-                if(row.slot_date) frm.set_value("custom_assigned_date", row.slot_date);
+                if (row.slot_date) frm.set_value("custom_assigned_date", row.slot_date);
             });
         }
     }
 });
 
 // -----------------------
-// Pipeline rendering function
+// Pipeline rendering
 // -----------------------
 function renderPipeline(frm) {
     if (!frm.fields_dict.custom_pipeline_html) return;
@@ -137,7 +138,7 @@ function renderPipeline(frm) {
         .sub-step .text { font-size:10px; margin-top:2px; }
     </style>
 
-    <div class="pipeline-container">
+    <div class="pipeline-container" id="pipeline-wrapper">
         <div class="pipeline-main">
             <div id="prospect-step" class="pipeline-step">
                 <span class="icon">P</span>
@@ -170,7 +171,7 @@ function renderPipeline(frm) {
 }
 
 // -----------------------
-// Pipeline coloring function
+// Pipeline coloring
 // -----------------------
 function updateActiveState(frm) {
     $(".pipeline-step").removeClass("active");
@@ -202,12 +203,12 @@ function updateActiveState(frm) {
 // Pipeline click handlers
 // -----------------------
 function setupPipelineClicks(frm) {
-    // Prospect
-    $(document).off("click", "#prospect-step, #prospect-sub-steps .sub-step")
-               .on("click", "#prospect-step, #prospect-sub-steps .sub-step", function () {
-        const current = frm.doc.custom_pipeline_sub_status || "Open";
+    const wrapper = $("#pipeline-wrapper");
 
-        const prospectDialog = new frappe.ui.Dialog({
+    // Prospect
+    wrapper.on("click", "#prospect-step, #prospect-sub-steps .sub-step", function () {
+        const current = frm.doc.custom_pipeline_sub_status || "Open";
+        const dialog = new frappe.ui.Dialog({
             title: "Select Prospect Status",
             fields: [
                 { label: "Sub Status", fieldname: "sub_status", fieldtype: "Select",
@@ -229,21 +230,19 @@ function setupPipelineClicks(frm) {
                     });
 
                     frm.refresh_field("lead_remarks");
-                    renderPipeline(frm);  // re-render pipeline
+                    renderPipeline(frm);
                     updateActiveState(frm);
                     frm.save();
-                    prospectDialog.hide();
+                    dialog.hide();
                 }
             }
         });
-
-        prospectDialog.show();
+        dialog.show();
     });
 
     // Follow Up
-    $(document).off("click", "#follow-up-step, #followup-sub-steps .sub-step")
-               .on("click", "#follow-up-step, #followup-sub-steps .sub-step", function () {
-        const followUpDialog = new frappe.ui.Dialog({
+    wrapper.on("click", "#follow-up-step, #followup-sub-steps .sub-step", function () {
+        const dialog = new frappe.ui.Dialog({
             title: "Select Follow Up Status",
             fields: [
                 { label: "Select Follow Up Status", fieldname: "follow_up_status", fieldtype: "Select",
@@ -270,16 +269,15 @@ function setupPipelineClicks(frm) {
                     renderPipeline(frm);
                     updateActiveState(frm);
                     frm.save();
-                    followUpDialog.hide();
+                    dialog.hide();
                 }
             }
         });
-        followUpDialog.show();
+        dialog.show();
     });
 
     // Assessment Booked
-    $(document).off("click", "#enrolled-step")
-               .on("click", "#enrolled-step", function(){
+    wrapper.on("click", "#enrolled-step", function(){
         frm.set_value("custom_pipeline_status","Assessment Booked");
         frm.set_value("custom_pipeline_sub_status","");
         renderPipeline(frm);
