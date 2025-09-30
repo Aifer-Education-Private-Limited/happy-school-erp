@@ -204,7 +204,8 @@ frappe.ui.form.on("HS Opportunity", {
                 frappe.db.get_value('HS Sales Persons', frm.doc.sales_person, 'meet_link')
                 .then(r => {
                     const meet_link = r.message ? r.message.meet_link : '';
-                    const time=frm.doc.schedule_time
+                    const time = frm.doc.schedule_date + " " + frm.doc.schedule_time;
+
 
                     // Show dialog
                     let d = new frappe.ui.Dialog({

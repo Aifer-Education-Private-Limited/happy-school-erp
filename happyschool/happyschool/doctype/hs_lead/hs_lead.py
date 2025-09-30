@@ -7,6 +7,8 @@ import frappe
 from frappe import _
 from frappe.model.document import Document
 from frappe.utils import today
+from frappe.utils import formatdate
+
 from frappe.model.naming import make_autoname
 
 class HSLead(Document):
@@ -100,6 +102,8 @@ def create_or_update_opportunity_for_lead(doc, method):
         latest_slot = doc.custom_booking[0]
         slot_date = latest_slot.slot_date
         slot_time = latest_slot.from_time
+    formatted_date = formatdate(slot_date, "dd-MM-yyyy") if slot_date else None
+
 
     # Check if opportunity already exists for this lead
     opportunity_name = frappe.db.get_value("HS Opportunity", {"custom_lead": doc.name}, "name")
@@ -114,8 +118,10 @@ def create_or_update_opportunity_for_lead(doc, method):
         opportunity.custom_sales_person = doc.custom_sales_person
         opportunity.parent_name = doc.first_name
         opportunity.email = doc.email
-        if slot_date and slot_time:
-            opportunity.schedule_time = f"{slot_date} {slot_time}"
+        if slot_date or slot_time:
+            opportunity.schedule_time = f"{slot_time}"
+            opportunity.schedule_date = formatted_date
+
         opportunity.save(ignore_permissions=True)
     else:
         # Create new opportunity
@@ -129,7 +135,8 @@ def create_or_update_opportunity_for_lead(doc, method):
             "custom_sales_person": doc.custom_sales_person,
             "email": doc.email,
             "parent_name": doc.first_name,
-            "schedule_time": f"{slot_date} {slot_time}" if slot_date and slot_time else None
+            "schedule_date": formatted_date,
+            "schedule_time":f"{slot_time}" if slot_time else None
         })
         opportunity.insert(ignore_permissions=True)
 

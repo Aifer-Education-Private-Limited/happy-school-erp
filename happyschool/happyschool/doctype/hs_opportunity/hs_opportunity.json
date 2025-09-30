@@ -16,6 +16,7 @@
   "custom_sales_person",
   "custom_gradeclass",
   "custom_curriculum",
+  "schedule_date",
   "schedule_time",
   "assessment",
   "column_break_szqv",
@@ -93,7 +94,7 @@
    "fieldname": "pipeline_status",
    "fieldtype": "Select",
    "label": "Pipeline Status",
-   "options": "\nProspect\nAssessment\nEnrolled"
+   "options": "Prospect\nAssessment\nEnrolled"
   },
   {
    "fieldname": "pipeline_html",
@@ -123,21 +124,26 @@
    "options": "HS Lead Remarks"
   },
   {
-   "fieldname": "schedule_time",
-   "fieldtype": "Data",
-   "label": "Schedule Time"
-  },
-  {
    "fieldname": "assessment",
    "fieldtype": "Link",
    "label": "Assessment",
    "options": "Assessment"
+  },
+  {
+   "fieldname": "schedule_date",
+   "fieldtype": "Data",
+   "label": "Schedule Date"
+  },
+  {
+   "fieldname": "schedule_time",
+   "fieldtype": "Data",
+   "label": "Schedule Time"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-09-29 18:54:41.212580",
+ "modified": "2025-09-30 10:17:12.023800",
  "modified_by": "Administrator",
  "module": "happyschool",
  "name": "HS Opportunity",

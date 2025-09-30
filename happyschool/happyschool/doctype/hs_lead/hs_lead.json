@@ -44,7 +44,7 @@
   {
    "fieldname": "first_name",
    "fieldtype": "Data",
-   "label": "Full Name"
+   "label": "Parent Name"
   },
   {
    "fieldname": "source",
@@ -195,7 +195,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-09-29 18:06:26.957560",
+ "modified": "2025-09-30 10:13:29.943680",
  "modified_by": "Administrator",
  "module": "happyschool",
  "name": "HS Lead",
