@@ -55,10 +55,10 @@ def check_user_by_tutor(tutor_id=None):
    
     try:
         app_version = {
-            "ios_latest": 4003,
-            "android_latest": 4003,
-            "ios_minimum": 3262,
-            "android_minimum": 3266,
+            "ios_latest": 1000,
+            "android_latest": 1000,
+            "ios_minimum": 1000,
+            "android_minimum": 1000,
         }
 
         if not tutor_id:
