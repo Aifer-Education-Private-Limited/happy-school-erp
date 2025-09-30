@@ -409,6 +409,7 @@ def scheduled_session():
             "success": False,
             "message": str(e)
         })
+        
 @frappe.whitelist(allow_guest=True)
 def completed_live_sessions():
     try:
@@ -465,7 +466,21 @@ def completed_live_sessions():
             if frappe.db.exists("Materials", {"tutor_id": tutor_id, "session_id": s.name}):
                 material_status = "Material Uploaded"
 
-            # Only include the session if material is pending (no material uploaded)
+            # ---- Attendance Status ----
+            attendance = frappe.db.get_value(
+                "Std Attendance",
+                {"session_id": s.name, "student_id": s.student_id},
+                "attendance"
+            )
+
+            if attendance:
+                # If attendance exists, show "Present" or "Absent"
+                attendance_status = attendance
+            else:
+                # If no attendance record exists
+                attendance_status = "Not Marked"
+
+            # Only include the session if material is pending
             if material_status == "Material Pending":
                 session_data.append({
                     "session_id": s.name,
@@ -482,7 +497,8 @@ def completed_live_sessions():
                     "scheduled_date": s.scheduled_date,
                     "thumbnail": s.thumbnail,
                     "student": student_info,
-                    "material_upload": material_status  # Only Material Pending sessions are added here
+                    "material_upload": material_status,
+                    "attendance": attendance_status
                 })
 
         frappe.local.response.update({
