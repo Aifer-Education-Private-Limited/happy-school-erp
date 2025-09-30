@@ -138,9 +138,9 @@
         <button class="tab-btn flex-fill py-3 text-secondary active" onclick="changeTab(event, 'tab1')">
             Job Application
         </button>
-        <button class="tab-btn flex-fill py-3 text-secondary" onclick="changeTab(event, 'tab2')">
+        <!-- <button class="tab-btn flex-fill py-3 text-secondary" onclick="changeTab(event, 'tab2')">
             Test
-        </button>
+        </button> -->
         <button class="tab-btn flex-fill py-3 text-secondary" onclick="changeTab(event, 'tab3')">
             Demo Upload
         </button>
@@ -163,19 +163,18 @@
                         onclick='window.open("/tutor-registration-form", "_self");'>Fill Form</button>
                 </div>
                 <div>
-                    <button type="button" class="btn btn-success" onclick="navigateToTab('tab2')">Next Step</button>
+                    <button type="button" class="btn btn-success" onclick="navigateToTab('tab3')">Next Step</button>
                 </div>
             </div>
         </div>
 
         <!-- Tab 2 -->
-        <div id="tab2" class="tab-content">
+        <!-- <div id="tab2" class="tab-content">
             <div class="p-4 rounded bg-light border text-center">
                 <h3 class="fw-semibold text-success mb-3">Step 2: Qualifications</h3>
                 <p class="text-success mb-4">
                     Provide your academic background, certifications, and teaching experience. Upload a resume or CV.
                 </p>
-                <!-- Additional Button -->
                 <div class="d-flex justify-content-end mb-2">
                     <button type="button" class="btn btn-primary text-start" style="width: 180px;"
                         onclick='window.open("/tutor_exam", "_self");'>Goto Exam</button>
@@ -185,7 +184,7 @@
                     <button type="button" class="btn btn-success" onclick="navigateToTab('tab3')">Next Step</button>
                 </div>
             </div>
-        </div>
+        </div> -->
 
         <!-- Tab 3 -->
         <div id="tab3" class="tab-content">
@@ -254,11 +253,11 @@
         event.currentTarget.classList.add('active');
         if (tabID === 'tab3') {
             showExistingDemoUrl();
-            checkBridgeCourseUser();
+            // checkBridgeCourseUser();
         }
-        if (tabID === 'tab2') {
-            checkBridgeCourseUser();
-        }
+        // if (tabID === 'tab2') {
+        //     checkBridgeCourseUser();
+        // }
     }
     function showExistingDemoUrl() {
         frappe.call({
