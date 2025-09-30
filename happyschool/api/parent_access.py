@@ -531,3 +531,60 @@ def _format_date(date_val):
     if isinstance(date_val, str):
         return date_val.split(" ")[0]
     return date_val.strftime("%Y-%m-%d")
+
+
+
+
+
+@frappe.whitelist(allow_guest=True)
+def get_parent_details(parent_id=None):
+    """
+    Get parent details by parent_id
+    """
+    try:
+        if not parent_id:
+            frappe.local.response.update({
+                "success": False,
+                "message": "Parent ID is required",
+                "data": {}
+            })
+            return
+
+        if not frappe.db.exists("Parents", parent_id):
+            frappe.local.response.update({
+                "success": False,
+                "message": f"Parent {parent_id} not found",
+                "data": {}
+            })
+            return
+
+        parent_doc = frappe.get_doc("Parents", parent_id)
+
+        parent_data = {
+            "parent_id": parent_doc.name,
+            "first_name": parent_doc.get("first_name"),
+            "last_name": parent_doc.get("last_name"),
+            "mobile_number": parent_doc.get("mobile_number"),
+            "email": parent_doc.get("email"),
+            "state": parent_doc.get("state"),
+            "dob": parent_doc.get("date_of_birth"),
+            "auth_type": parent_doc.get("auth_type"),
+            "profile": parent_doc.get("profile"),
+            "join_date": parent_doc.get("joindate"),
+            "customer": parent_doc.get("customer"),
+            "type": parent_doc.get("type"),
+        }
+
+        frappe.local.response.update({
+            "success": True,
+            "message": "Parent details fetched successfully",
+            "data": parent_data
+        })
+
+    except Exception as e:
+        frappe.log_error(frappe.get_traceback(), "get_parent_details API Error")
+        frappe.local.response.update({
+            "success": False,
+            "message": str(e),
+            "data": {}
+        })
