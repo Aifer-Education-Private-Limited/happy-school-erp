@@ -33,3 +33,10 @@ def get_existing_demo_url():
 def get_tutor_status():
     tutor_profile = frappe.get_doc("Tutor Profile", {"user": frappe.session.user})
     return tutor_profile.status
+
+@frappe.whitelist()
+def check_bridge_course_user():
+    tu_pro = frappe.get_doc("Tutor Profile", {"user": frappe.session.user})
+    if tu_pro.bridge_course_y_n == "Yes":
+        return True
+    return False
