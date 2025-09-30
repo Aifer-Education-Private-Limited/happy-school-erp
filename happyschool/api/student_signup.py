@@ -36,7 +36,7 @@ def student_signup():
         student.student_name = student_name
         student.mobile = mobile
         student.grade = grade
-        student.joinig_date= join_date
+        student.joining_date= join_date
         student.password = password  
         student.dob = dob
 
@@ -92,7 +92,7 @@ def student_login(student_id,password):
 def get_student(parent_id):
     try:
         student_details = frappe.db.sql("""
-            SELECT name as student_id,parent_id, student_name as full_name,joinig_date as joining_date,mobile as student_mobile_number,
+            SELECT name as student_id,parent_id, student_name as full_name,joining_date as joining_date,mobile as student_mobile_number,
                    dob,grade,password,profile
             FROM `tabHS Students`
             WHERE parent_id = %s AND status = "Linked"
@@ -159,7 +159,7 @@ def edit_student(student_id):
         # List of editable fields
         editable_fields = [
             "student_name",
-            "joinig_date",
+            "joining_date",
             "dob",
             "grade",
             "mobile",
@@ -188,7 +188,7 @@ def edit_student(student_id):
                 "name": student.name,
                 "student_name": student.student_name or "",
                 "mobile": student.mobile or "",
-                "join_date": student.joinig_date or "",
+                "join_date": student.joining_date or "",
                 "dob": student.dob or "",
                 "grade": student.grade or "",
                 "profile": student.profile or "",
@@ -286,7 +286,7 @@ def create_student():
         student.student_name = student_name
         student.mobile = mobile
         student.grade = grade
-        student.joinig_date = join_date
+        student.joining_date = join_date
         student.password = f"{uuid.uuid4().hex[:6]}"  # random 6 char password
         student.dob = dob
         student.profile = profile
@@ -307,7 +307,7 @@ def create_student():
             "name": student.student_name,
             "mobile": student.mobile,
             "grade": student.grade,
-            "joining_date": student.joinig_date,
+            "joining_date": student.joining_date,
             "date_of_birth": student.dob,
             "profile": student.profile,
             "status": student.status,
