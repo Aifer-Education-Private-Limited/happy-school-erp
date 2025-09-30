@@ -409,8 +409,6 @@ def scheduled_session():
             "success": False,
             "message": str(e)
         })
-
-
 @frappe.whitelist(allow_guest=True)
 def completed_live_sessions():
     try:
@@ -462,41 +460,30 @@ def completed_live_sessions():
                     "grade": student_doc.get("grade")
                 }
 
-            # ---- Attendance Check ----
-            attendance_record = frappe.db.get_value(
-                "Std Attendance",
-                {"student_id": s.student_id, "session_id": s.name},
-                "attendance"
-            )
-
-            # If no attendance or marked absent → skip this session
-            if not attendance_record or attendance_record == "Absent":
-                continue
-
             # ---- Check Material Upload ----
             material_status = "Material Pending"
             if frappe.db.exists("Materials", {"tutor_id": tutor_id, "session_id": s.name}):
                 material_status = "Material Uploaded"
 
-            # ---- Session Details ----
-            session_data.append({
-                "session_id": s.name,
-                "subject": s.subject,
-                "topic": s.topic,
-                "subtopic": s.subtopic,
-                "meeting_link": s.meeting_link,
-                "caption": s.caption,
-                "description": s.description,
-                "faculty_email": s.faculty_email,
-                "meeting_start_time": s.meeting_start_time,
-                "meeting_end_time": s.meeting_end_time,
-                "status": s.status,
-                "scheduled_date": s.scheduled_date,
-                "thumbnail": s.thumbnail,
-                "student": student_info,
-                "material_upload": material_status,
-                "attendance": attendance_record  # Will always be "Present"
-            })
+            # Only include the session if material is pending (no material uploaded)
+            if material_status == "Material Pending":
+                session_data.append({
+                    "session_id": s.name,
+                    "subject": s.subject,
+                    "topic": s.topic,
+                    "subtopic": s.subtopic,
+                    "meeting_link": s.meeting_link,
+                    "caption": s.caption,
+                    "description": s.description,
+                    "faculty_email": s.faculty_email,
+                    "meeting_start_time": s.meeting_start_time,
+                    "meeting_end_time": s.meeting_end_time,
+                    "status": s.status,
+                    "scheduled_date": s.scheduled_date,
+                    "thumbnail": s.thumbnail,
+                    "student": student_info,
+                    "material_upload": material_status  # Only Material Pending sessions are added here
+                })
 
         frappe.local.response.update({
             "success": True,
@@ -511,7 +498,6 @@ def completed_live_sessions():
             "success": False,
             "message": str(e)
         })
-
 
 
 
@@ -680,7 +666,7 @@ def tutor_home():
                 "student": student_info
             })
 
-        
+        # ---- Completed Sessions & Pending Uploads ----
         completed_sessions = frappe.get_all(
             "Live Classroom",
             filters={"tutor_id": tutor_id, "status": "Completed"},
@@ -689,14 +675,9 @@ def tutor_home():
 
         pending_uploads = 0
         for cs in completed_sessions:
-            attendance_present = frappe.db.exists("Std Attendance", {
-                "session_id": cs.name,
-                "attendance": "Present"
-            })
-
-            if attendance_present:
-                if not frappe.db.exists("Materials", {"tutor_id": tutor_id, "session_id": cs.name}):
-                    pending_uploads += 1
+            # Check if material is missing for this completed session
+            if not frappe.db.exists("Materials", {"tutor_id": tutor_id, "session_id": cs.name}):
+                pending_uploads += 1
 
         # ---- Final Response ----
         frappe.local.response.update({
@@ -715,7 +696,6 @@ def tutor_home():
             "success": False,
             "message": str(e)
         })
-
 
 
 @frappe.whitelist(allow_guest=True)
