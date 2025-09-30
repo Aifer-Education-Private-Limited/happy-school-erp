@@ -396,8 +396,8 @@ def check_user(parent_id=None, studentId=None):
         # ✅ Case 2: studentId
         if studentId:
             student_data = frappe.db.sql("""
-                SELECT student_name, student_mobile_number, joining_date as joindate, custom_profile as profile
-                FROM `tabStudent`
+                SELECT student_name, mobile as student_mobile_number, joining_date as joindate, profile
+                FROM `tabHS Students`
                 WHERE name = %s
                 ORDER BY joindate DESC
                 LIMIT 1
