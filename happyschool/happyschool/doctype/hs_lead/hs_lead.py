@@ -94,16 +94,16 @@ def check_salesperson_daily_limit(sales_person, parent=None):
 
 @frappe.whitelist()
 def create_or_update_opportunity_for_lead(doc, method):
-    # Fetch the latest slot from Lead's slot_booking child table
-    slot_date = None
-    slot_time = None
-    if hasattr(doc, "custom_booking") and doc.custom_booking:
-        # Assuming you want the first slot, or you can pick last, or based on some condition
-        latest_slot = doc.custom_booking[0]
-        slot_date = latest_slot.slot_date
-        slot_time = latest_slot.from_time
-    formatted_date = formatdate(slot_date, "dd-MM-yyyy") if slot_date else None
+    # Only proceed if child table exists and has at least one row
+    if not getattr(doc, "custom_booking", None) or len(doc.custom_booking) == 0:
+        return  # Do nothing if no booking added
 
+    # Fetch the latest slot (take the first one here, change logic if needed)
+    latest_slot = doc.custom_booking[0]
+    slot_date = latest_slot.slot_date
+    slot_time = latest_slot.from_time
+
+    formatted_date = formatdate(slot_date, "dd-MM-yyyy") if slot_date else None
 
     # Check if opportunity already exists for this lead
     opportunity_name = frappe.db.get_value("HS Opportunity", {"custom_lead": doc.name}, "name")
@@ -123,6 +123,7 @@ def create_or_update_opportunity_for_lead(doc, method):
             opportunity.schedule_date = formatted_date
 
         opportunity.save(ignore_permissions=True)
+
     else:
         # Create new opportunity
         opportunity = frappe.get_doc({
@@ -136,11 +137,11 @@ def create_or_update_opportunity_for_lead(doc, method):
             "email": doc.email,
             "parent_name": doc.first_name,
             "schedule_date": formatted_date,
-            "schedule_time":f"{slot_time}" if slot_time else None
+            "schedule_time": f"{slot_time}" if slot_time else None
         })
         opportunity.insert(ignore_permissions=True)
 
-import frappe
+
 
 @frappe.whitelist()
 def check_salesperson_conflict(sales_person, slot_date, from_time, parent=None, rowname=None):
