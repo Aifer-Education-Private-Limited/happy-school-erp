@@ -17,6 +17,7 @@
   "custom_gradeclass",
   "custom_curriculum",
   "schedule_time",
+  "assessment",
   "column_break_szqv",
   "custom_assessment_status",
   "pipeline_status",
@@ -86,8 +87,7 @@
    "fieldname": "email",
    "fieldtype": "Data",
    "in_list_view": 1,
-   "label": "Email",
-   "reqd": 1
+   "label": "Email"
   },
   {
    "fieldname": "pipeline_status",
@@ -126,12 +126,18 @@
    "fieldname": "schedule_time",
    "fieldtype": "Data",
    "label": "Schedule Time"
+  },
+  {
+   "fieldname": "assessment",
+   "fieldtype": "Link",
+   "label": "Assessment",
+   "options": "Assessment"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-09-29 16:36:31.111028",
+ "modified": "2025-09-29 18:54:41.212580",
  "modified_by": "Administrator",
  "module": "happyschool",
  "name": "HS Opportunity",

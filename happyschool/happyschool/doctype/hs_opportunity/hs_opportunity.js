@@ -192,10 +192,19 @@ frappe.ui.form.on("HS Opportunity", {
         if (!frm.custom_buttons_added) {
 
             frm.add_custom_button("Schedule Assessment", function() {
+                if (!frm.doc.email) {
+                    frappe.msgprint({
+                        title: __('Email Required'),
+                        message: __('Please set an email in this Opportunity to schedule the assessment.'),
+                        indicator: 'red'
+                    });
+                    return; // Stop execution
+                }
                 // Fetch Google Meet link from Salesperson
                 frappe.db.get_value('HS Sales Persons', frm.doc.sales_person, 'meet_link')
                 .then(r => {
                     const meet_link = r.message ? r.message.meet_link : '';
+                    const time=frm.doc.schedule_time
 
                     // Show dialog
                     let d = new frappe.ui.Dialog({
@@ -211,21 +220,49 @@ frappe.ui.form.on("HS Opportunity", {
                             {
                                 label: "Schedule Time",
                                 fieldname: "schedule_time",
-                                fieldtype: "Datetime"
+                                fieldtype: "Data",
+                                default:time
                             
                             }
                         ],
-                        primary_action_label: "Schedule",
+                        primary_action_label: "Send",
                         primary_action(values) {
-                            // Save values to opportunity
-                            frm.set_value("google_meet_link", values.google_meet_link);
-                            frm.set_value("assessment_schedule_time", values.schedule_time);
-
-                            frappe.msgprint("Assessment scheduled successfully!");
-                            frm.save();
-                            d.hide();
-                        }
+                            // 1️⃣ Send Email
+                            frappe.call({
+                                method: "happyschool.happyschool.doctype.hs_opportunity.hs_opportunity.send_assessment_email",
+                                args: {
+                                    docname: frm.doc.name,
+                                    meet_link: values.google_meet_link,
+                                    schedule_time: values.schedule_time
+                                },
+                                callback: function() {
+                                    frappe.msgprint("Email sent successfully!");
+                                    frm.save();
+                        
+                                    // 2️⃣ Send WhatsApp (open WhatsApp Web)
+                                    let mobile = frm.doc.custom_mobile;
+                                    if (mobile) {
+                                        mobile = mobile.replace(/\D/g, ''); // clean number
+                                        const message = `Dear Parent,\nWe are happy to inform you that we are ready to conduct the assessment session for your child. Kindly use the link below to join the session at the scheduled time.\n\nGoogle Meet Link: ${values.google_meet_link}\nScheduled Time: ${values.schedule_time}.\nIf you have any questions or need assistance, feel free to reach out.`;
+                                        const url = `https://wa.me/${mobile}?text=${encodeURIComponent(message)}`;
+                                        
+                                        // Open WhatsApp Web
+                                        window.open(url, "_blank");
+                                    } else {
+                                        frappe.msgprint("Parent mobile number not set for WhatsApp!");
+                                    }
+                        
+                                    d.hide(); // close the dialog
+                                }
+                            });}
+                        
+                        
                     });
+                    
+                   
+                       
+                   
+                    
 
                     d.show();
                 });
