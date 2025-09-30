@@ -21,8 +21,8 @@ def create_tutor_exam(subject):
     questions = frappe.get_all("Tutor Assessment Question", filters={"subject": subject}, 
                                fields=["name", "question", "answer", "a", "b", "c", "d"])
     tutor_exam_exists = frappe.db.exists("Tutor Exam Result", {"tutor": check_user, "subject": subject})
-    # if tutor_exam_exists:
-    #     frappe.throw("You have already taken the exam for this subject.")
+    if tutor_exam_exists:
+        frappe.throw("You have already taken the exam for this subject.")
     
     tutor_exam = frappe.new_doc("Tutor Exam Result")
     tutor_exam.tutor = check_user
