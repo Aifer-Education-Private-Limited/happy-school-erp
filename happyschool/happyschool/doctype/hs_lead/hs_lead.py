@@ -33,6 +33,37 @@ class HSLead(Document):
                 self.custom_pipeline_status = "Prospect"
             if not self.custom_pipeline_sub_status:
                 self.custom_pipeline_sub_status = "Open"
+
+    def on_update(self):
+        try:
+            old_doc = self.get_doc_before_save()
+
+            if self.presales_person and (
+                not old_doc or self.presales_person != old_doc.presales_person
+            ):
+                sales_person_user = frappe.db.get_value(
+                    "HS Sales Persons",
+                    self.presales_person,
+                    "user"
+                )
+
+                if sales_person_user:
+                    notif = frappe.get_doc({
+                        "doctype": "Notification Log",
+                        "for_user": sales_person_user,
+                        "subject": f"New Lead Assigned: {self.name}",
+                        "email_content": f"You have been assigned a new Lead {self.name}.",
+                        "type": "Alert",
+                        "document_type": "HS Lead",
+                        "document_name": self.name
+                    })
+                    notif.insert(ignore_permissions=True)
+                    frappe.db.commit()  # ensure it is saved immediately
+
+                    # Debug log
+                    frappe.logger().info(f"Notification sent to {sales_person_user} for Lead {self.name}")
+        except Exception:
+            frappe.log_error(frappe.get_traceback(), "HS Lead Notification Error")
     
 
 # @frappe.whitelist()
@@ -118,6 +149,7 @@ def create_or_update_opportunity_for_lead(doc, method):
         opportunity.custom_sales_person = doc.custom_sales_person
         opportunity.parent_name = doc.first_name
         opportunity.email = doc.email
+        opportunity.category=doc.category
         if slot_date or slot_time:
             opportunity.schedule_time = f"{slot_time}"
             opportunity.schedule_date = formatted_date
@@ -135,6 +167,7 @@ def create_or_update_opportunity_for_lead(doc, method):
             "custom_curriculum": doc.custom_board,
             "custom_sales_person": doc.custom_sales_person,
             "email": doc.email,
+            "category":doc.category,
             "parent_name": doc.first_name,
             "schedule_date": formatted_date,
             "schedule_time": f"{slot_time}" if slot_time else None

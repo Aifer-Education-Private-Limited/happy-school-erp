@@ -296,7 +296,7 @@ def make_fee_payment():
 
         # Add Fee Item
         sales_invoice.append('items', {
-            'item_code': 'OFFER',
+            'item_code': 'HAPPY SCHOOL',
             'qty': 1,
             'rate': amount
         })
@@ -315,7 +315,10 @@ def make_fee_payment():
         frappe.logger().info(f"Lead Source set: {lead_id}")
 
         
-        # Calculate Taxes and Submit
+        sales_invoice.set_missing_values()
+        sales_invoice.set_paid_amount()             # ensures Paid Amount updates
+        sales_invoice.calculate_taxes_and_totals()
+        sales_invoice.save()
         sales_invoice.submit()
 
         programs_data = [
