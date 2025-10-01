@@ -151,8 +151,8 @@ frappe.ui.form.on("HS Opportunity", {
         // -----------------------
         // Click handlers for steps and sub-steps
         // -----------------------
-        $("#prospect-step, #prospect-sub-steps .sub-step").on("click", function(){ openDialog("Prospect"); });
-        $("#follow-up-step, #followup-sub-steps .sub-step").on("click", function(){ openDialog("Assessment"); });
+        $("#prospect-step").on("click", function(){ openDialog("Prospect"); });
+        $("#follow-up-step").on("click", function(){ openDialog("Assessment"); });
         $("#enrolled-step").on("click", function(){
             frm.set_value("pipeline_status","Enrolled");
             frm.set_value("custom_sub_status","");
