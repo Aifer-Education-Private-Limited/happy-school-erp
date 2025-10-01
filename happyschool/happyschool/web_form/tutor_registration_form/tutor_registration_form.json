@@ -22,7 +22,7 @@
  "list_columns": [],
  "login_required": 1,
  "max_attachment_size": 0,
- "modified": "2025-09-26 11:03:20.875583",
+ "modified": "2025-09-30 15:43:41.684738",
  "modified_by": "Administrator",
  "module": "happyschool",
  "name": "tutor-registration-form",
@@ -35,7 +35,7 @@
  "show_sidebar": 0,
  "success_message": "The Profile Submitted Successfully. Get ready for Online Test",
  "success_title": "Go To online Test",
- "success_url": "/tutor_exam",
+ "success_url": "/job_portal",
  "title": "Tutor Registration Form",
  "web_form_fields": [
   {
