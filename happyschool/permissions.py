@@ -46,56 +46,48 @@ def salesperson_opportunity_permission_query(user=None):
     if not user:
         user = frappe.session.user
 
-    if user == "Administrator":
-        return "1=1"  # Admin sees all opportunities
-
-    # Escape to avoid SQL injection
-    user = frappe.db.escape(user)
-
-    conditions = []
-
-    # Owner condition (optional - if you want to allow creator also)
-    conditions.append(f"`tabHS Opportunity`.`owner` = {user}")
-
-    # Assigned via Notification Log
-    conditions.append(f"""
-        EXISTS(
-            SELECT 1 FROM `tabNotification Log`
-            WHERE `tabNotification Log`.`document_type` = 'HS Opportunity'
-              AND `tabNotification Log`.`document_name` = `tabHS Opportunity`.`name`
-              AND `tabNotification Log`.`for_user` = {user}
-        )
-    """)
-
-    return " OR ".join(conditions)
-
-import frappe
-
-@frappe.whitelist()
-def lead_user_permission_query(user=None):
-    if not user:
-        user = frappe.session.user
-
-    if user == "Administrator":
-        return "1=1"  # Admin sees all leads
-
-    # Escape to avoid SQL injection
-    user = frappe.db.escape(user)
-
-    # Only leads created by the user
-    return f"`tabHS Lead`.`owner` = {user}"
-import frappe
-
-import frappe
-
-@frappe.whitelist()
-def lead_user_permission_query(user=None):
-    if not user:
-        user = frappe.session.user
-
-    # Only Administrator sees all
+    # Administrator → all opportunities
     if user == "Administrator":
         return "1=1"
 
-    # Important: don't allow matching Administrator-created leads
+    # HS Sales Manager role → all opportunities
+    if "HS Sales Manager" in frappe.get_roles(user):
+        return "1=1"
+
+    # Escape user for SQL
+    user_escaped = frappe.db.escape(user)
+
+    conditions = []
+
+    # Allow owner of the record
+    conditions.append(f"`tabHS Opportunity`.`owner` = {user_escaped}")
+
+    # Check if user is a salesperson
+    sales_person = frappe.db.get_value("HS Sales Persons", {"user": user}, "name")
+    if sales_person:
+        conditions.append(f"`tabHS Opportunity`.`custom_sales_person` = {frappe.db.escape(sales_person)}")
+
+    # Combine conditions with OR
+    return " OR ".join(conditions) if conditions else "0=1"
+    
+@frappe.whitelist()
+def lead_user_permission_query(user=None):
+    if not user:
+        user = frappe.session.user
+
+    # Administrator sees everything
+    if user == "Administrator":
+        return "1=1"
+
+    # Check if user has HS Sales Manager role
+    if "HS Sales Manager" in frappe.get_roles(user):
+        return "1=1"
+
+    # Check if user is a Sales Person
+    sales_person = frappe.db.get_value("HS Sales Persons", {"user": user}, "name")
+    if sales_person:
+        # Salesperson can see leads assigned to them
+        return f"`tabHS Lead`.`presales_person` = '{sales_person}'"
+
+    # Default: user can only see their own leads
     return f"`tabHS Lead`.`owner` = '{user}'"

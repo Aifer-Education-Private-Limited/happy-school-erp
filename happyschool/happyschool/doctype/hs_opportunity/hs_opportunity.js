@@ -215,7 +215,8 @@ frappe.ui.form.on("HS Opportunity", {
                         student_name: frm.doc.custom_student_name,
                         gradeclass: frm.doc.custom_gradeclass,
                         curriculum: frm.doc.custom_curriculum,
-                        mobile: frm.doc.custom_mobile
+                        mobile: frm.doc.custom_mobile,
+                        category:frm.doc.category
 
                     });
                 });
