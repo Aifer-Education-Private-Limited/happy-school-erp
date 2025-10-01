@@ -196,7 +196,8 @@ def parent_signup_with_mobile():
         parent.date_of_birth = dob
         parent.token = token
         parent.auth_type = authtype
-        parent.mobile = mobile
+        parent.mobile_number = mobile
+        parent.joindate = frappe.utils.now()
         parent.insert(ignore_permissions=True)
 
         frappe.db.commit()
