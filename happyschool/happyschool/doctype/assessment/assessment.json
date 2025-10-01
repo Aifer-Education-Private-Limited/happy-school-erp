@@ -15,6 +15,7 @@
   "date",
   "tutorteacher",
   "mobile",
+  "category",
   "subjects_section",
   "subject",
   "skill_development_section",
@@ -58,9 +59,8 @@
   },
   {
    "fieldname": "academic_year_and_term",
-   "fieldtype": "Link",
-   "label": "Academic Year And Term",
-   "options": "Academic Year"
+   "fieldtype": "Data",
+   "label": "Academic Year And Term"
   },
   {
    "fieldname": "curriculum",
@@ -210,12 +210,17 @@
    "label": "Opportunity",
    "options": "HS Opportunity",
    "read_only": 1
+  },
+  {
+   "fieldname": "category",
+   "fieldtype": "Data",
+   "label": "Category"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-09-29 12:31:44.125804",
+ "modified": "2025-10-01 11:21:11.827450",
  "modified_by": "Administrator",
  "module": "happyschool",
  "name": "Assessment",
