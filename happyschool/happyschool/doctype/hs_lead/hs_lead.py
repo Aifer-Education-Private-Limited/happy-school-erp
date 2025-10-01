@@ -16,6 +16,12 @@ class HSLead(Document):
         self.name = make_autoname("HS-.lead-.YYYY.-.###")
 
     def before_insert(self):
+         # Check for duplicate mobile number
+        if self.custom_mobile_number:
+            exists = frappe.db.exists("HS Lead", {"custom_mobile_number": self.custom_mobile_number})
+            if exists:
+                frappe.throw(_("A Lead with mobile number {0} already exists").format(self.custom_mobile_number))
+
         # Set default pipeline values when creating a new lead
         if not self.custom_pipeline_status:
             self.custom_pipeline_status = "Prospect"
@@ -23,16 +29,19 @@ class HSLead(Document):
             self.custom_pipeline_sub_status = "Open"
 
     def before_save(self):
-        # If Slot Booking child table has rows, mark as Assessment Booked
+
         if self.get("custom_booking") and len(self.custom_booking) > 0:
-            self.custom_pipeline_status = "Assessment Booked"
-            self.custom_pipeline_sub_status = ""
+            # Only set to Assessment Booked if no status is set yet
+            if not self.custom_pipeline_status or self.custom_pipeline_status == "Prospect":
+                self.custom_pipeline_status = "Assessment Booked"
+                self.custom_pipeline_sub_status = ""
         else:
-            # Only set to default Open if this is a new Lead without bookings
+            # Default values for new leads without bookings
             if not self.custom_pipeline_status:
                 self.custom_pipeline_status = "Prospect"
             if not self.custom_pipeline_sub_status:
                 self.custom_pipeline_sub_status = "Open"
+
 
     def on_update(self):
         try:

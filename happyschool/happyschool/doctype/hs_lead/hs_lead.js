@@ -203,7 +203,7 @@ function setupPipelineClicks(frm) {
     wrapper.data("clicks-bound", true);
 
     // Prospect
-    wrapper.on("click", "#prospect-step, #prospect-sub-steps .sub-step", function () {
+    wrapper.on("click", "#prospect-step", function () {
         const current = frm.doc.custom_pipeline_sub_status || "Open";
         const dialog = new frappe.ui.Dialog({
             title: "Select Prospect Status",
@@ -238,7 +238,7 @@ function setupPipelineClicks(frm) {
     });
 
     // Follow Up
-    wrapper.on("click", "#follow-up-step, #followup-sub-steps .sub-step", function () {
+    wrapper.on("click", "#follow-up-step", function () {
         const dialog = new frappe.ui.Dialog({
             title: "Select Follow Up Status",
             fields: [

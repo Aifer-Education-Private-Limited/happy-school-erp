@@ -284,6 +284,9 @@ def make_fee_payment():
 
                 rate = flt(rate)
                 amount_val = rate * qty  
+                project_name = frappe.db.get_value("HS Program List", {"program": program_name}, "project")
+                if project_name:
+                    sales_invoice.custom_hs_project = project_name
 
                 sales_invoice.append("custom_hs_items", {
                     "program": program_name,
@@ -345,6 +348,7 @@ def make_fee_payment():
             "customer":sales_invoice.customer,
             "discount_perc":sales_invoice.additional_discount_percentage,
             "discount_amnt":sales_invoice.discount_amount,
+            "project":sales_invoice.custom_hs_project,
             "programs": programs_data,
             "items":items_data
         }
