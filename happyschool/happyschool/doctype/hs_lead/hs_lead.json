@@ -12,10 +12,12 @@
   "custom_mobile_number",
   "column_break_lgvq",
   "email",
-  "custom_pipeline_status",
-  "custom_pipeline_sub_status",
+  "state",
+  "district",
   "column_break_7pxz",
   "lead_owner",
+  "custom_pipeline_status",
+  "custom_pipeline_sub_status",
   "student_section",
   "custom_student_name",
   "custom_gradeclass",
@@ -198,12 +200,25 @@
    "fieldtype": "Select",
    "label": "Category",
    "options": "\nLP\nUP\nHS\nHSS\nRemedial"
+  },
+  {
+   "fieldname": "state",
+   "fieldtype": "Select",
+   "label": "State",
+   "options": "\nAndhra Pradesh\nArunachal Pradesh\nAssam\nBihar\nChhattisgarh\nGoa\nGujarat\nHaryana\nHimachal Pradesh\nJharkhand\nKarnataka\nKerala\nMadhya Pradesh\nMaharashtra\nManipur\nMeghalaya\nMizoram\nNagaland\nOdisha\nPunjab\nRajasthan\nSikkim\nTamil Nadu\nTelangana\nTripura\nUttar Pradesh\nUttarakhand\nWest Bengal"
+  },
+  {
+   "depends_on": "eval:doc.state == \"Kerala\"",
+   "fieldname": "district",
+   "fieldtype": "Select",
+   "label": "District",
+   "options": "\nThiruvananthapuram\nKollam\nPathanamthitta\nAlappuzha\nKottayam\nIdukki\nErnakulam\nThrissur\nPalakkad\nMalappuram\nKozhikode\nWayanad\nKannur\nKasaragod"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-10-01 11:11:35.660516",
+ "modified": "2025-10-03 11:09:38.333226",
  "modified_by": "Administrator",
  "module": "happyschool",
  "name": "HS Lead",

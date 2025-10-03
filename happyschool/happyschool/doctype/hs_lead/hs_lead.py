@@ -35,6 +35,15 @@ class HSLead(Document):
             if not self.custom_pipeline_status or self.custom_pipeline_status == "Prospect":
                 self.custom_pipeline_status = "Assessment Booked"
                 self.custom_pipeline_sub_status = ""
+
+                self.append("lead_remarks", {
+                "status": "Assessment Booked",
+                "sub_status": "",
+                "remarks": "Assessment has been booked.",
+                "user": frappe.session.user if frappe.session.user else "Administrator",
+                "date": frappe.utils.now_datetime()
+            })
+
         else:
             # Default values for new leads without bookings
             if not self.custom_pipeline_status:
