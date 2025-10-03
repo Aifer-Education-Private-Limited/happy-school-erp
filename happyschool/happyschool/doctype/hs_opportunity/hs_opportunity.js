@@ -195,7 +195,7 @@ frappe.ui.form.on("HS Opportunity", {
                                     let mobile = frm.doc.custom_mobile;
                                     if(mobile){
                                         mobile = mobile.replace(/\D/g,'');
-                                        const message = `Dear Parent,\nGoogle Meet Link: ${values.google_meet_link}\nScheduled Time: ${values.schedule_time}`;
+                                        const message = `Dear Parent,\n\nWe are happy to inform you that we are ready to conduct the assessment session for your child. Kindly use the link below to join the session at the scheduled time.\nGoogle Meet Link: ${values.google_meet_link}\nScheduled Time: ${values.schedule_time}\nIf you have any questions or need assistance, feel free to reach out.`;
                                         window.open(`https://wa.me/${mobile}?text=${encodeURIComponent(message)}`, "_blank");
                                     }
                                     d.hide();
@@ -231,6 +231,29 @@ frappe.ui.form.on("HS Opportunity", {
                     });
                 });
             }
+
+            frm.add_custom_button("Whatsapp",function(){
+                let mobileNo = frm.doc.custom_mobile;  // get from field
+
+                if (!mobileNo) {
+                    frappe.msgprint("No mobile number found");
+                    return;
+                }
+            
+                // Clean the number
+                mobileNo = mobileNo.toString().trim();
+            
+                // Remove all non-numeric characters (like +, -, space, etc.)
+                mobileNo = mobileNo.replace(/\D/g, "");
+            
+                // If number length is 10 (Indian local), prepend +91
+                if (mobileNo.length === 10) {
+                    mobileNo = "91" + mobileNo;
+                }
+            
+                let whatsappLink = "https://wa.me/" + mobileNo;
+                window.open(whatsappLink, "_blank");
+            })
     },
 
     after_save: function(frm){
