@@ -3,7 +3,7 @@ app_title = "Happy School"
 app_publisher = "esra"
 app_description = "happyschool"
 app_email = "esrathanoona@gmail.com"
-app_license = "unlicense"
+app_license = "GPL v3"
 
 
 
