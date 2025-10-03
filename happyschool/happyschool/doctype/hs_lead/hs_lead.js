@@ -232,7 +232,7 @@ function setupPipelineClicks(frm) {
             fields: [
                 { label: "Sub Status", fieldname: "sub_status", fieldtype: "Select",
                   options: ["Open", "Connected", "Not Connected"], reqd: 1, default: current },
-                { label: "Remarks", fieldname: "remarks", fieldtype: "Small Text" },
+                { label: "Remarks", fieldname: "remarks", fieldtype: "Small Text", reqd: 1},
             ],
             primary_action(values) {
                 if(values){
@@ -267,7 +267,7 @@ function setupPipelineClicks(frm) {
                 { label: "Select Follow Up Status", fieldname: "follow_up_status", fieldtype: "Select",
                   options: ["Open","Interested","Not Interested","Maybe Later","Disqualified"], reqd: 1 },
                 { label: "Follow Up Date", fieldname: "followup_date", fieldtype: "Datetime" },
-                { label: "Remarks", fieldname: "remarks", fieldtype: "Small Text" },
+                { label: "Remarks", fieldname: "remarks", fieldtype: "Small Text" ,reqd: 1},
             ],
             primary_action(values){
                 if(values){
@@ -296,11 +296,35 @@ function setupPipelineClicks(frm) {
     });
 
     // Assessment Booked
+    // Assessment Booked
     wrapper.on("click", "#enrolled-step", function(){
+        // ✅ Check if custom_booking child table has salesperson filled
+        let has_salesperson = false;
+
+        if (frm.doc.custom_booking && frm.doc.custom_booking.length > 0) {
+            frm.doc.custom_booking.forEach(row => {
+                if (row.sales_person) {
+                    has_salesperson = true;
+                }
+            });
+        }
+
+        if (!has_salesperson) {
+            frappe.msgprint({
+                title: "Booking Incomplete",
+                indicator: "red",
+                message: __("You must assign a Sales Person in the booking before moving to Assessment Booked.")
+            });
+            return;
+        }
+
+        // ✅ Allow pipeline move only if salesperson exists
         frm.set_value("custom_pipeline_status","Assessment Booked");
         frm.set_value("custom_pipeline_sub_status","");
-        renderPipeline(frm);
-        updateActiveState(frm);
-        frm.save();
+        frm.save().then(() => {
+            renderPipeline(frm);
+            updateActiveState(frm);
+        });
     });
+
 }
