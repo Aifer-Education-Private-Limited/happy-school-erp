@@ -59,8 +59,9 @@
   },
   {
    "fieldname": "academic_year_and_term",
-   "fieldtype": "Data",
-   "label": "Academic Year And Term"
+   "fieldtype": "Link",
+   "label": "Academic Year And Term",
+   "options": "Academic Year"
   },
   {
    "fieldname": "curriculum",
@@ -220,7 +221,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-10-01 11:21:11.827450",
+ "modified": "2025-10-01 17:21:36.054379",
  "modified_by": "Administrator",
  "module": "happyschool",
  "name": "Assessment",

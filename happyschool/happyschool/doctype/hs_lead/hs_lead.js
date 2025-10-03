@@ -97,6 +97,28 @@ frappe.ui.form.on("HS Lead", {
                     }
                 });
             });
+            frm.add_custom_button("Whatsapp",function(){
+                let mobileNo = frm.doc.custom_mobile_number;  // get from field
+
+                if (!mobileNo) {
+                    frappe.msgprint("No mobile number found");
+                    return;
+                }
+            
+                // Clean the number
+                mobileNo = mobileNo.toString().trim();
+            
+                // Remove all non-numeric characters (like +, -, space, etc.)
+                mobileNo = mobileNo.replace(/\D/g, "");
+            
+                // If number length is 10 (Indian local), prepend +91
+                if (mobileNo.length === 10) {
+                    mobileNo = "91" + mobileNo;
+                }
+            
+                let whatsappLink = "https://wa.me/" + mobileNo;
+                window.open(whatsappLink, "_blank");
+            })
         }
     },
 
