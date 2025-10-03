@@ -102,6 +102,16 @@ def get_student(parent_id):
         if not student_details:
             student_details = []
 
+        # Strip country code -> keep only last 10 digits
+        for student in student_details:
+            mobile = student.get("student_mobile_number")
+            if mobile:
+                digits = ''.join(filter(str.isdigit, mobile))  # keep only numbers
+                if len(digits) > 10:
+                    student["student_mobile_number"] = digits[-10:]  # last 10 digits
+                else:
+                    student["student_mobile_number"] = digits  # in case already local
+
         frappe.local.response.update({
             "success": True,
             "students": student_details
