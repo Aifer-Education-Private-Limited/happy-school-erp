@@ -271,7 +271,10 @@ def make_fee_payment():
         sales_invoice.taxes_and_charges=template_name
         sales_invoice.custom_type=type_invoice
         sales_invoice.set_taxes()
-        
+        if sales_invoice.custom_type == "Happy School":
+            sales_invoice.program = "Happy School"
+            sales_invoice.custom_project_ = "Happy School"
+                
         if programs:
             for prog in programs:
                 program_name = prog.get("program")
@@ -284,9 +287,7 @@ def make_fee_payment():
 
                 rate = flt(rate)
                 amount_val = rate * qty  
-                project_name = frappe.db.get_value("HS Program List", {"program": program_name}, "project")
-                if project_name:
-                    sales_invoice.custom_hs_project = project_name
+
 
                 sales_invoice.append("custom_hs_items", {
                     "program": program_name,
@@ -295,7 +296,7 @@ def make_fee_payment():
                     "amount": amount_val
                 })
 
-
+        
 
         # Add Fee Item
         sales_invoice.append('items', {
@@ -348,7 +349,7 @@ def make_fee_payment():
             "customer":sales_invoice.customer,
             "discount_perc":sales_invoice.additional_discount_percentage,
             "discount_amnt":sales_invoice.discount_amount,
-            "project":sales_invoice.custom_hs_project,
+
             "programs": programs_data,
             "items":items_data
         }
