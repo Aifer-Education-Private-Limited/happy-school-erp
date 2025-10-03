@@ -107,7 +107,7 @@ def login_with_email(email, password):
         parent = frappe.db.get_value(
             "Parents",
             {"email": email},
-            ["name", "password"],
+            ["name", "password","type"],
             as_dict=True
         )
 
@@ -124,6 +124,13 @@ def login_with_email(email, password):
             frappe.local.response.update({
                 "success": False,
                 "message": "Invalid email or password"
+            })
+            return
+          # Check if account is deactivated
+        if parent.type == "Unlink":
+            frappe.local.response.update({
+                "success": True,
+                "message": "Account is deactivated"
             })
             return
 
@@ -291,21 +298,29 @@ def verify_otp_by_otpless(mobile, otp, orderId):
 
         # If OTP verified
         if result.get("isOTPVerified"):
-            # Check if firebase_uid exists for this mobile
+            # Check if parent exists for this mobile
             mobile_exists = frappe.db.sql("""
-                SELECT name 
+                SELECT name, type
                 FROM `tabParents`
                 WHERE mobile_number LIKE %s
             """, (f"%{mobile}",), as_dict=True)
 
             if mobile_exists:
-                result["parent_id"] = mobile_exists[0].name
+                parent = mobile_exists[0]
+
+                if parent.get("type") == "Unlink":
+                    frappe.local.response.update({
+                        "success": True,
+                        "message": "Account is deactivated"
+                    })
+                    return
+
+                result["parent_id"] = parent.name
             else:
                 result["parent_id"] = "xxxx"
 
         frappe.local.response.update(result)
         return  # Important: return nothing (None) to prevent extra wrapping
-
 
     except Exception as e:
         frappe.log_error(frappe.get_traceback(), "Verify OTP Error")
@@ -314,6 +329,7 @@ def verify_otp_by_otpless(mobile, otp, orderId):
             "message": str(e)
         })
         return
+
 
 @frappe.whitelist(allow_guest=True)
 def resend_otp(orderId):
