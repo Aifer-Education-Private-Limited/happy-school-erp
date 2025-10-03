@@ -52,9 +52,9 @@
   },
   {
    "fieldname": "source",
-   "fieldtype": "Select",
+   "fieldtype": "Link",
    "label": "Source",
-   "options": "\nReferral"
+   "options": "HS Lead Source"
   },
   {
    "default": "__user",
@@ -218,7 +218,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-10-03 11:09:38.333226",
+ "modified": "2025-10-03 11:45:57.230554",
  "modified_by": "Administrator",
  "module": "happyschool",
  "name": "HS Lead",
