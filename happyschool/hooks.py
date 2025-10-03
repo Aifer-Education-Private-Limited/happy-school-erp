@@ -93,9 +93,9 @@ doc_events={
     #     "after_insert":"happyschool.happyschool.doctype.parents.parents.createparent"
     # }
 }
-override_doctype_class={
-     "Student":"happyschool.happyschool.doc_events.student.CustomStudent"
-     }
+# override_doctype_class={
+#      "Student":"happyschool.happyschool.doc_events.student.CustomStudent"
+#      }
 # Home Pages
 # ----------
 
