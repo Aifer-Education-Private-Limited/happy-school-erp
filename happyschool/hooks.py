@@ -1,5 +1,5 @@
 app_name = "happyschool"
-app_title = "happyschool"
+app_title = "Happy School"
 app_publisher = "esra"
 app_description = "happyschool"
 app_email = "esrathanoona@gmail.com"
