@@ -215,7 +215,6 @@ def check_attendance(student_id=None):
             WHERE student_id = %s
               AND tutor_confirm = 1
               AND (student_confirm IS NULL OR student_confirm = '')
-              AND (material_confirm IS NULL OR material_confirm = '')
             ORDER BY date DESC
             """,
             (student_id,),
