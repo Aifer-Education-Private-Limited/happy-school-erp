@@ -91,7 +91,7 @@ def submit_materials():
             "subtopic": subtopic,
             "material_name": material_name,
             "session_id": session_id,
-            "files": json.dumps(assignment_array),
+            "files": assignment_array[0]["url"],
             "submitted_date": datetime.now()
         })
         doc.insert(ignore_permissions=True)
