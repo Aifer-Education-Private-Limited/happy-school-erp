@@ -70,20 +70,12 @@ frappe.ui.form.on("HS Lead", {
 
     refresh: function(frm) {
         // Render pipeline visuals and attach click handlers
-        if (!frm.pipeline_rendered) {
-            renderPipeline(frm);
-            setupPipelineClicks(frm);
-            frm.pipeline_rendered = true;  // 🚀 prevent multiple rebuilds
-        }
-
-        // Always update coloring/status
-        frappe.after_ajax(() => {
-            updateActiveState(frm);
-        });
+        renderPipeline(frm);
+        updateActiveState(frm);
+        setupPipelineClicks(frm); // Ensure clicks work
 
         // Add Open Opportunity button
         if (!frm.custom_opportunity_button_added) {
-            
             frm.add_custom_button("Open Opportunity", function() {
                 frappe.db.get_value("HS Opportunity", {"custom_lead": frm.doc.name}, "name")
                 .then(r => {
