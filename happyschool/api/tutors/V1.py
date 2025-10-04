@@ -364,7 +364,8 @@ def scheduled_session():
                 "student_id", "faculty_email",
                 "meeting_start_time", "meeting_end_time",
                 "status", "scheduled_date", "thumbnail"
-            ]
+            ],
+            order_by="meeting_start_time desc"
         )
 
         session_data = []
