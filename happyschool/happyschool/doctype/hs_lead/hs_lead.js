@@ -70,13 +70,20 @@ frappe.ui.form.on("HS Lead", {
 
     refresh: function(frm) {
         // Render pipeline visuals and attach click handlers
-        renderPipeline(frm);
-        updateActiveState(frm);
-        setupPipelineClicks(frm); // Ensure clicks work
+        if (!frm.pipeline_rendered) {
+            renderPipeline(frm);
+            setupPipelineClicks(frm);
+            frm.pipeline_rendered = true;  // 🚀 prevent multiple rebuilds
+        }
+
+        // Always update coloring/status
+        frappe.after_ajax(() => {
+            updateActiveState(frm);
+        });
 
         // Add Open Opportunity button
         if (!frm.custom_opportunity_button_added) {
-            frm.custom_opportunity_button_added = true;
+            
             frm.add_custom_button("Open Opportunity", function() {
                 frappe.db.get_value("HS Opportunity", {"custom_lead": frm.doc.name}, "name")
                 .then(r => {
@@ -295,7 +302,7 @@ function setupPipelineClicks(frm) {
         dialog.show();
     });
 
-    // Assessment Booked
+
     // Assessment Booked
     wrapper.on("click", "#enrolled-step", function(){
         // ✅ Check if custom_booking child table has salesperson filled
@@ -317,10 +324,16 @@ function setupPipelineClicks(frm) {
             });
             return;
         }
+        let combined_remarks = frm.doc.lead_remarks
+        .map(row => row.remarks)
+        .filter(r => r) // remove empty remarks
+        .join("; ");
+
 
         // ✅ Allow pipeline move only if salesperson exists
         frm.set_value("custom_pipeline_status","Assessment Booked");
         frm.set_value("custom_pipeline_sub_status","");
+        frm.set_value("custom_remarks", combined_remarks);
         frm.save().then(() => {
             renderPipeline(frm);
             updateActiveState(frm);
