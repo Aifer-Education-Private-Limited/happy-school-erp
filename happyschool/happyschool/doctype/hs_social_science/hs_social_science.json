@@ -1,0 +1,48 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2025-10-04 10:23:29.918966",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "area_checked",
+  "score",
+  "remarks"
+ ],
+ "fields": [
+  {
+   "fieldname": "area_checked",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Area Checked",
+   "options": "\nHistory (concepts, timelines, cause-effect understanding)\nGeography (maps, data interpretation, environmental issues)\nPolitical Science / Civics (governance, rights, duties, constitution)\nEconomics (basic concepts, application, data reading)\nCurrent Affairs / General Awareness"
+  },
+  {
+   "fieldname": "score",
+   "fieldtype": "Int",
+   "in_list_view": 1,
+   "label": "Score (1\u20135)"
+  },
+  {
+   "fieldname": "remarks",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Remarks"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2025-10-04 10:26:06.670832",
+ "modified_by": "Administrator",
+ "module": "happyschool",
+ "name": "HS Social Science",
+ "owner": "Administrator",
+ "permissions": [],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

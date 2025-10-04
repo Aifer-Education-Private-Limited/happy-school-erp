@@ -103,7 +103,7 @@
    "fieldname": "custom_board",
    "fieldtype": "Select",
    "label": "Board",
-   "options": "\nCBSE\nKerala Board\nICSE"
+   "options": "\nCBSE\nKerala Board\nICSE\nOthers"
   },
   {
    "fieldname": "presales_person",
@@ -218,7 +218,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-10-03 11:45:57.230554",
+ "modified": "2025-10-04 09:51:00.496475",
  "modified_by": "Administrator",
  "module": "happyschool",
  "name": "HS Lead",

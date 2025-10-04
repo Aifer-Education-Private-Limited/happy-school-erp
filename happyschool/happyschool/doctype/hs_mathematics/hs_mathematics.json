@@ -1,0 +1,48 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2025-10-04 10:16:06.283638",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "area_checked",
+  "score",
+  "remarks"
+ ],
+ "fields": [
+  {
+   "fieldname": "area_checked",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Area Checked",
+   "options": "\nAlgebra (polynomials, equations, factorization)\nGeometry & Mensuration\nTrigonometry (identities, applications)\nStatistics & Probability\nProblem Solving & Application (word problems, higher-\norder thinking)"
+  },
+  {
+   "fieldname": "score",
+   "fieldtype": "Int",
+   "in_list_view": 1,
+   "label": "Score (1\u20135)"
+  },
+  {
+   "fieldname": "remarks",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Remarks"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2025-10-04 10:19:01.257974",
+ "modified_by": "Administrator",
+ "module": "happyschool",
+ "name": "HS Mathematics",
+ "owner": "Administrator",
+ "permissions": [],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}
