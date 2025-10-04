@@ -59,13 +59,14 @@
   },
   {
    "fieldname": "custom_curriculum",
-   "fieldtype": "Data",
-   "label": "Curriculum"
+   "fieldtype": "Select",
+   "label": "Board",
+   "options": "\nCBSE\nKerala Board\nICSE"
   },
   {
    "fieldname": "custom_assessment_status",
    "fieldtype": "Select",
-   "label": "Assessment Status",
+   "label": "Assessment Report Status",
    "options": "Not Shared\nShared"
   },
   {
@@ -143,14 +144,15 @@
   },
   {
    "fieldname": "category",
-   "fieldtype": "Data",
-   "label": "Category"
+   "fieldtype": "Select",
+   "label": "Category",
+   "options": "\nLP\nUP\nHS\nHSS\nRemedial"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-09-30 16:55:24.958298",
+ "modified": "2025-10-04 11:19:57.473264",
  "modified_by": "Administrator",
  "module": "happyschool",
  "name": "HS Opportunity",

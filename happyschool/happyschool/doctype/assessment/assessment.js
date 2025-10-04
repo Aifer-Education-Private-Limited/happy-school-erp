@@ -10,7 +10,8 @@ frappe.ui.form.on("Assessment", {
     onload: function(frm) {
         if (!frm.doc.date) {
             frm.set_value("date", frappe.datetime.get_today());
-        }
+        }    
+        
     },
     refresh: function(frm) {
         if (!frm.custom_buttons_added) {

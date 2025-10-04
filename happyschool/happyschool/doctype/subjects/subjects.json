@@ -32,16 +32,17 @@
   },
   {
    "fieldname": "subjects",
-   "fieldtype": "Data",
+   "fieldtype": "Link",
    "in_list_view": 1,
-   "label": "Subjects"
+   "label": "Subjects",
+   "options": "HS Program List"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2025-09-30 17:24:57.630021",
+ "modified": "2025-10-03 14:31:28.476102",
  "modified_by": "Administrator",
  "module": "happyschool",
  "name": "Subjects",
