@@ -7,7 +7,8 @@
  "field_order": [
   "program",
   "session_rate",
-  "project"
+  "project",
+  "grade"
  ],
  "fields": [
   {
@@ -25,12 +26,18 @@
    "fieldtype": "Link",
    "label": "Project",
    "options": "Project"
+  },
+  {
+   "fieldname": "grade",
+   "fieldtype": "Select",
+   "label": "Grade/Class",
+   "options": "\n1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-09-20 09:19:01.524348",
+ "modified": "2025-10-04 15:25:35.332317",
  "modified_by": "Administrator",
  "module": "happyschool",
  "name": "HS Program List",
